@@ -12,6 +12,7 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Repositorio: `ZafiroSad/STICK-QUANTITY` (público)
 - Despliegue: GitHub Pages — https://zafirosad.github.io/STICK-QUANTITY/
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
+- **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
 ## Estado actual — v1.0.0 (capítulo Mampostería completo)
 - Catálogo de unidades: bloque de arcilla H-10/H-12/H-15/H-20, estructural 12/15/20,
@@ -80,3 +81,19 @@ Piezas clave dentro de `index.html`:
 - Falta soporte de aparejos distintos al de soga (unidad pegada de tizón o de canto cambia la cara
   vista); hoy se resuelve con la opción Personalizada.
 - No hay logo propio; la marca del header es un SVG inline.
+
+## Nota de despliegue (2026-08-06)
+El primer despliegue quedó bloqueado por una caída de GitHub (Actions y Pages en `major_outage`;
+webhooks limitados al 15 %, runners atascados). El workflow `pages build and deployment` falló con
+`Failed to resolve action download info. Error: Service Unavailable` y un reintento quedó más de una
+hora en `queued` sin runner asignado.
+
+**Solución que sí funcionó:** solicitar la compilación directamente por la API de Pages, que no
+depende de la cola de Actions ni del webhook del push:
+
+```powershell
+gh api -X POST repos/ZafiroSad/STICK-QUANTITY/pages/builds
+gh api repos/ZafiroSad/STICK-QUANTITY/pages/builds/latest --jq .status   # queued -> building -> built
+```
+
+Recordar esta vía si un `push` no dispara el despliegue.
