@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0c0d10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="STICK QUANTITY">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<title>STICK QUANTITY</title>
+<meta name="description" content="Calculadora de cantidades de obra. Mampostería: ladrillos, juntas y mortero de pega.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="STICK QUANTITY">
+<meta property="og:description" content="Calculadora de cantidades de obra. Mampostería: ladrillos, juntas y mortero de pega.">
+<style>
+/* ============================================================
+   STICK QUANTITY — sistema visual STICK (dark-first zinc) en CSS puro
+   ============================================================ */
+:root{
+  --bg:#0c0d10;
+  --zinc-950:#09090b; --zinc-900:#18181b; --zinc-850:#1f1f23; --zinc-800:#27272a;
+  --zinc-750:#333338; --zinc-700:#3f3f46; --zinc-650:#494951; --zinc-600:#52525b;
+  --zinc-550:#62626b; --zinc-500:#71717a; --zinc-450:#898992; --zinc-400:#a1a1aa;
+  --zinc-350:#babac1; --zinc-300:#d4d4d8; --zinc-200:#e4e4e7; --zinc-100:#f4f4f5;
+  --emerald:#34d399; --rose:#fb7185; --amber:#fbbf24; --amber-250:#fddf6e; --sky:#38bdf8;
+  --font:'Century Gothic','AppleGothic','Trebuchet MS',system-ui,-apple-system,sans-serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);font-family:var(--font);-webkit-text-size-adjust:100%;text-size-adjust:100%;
+  touch-action:manipulation}
+body{
+  background:var(--bg);color:var(--zinc-100);font-family:var(--font);
+  -webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(1200px 700px at 50% -10%,rgba(82,82,91,.06),transparent 60%);
+}
+button,input,select,textarea{font-family:inherit}
+/* Safari en iOS hace zoom automatico al enfocar un campo cuya fuente mida
+   menos de 16px: en pantallas tactiles se fuerzan a 16px. */
+@media (pointer:coarse){
+  input,select,textarea{font-size:16px !important}
+}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--zinc-700);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--zinc-600)}
+.no-sb::-webkit-scrollbar{display:none}
+.no-sb{-ms-overflow-style:none;scrollbar-width:none}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── Animaciones ── */
+@keyframes fade-in{from{opacity:0;transform:scale(.99)}to{opacity:1;transform:scale(1)}}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes item{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.animate-fade-in{animation:fade-in .25s var(--ease) both}
+.animate-rise{animation:rise .40s var(--ease) both}
+.animate-item{animation:item .38s var(--ease) both}
+
+/* ── Tarjetas ── */
+.card{
+  background:rgba(31,31,35,.60);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:22px;border:1px solid rgba(63,63,70,.40);
+  box-shadow:0 8px 32px rgba(0,0,0,.35);
+  transition:border-color .35s var(--ease),box-shadow .35s var(--ease),transform .35s var(--ease);
+}
+.card.hoverable:hover{border-color:rgba(82,82,91,.65);
+  box-shadow:0 20px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04)}
+
+/* ── Texto ── */
+.h1{font-size:26px;font-weight:700;letter-spacing:-.02em;color:#fff}
+.h2{font-size:20px;font-weight:700;letter-spacing:-.01em;color:#fff}
+.h3{font-size:15px;font-weight:700;color:#fff}
+.label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--zinc-500)}
+.label-mono{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--zinc-400)}
+.sub{font-size:13px;color:var(--zinc-400);line-height:1.5}
+.muted{color:var(--zinc-500);font-size:12px;line-height:1.5}
+.dim{color:var(--zinc-600)}
+
+/* ── Botones ── */
+.btn-primary{
+  background:#fff;color:#000;border:none;border-radius:12px;padding:13px 18px;
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.25);
+  transition:transform .2s var(--ease),background .15s ease,box-shadow .2s ease;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-primary:hover{background:#e4e4e7;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.btn-primary:active{transform:scale(.97);box-shadow:none}
+.btn-secondary{
+  background:rgba(24,24,27,.8);color:var(--zinc-200);border:1px solid rgba(63,63,70,.8);
+  border-radius:12px;padding:11px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:all .2s var(--ease);display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-secondary:hover{background:rgba(39,39,42,.85);border-color:rgba(82,82,91,.8);transform:translateY(-1px)}
+.btn-secondary:active{transform:scale(.97)}
+.btn-danger{
+  background:rgba(251,113,133,.08);color:var(--rose);border:1px solid rgba(251,113,133,.18);
+  border-radius:12px;padding:11px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:background .2s ease,transform .2s var(--ease);
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-danger:hover{background:rgba(251,113,133,.16);transform:translateY(-1px)}
+.btn-danger:active{transform:scale(.97)}
+.btn-icon{
+  width:32px;height:32px;border-radius:11px;background:rgba(24,24,27,.8);
+  border:1px solid var(--zinc-800);color:var(--zinc-500);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .2s var(--ease);flex:none;
+}
+.btn-icon:hover{color:#fff;border-color:var(--zinc-700)}
+.btn-icon.danger:hover{color:var(--rose);border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.08)}
+.btn-icon:active{transform:scale(.93)}
+
+/* ── Formularios ── */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--zinc-500)}
+.field input,.field select{
+  width:100%;background:rgba(9,9,11,.60);border:1px solid var(--zinc-800);border-radius:12px;
+  padding:11px 13px;font-size:14px;font-weight:600;color:#fff;outline:none;
+  font-variant-numeric:tabular-nums;
+  transition:border-color .2s ease,background .2s ease,box-shadow .2s ease;
+}
+.field input:focus,.field select:focus{
+  border-color:var(--zinc-600);background:rgba(9,9,11,.85);box-shadow:0 0 0 3px rgba(82,82,91,.15);
+}
+.field select{cursor:pointer;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.field select option{background:#18181b;color:#fff}
+.field input::placeholder{color:var(--zinc-600);font-weight:500}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+/* ── Segmented control (modo de la fila) ── */
+.seg{display:inline-flex;background:rgba(9,9,11,.6);border:1px solid var(--zinc-800);
+  border-radius:11px;padding:3px;gap:3px}
+.seg button{
+  background:transparent;border:none;color:var(--zinc-500);cursor:pointer;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  padding:7px 11px;border-radius:8px;transition:all .2s var(--ease);white-space:nowrap;
+}
+.seg button:hover{color:var(--zinc-300)}
+.seg button.on{background:rgba(255,255,255,.09);color:#fff}
+
+/* ── Shell ── */
+header.topbar{
+  position:sticky;top:0;z-index:40;background:rgba(12,13,16,.72);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(39,39,42,.40);padding-top:env(safe-area-inset-top);
+}
+.topbar-inner{height:64px;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:0 18px;max-width:1120px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-mark{width:34px;height:34px;border-radius:11px;border:1px solid rgba(63,63,70,.6);
+  background:linear-gradient(145deg,#27272a,#131316);display:flex;align-items:center;
+  justify-content:center;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-direction:column;gap:22px}
+
+/* ── Barra de capítulos ── */
+.chapters{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.chip{
+  border-radius:999px;border:1px solid rgba(63,63,70,.5);background:rgba(24,24,27,.6);
+  color:var(--zinc-400);font-size:11px;font-weight:700;letter-spacing:.04em;
+  padding:8px 14px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;
+}
+.chip.on{background:rgba(255,255,255,.94);color:#000;border-color:transparent}
+.chip.soon{color:var(--zinc-600);border-style:dashed;border-color:rgba(63,63,70,.45)}
+.chip.soon span{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--zinc-700)}
+
+/* ── Bloques ── */
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:11px}
+.pad{padding:18px}
+@media (min-width:640px){.pad{padding:22px}}
+.grid{display:grid;gap:12px}
+.g-params{grid-template-columns:1fr}
+@media (min-width:560px){.g-params{grid-template-columns:1fr 1fr}}
+@media (min-width:900px){.g-params{grid-template-columns:1.6fr 1fr 1fr 1.2fr}}
+.g-custom{grid-template-columns:repeat(3,1fr)}
+
+/* Fila de muro */
+.row{background:rgba(9,9,11,.35);border:1px solid rgba(63,63,70,.35);border-radius:18px;padding:14px}
+.row:hover{border-color:rgba(82,82,91,.5)}
+.row-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.row-idx{width:26px;height:26px;border-radius:9px;background:rgba(255,255,255,.06);
+  color:var(--zinc-400);font-size:11px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;flex:none;font-variant-numeric:tabular-nums}
+.row-name{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;
+  font-size:14px;font-weight:700;letter-spacing:-.01em;padding:4px 0}
+.row-name::placeholder{color:var(--zinc-600);font-weight:600}
+.row-grid{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+@media (min-width:720px){.row-grid{grid-template-columns:repeat(4,1fr)}}
+.row-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.05);flex-wrap:wrap}
+
+/* Resumen */
+.stat{background:rgba(9,9,11,.4);border:1px solid rgba(63,63,70,.35);border-radius:16px;padding:14px 15px}
+.stat .k{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--zinc-500)}
+.stat .v{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;margin-top:6px;line-height:1.1}
+.stat .u{font-size:11px;font-weight:700;color:var(--zinc-500);margin-left:4px}
+.g-stats{grid-template-columns:1fr 1fr}
+@media (min-width:820px){.g-stats{grid-template-columns:repeat(4,1fr)}}
+.hero{
+  border-radius:18px;padding:18px 20px;border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap
+}
+.hero .v{font-size:38px;font-weight:800;color:#fff;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;line-height:1}
+.note{
+  border-radius:14px;border:1px solid rgba(251,191,36,.16);background:rgba(251,191,36,.05);
+  padding:12px 14px;font-size:11.5px;line-height:1.6;color:var(--zinc-400)
+}
+.note b{color:var(--amber-250);font-weight:700}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:60;
+  background:rgba(24,24,27,.96);border:1px solid rgba(63,63,70,.5);border-radius:14px;
+  padding:11px 18px;font-size:12px;font-weight:700;color:#fff;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;pointer-events:none;
+  transition:opacity .25s var(--ease),transform .25s var(--ease);
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.empty{text-align:center;padding:34px 18px;color:var(--zinc-600);font-size:13px}
+footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--zinc-700);text-align:center}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e4e4e7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/>
+          <path d="M12 4v6M8 14v6M16 14v6"/>
+        </svg>
+      </div>
+      <div style="min-width:0">
+        <p style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.01em;line-height:1.1">STICK QUANTITY</p>
+        <p style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--zinc-500);margin-top:3px">Cantidades de obra</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-icon" id="btnCopiar" title="Copiar resumen">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      </button>
+      <button class="btn-icon" id="btnCsv" title="Exportar CSV">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Capítulos -->
+  <div class="chapters no-sb animate-fade-in">
+    <div class="chip on">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/>
+      </svg>
+      Mampostería
+    </div>
+    <div class="chip soon">Concreto <span>Pronto</span></div>
+    <div class="chip soon">Acero <span>Pronto</span></div>
+    <div class="chip soon">Pañete <span>Pronto</span></div>
+    <div class="chip soon">Pisos <span>Pronto</span></div>
+  </div>
+
+  <!-- Parámetros -->
+  <section class="animate-rise">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Unidad y pega</h2>
+        <p class="sub">Define el ladrillo y la junta. Aplica a todos los muros de la lista.</p>
+      </div>
+    </div>
+
+    <div class="card pad">
+      <div class="grid g-params">
+        <div class="field">
+          <label for="selUnidad">Tipo de unidad</label>
+          <select id="selUnidad"></select>
+        </div>
+        <div class="field">
+          <label for="selJunta">Junta (cm)</label>
+          <select id="selJunta">
+            <option value="1">1.0 cm</option>
+            <option value="1.5">1.5 cm</option>
+            <option value="2">2.0 cm</option>
+            <option value="2.5">2.5 cm</option>
+            <option value="3">3.0 cm</option>
+            <option value="custom">Otra…</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="inpDesp">Desperdicio (%)</label>
+          <input id="inpDesp" type="text" inputmode="decimal" value="5">
+        </div>
+        <div class="field">
+          <label for="selPega">Contacto de la pega</label>
+          <select id="selPega">
+            <option value="1">Junta llena — todo el espesor</option>
+            <option value="0.55">Solo paredes del bloque (55%)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Junta personalizada -->
+      <div id="wrapJuntaCustom" style="display:none;margin-top:12px">
+        <div class="field" style="max-width:220px">
+          <label for="inpJunta">Junta personalizada (cm)</label>
+          <input id="inpJunta" type="text" inputmode="decimal" value="1.5">
+        </div>
+      </div>
+
+      <!-- Medidas personalizadas -->
+      <div id="wrapCustom" style="display:none;margin-top:14px">
+        <p class="label" style="margin-bottom:9px">Medidas de la unidad</p>
+        <div class="grid g-custom">
+          <div class="field">
+            <label for="cL">Largo (cm)</label>
+            <input id="cL" type="text" inputmode="decimal" value="30">
+          </div>
+          <div class="field">
+            <label for="cH">Alto (cm)</label>
+            <input id="cH" type="text" inputmode="decimal" value="20">
+          </div>
+          <div class="field">
+            <label for="cA">Ancho / espesor (cm)</label>
+            <input id="cA" type="text" inputmode="decimal" value="12">
+          </div>
+        </div>
+      </div>
+
+      <!-- Ficha de la unidad -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.05);
+                  display:flex;flex-wrap:wrap;gap:20px 30px;align-items:flex-end">
+        <div>
+          <p class="label">Medidas nominales</p>
+          <p id="fichaMedidas" class="num" style="font-size:15px;font-weight:700;color:#fff;margin-top:5px">—</p>
+        </div>
+        <div>
+          <p class="label">Módulo con junta</p>
+          <p id="fichaModulo" class="num" style="font-size:15px;font-weight:700;color:var(--zinc-300);margin-top:5px">—</p>
+        </div>
+        <div>
+          <p class="label">Rendimiento</p>
+          <p style="margin-top:5px"><span id="fichaUM2" class="num" style="font-size:22px;font-weight:800;color:var(--emerald)">—</span>
+            <span style="font-size:11px;font-weight:700;color:var(--zinc-500);margin-left:4px">und/m²</span></p>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <p id="fichaNota" class="muted" style="font-size:11px"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Muros -->
+  <section class="animate-rise" style="animation-delay:.06s">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Muros</h2>
+        <p class="sub">Agrega una fila por muro. Área directa o largo × alto.</p>
+      </div>
+      <button class="btn-primary" id="btnAgregar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Agregar muro
+      </button>
+    </div>
+
+    <div class="card pad">
+      <div id="filas" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="vacio" class="empty" style="display:none">
+        Sin muros todavía. Toca <b style="color:var(--zinc-400)">Agregar muro</b> para empezar.
+      </div>
+    </div>
+  </section>
+
+  <!-- Resumen -->
+  <section class="animate-rise" style="animation-delay:.12s">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Resumen</h2>
+        <p class="sub">Cantidad total a pedir, con desperdicio incluido.</p>
+      </div>
+      <button class="btn-danger" id="btnLimpiar">Limpiar todo</button>
+    </div>
+
+    <div class="card pad" style="display:flex;flex-direction:column;gap:14px">
+      <div class="hero">
+        <div>
+          <p class="label" style="color:var(--zinc-400)">Unidades a pedir</p>
+          <p style="margin-top:8px"><span class="v" id="totFinal">0</span>
+            <span style="font-size:13px;font-weight:700;color:var(--zinc-400);margin-left:6px">und</span></p>
+          <p class="muted" id="totDetalle" style="margin-top:7px">—</p>
+        </div>
+        <div style="text-align:right">
+          <p class="label" style="color:var(--zinc-400)">Unidad</p>
+          <p id="totUnidad" style="font-size:14px;font-weight:700;color:#fff;margin-top:7px">—</p>
+        </div>
+      </div>
+
+      <div class="grid g-stats">
+        <div class="stat"><p class="k">Área bruta</p><p class="v"><span id="totBruta">0.00</span><span class="u">m²</span></p></div>
+        <div class="stat"><p class="k">Descuentos</p><p class="v"><span id="totDesc">0.00</span><span class="u">m²</span></p></div>
+        <div class="stat"><p class="k">Área neta</p><p class="v"><span id="totNeta">0.00</span><span class="u">m²</span></p></div>
+        <div class="stat"><p class="k">Mortero de pega</p><p class="v"><span id="totMortero">0.000</span><span class="u">m³</span></p></div>
+      </div>
+
+      <div class="note">
+        <b>Verificar antes de pedir.</b> Las medidas del catálogo son nominales típicas del mercado
+        colombiano y varían entre ladrilleras: confirmar con la ficha técnica del proveedor o medir en obra
+        (opción <i>Personalizada</i>). El mortero es una estimación del volumen de junta —no incluye
+        relleno de celdas, dovelas ni mortero de inyección.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">STICK QUANTITY · v1.0.0 · Familia Stick</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   STICK QUANTITY — motor de cálculo
+   ------------------------------------------------------------
+   Fórmula base (mampostería de junta uniforme):
+
+     unidades por m² = 10000 / [ (L + j) · (H + j) ]
+
+   donde L = largo de la cara vista (cm), H = alto de la cara vista (cm)
+   y j = espesor de la junta (cm). El 10000 convierte cm² a m².
+   Se suma la junta a cada dimensión porque cada unidad "ocupa" en el
+   muro su propia medida más una junta horizontal y una vertical.
+
+   Mortero de pega (m³ por m² de muro):
+
+     V = [ 1 - (L·H) / ((L+j)·(H+j)) ] · e · f
+
+   El corchete es la fracción del muro ocupada por juntas; e es el
+   espesor del muro (m) y f el factor de contacto (1.00 junta llena;
+   0.55 si solo se pega sobre las paredes del bloque hueco).
+   ============================================================ */
+
+/* Catálogo. a = ancho/espesor del muro, h = alto de cara, l = largo de cara (cm) */
+const CATALOGO = [
+  { grupo: 'Arcilla — bloque de perforación horizontal', items: [
+    { id:'h10', nombre:'Bloque H-10',  l:30, h:20, a:10, hueco:true },
+    { id:'h12', nombre:'Bloque H-12',  l:30, h:20, a:12, hueco:true },
+    { id:'h15', nombre:'Bloque H-15',  l:30, h:20, a:15, hueco:true },
+    { id:'h20', nombre:'Bloque H-20',  l:30, h:20, a:20, hueco:true },
+  ]},
+  { grupo: 'Arcilla — bloque estructural (perforación vertical)', items: [
+    { id:'e12', nombre:'Estructural 12', l:33, h:23, a:12, hueco:true },
+    { id:'e15', nombre:'Estructural 15', l:33, h:23, a:15, hueco:true },
+    { id:'e20', nombre:'Estructural 20', l:33, h:23, a:20, hueco:true },
+  ]},
+  { grupo: 'Arcilla — macizos', items: [
+    { id:'tolete',   nombre:'Tolete común',      l:25, h:6.5, a:12.5, hueco:false },
+    { id:'prensado', nombre:'Tolete prensado',   l:24, h:6,   a:12,   hueco:false },
+    { id:'farol',    nombre:'Ladrillo farol',    l:24, h:11,  a:12,   hueco:true  },
+  ]},
+  { grupo: 'Concreto', items: [
+    { id:'c10', nombre:'Bloque concreto 10', l:40, h:20, a:10, hueco:true },
+    { id:'c12', nombre:'Bloque concreto 12', l:40, h:20, a:12, hueco:true },
+    { id:'c15', nombre:'Bloque concreto 15', l:40, h:20, a:15, hueco:true },
+    { id:'c20', nombre:'Bloque concreto 20', l:40, h:20, a:20, hueco:true },
+  ]},
+];
+
+const TODAS = CATALOGO.flatMap(g => g.items);
+const CLAVE = 'stick-quantity-v1';
+
+let estado = {
+  unidad: 'h10',
+  custom: { l:30, h:20, a:12 },
+  juntaSel: '1.5',
+  juntaCustom: 1.5,
+  desperdicio: 5,
+  pega: 1,
+  filas: [],
+};
+
+/* ── Utilidades ─────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const nf = (n, d=2) => Number.isFinite(n)
+  ? n.toLocaleString('es-CO', { minimumFractionDigits:d, maximumFractionDigits:d })
+  : (0).toLocaleString('es-CO', { minimumFractionDigits:d, maximumFractionDigits:d });
+const ni = n => Math.round(n).toLocaleString('es-CO');
+/* Medida en cm: coma decimal y sin ceros sobrantes (30, 11,5, 6,5) */
+const dim = x => Number(x).toLocaleString('es-CO', { maximumFractionDigits:2 });
+const num = v => { const x = parseFloat(String(v).replace(',', '.')); return Number.isFinite(x) ? x : 0; };
+const uid = () => 'f' + Math.random().toString(36).slice(2, 9);
+
+let toastT;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+function unidadActual(){
+  if (estado.unidad === 'custom'){
+    return { id:'custom', nombre:'Personalizada', hueco:false, ...estado.custom };
+  }
+  return TODAS.find(u => u.id === estado.unidad) || TODAS[0];
+}
+function junta(){
+  return estado.juntaSel === 'custom' ? num(estado.juntaCustom) : num(estado.juntaSel);
+}
+function porM2(){
+  const u = unidadActual(), j = junta();
+  const L = u.l + j, H = u.h + j;
+  return (L > 0 && H > 0) ? 10000 / (L * H) : 0;
+}
+function morteroPorM2(){
+  const u = unidadActual(), j = junta();
+  const bruto = (u.l + j) * (u.h + j);
+  if (bruto <= 0) return 0;
+  const fraccionJunta = 1 - (u.l * u.h) / bruto;
+  return fraccionJunta * (u.a / 100) * num(estado.pega);
+}
+
+/* ── Persistencia ───────────────────────────────────────── */
+function guardar(){
+  try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch(e){}
+}
+function cargar(){
+  try {
+    const raw = localStorage.getItem(CLAVE);
+    if (raw) estado = Object.assign(estado, JSON.parse(raw));
+  } catch(e){}
+  if (!Array.isArray(estado.filas) || !estado.filas.length) estado.filas = [nuevaFila()];
+}
+function nuevaFila(){
+  return { id:uid(), desc:'', modo:'dim', largo:'', alto:'', area:'', cant:1, descuento:'' };
+}
+
+/* ── Cálculo por fila ───────────────────────────────────── */
+function calcFila(f){
+  const cant = Math.max(0, num(f.cant) || 0);
+  const base = f.modo === 'area' ? num(f.area) : num(f.largo) * num(f.alto);
+  const bruta = Math.max(0, base) * cant;
+  const desc = Math.min(Math.max(0, num(f.descuento)), bruta);
+  const neta = Math.max(0, bruta - desc);
+  return { bruta, desc, neta, und: neta * porM2() };
+}
+function totales(){
+  const t = { bruta:0, desc:0, neta:0, und:0 };
+  estado.filas.forEach(f => {
+    const c = calcFila(f);
+    t.bruta += c.bruta; t.desc += c.desc; t.neta += c.neta; t.und += c.und;
+  });
+  const k = 1 + num(estado.desperdicio) / 100;
+  t.final = Math.ceil(t.und * k);
+  t.mortero = t.neta * morteroPorM2() * k;
+  return t;
+}
+
+/* ── Render ─────────────────────────────────────────────── */
+function pintarSelectUnidad(){
+  const sel = $('selUnidad');
+  sel.innerHTML = '';
+  CATALOGO.forEach(g => {
+    const og = document.createElement('optgroup');
+    og.label = g.grupo;
+    g.items.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.id;
+      o.textContent = `${u.nombre} — ${dim(u.l)}×${dim(u.h)}×${dim(u.a)} cm`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  const og = document.createElement('optgroup');
+  og.label = 'Otra';
+  const o = document.createElement('option');
+  o.value = 'custom'; o.textContent = 'Personalizada — medir en obra';
+  og.appendChild(o); sel.appendChild(og);
+  sel.value = estado.unidad;
+}
+
+/* Animar solo en el primer render y en la fila recién agregada: repintar la
+   lista completa en cada cambio de modo hacía re-animar todas las filas. */
+let animarTodo = true, animarId = null;
+
+function pintarFilas(){
+  const cont = $('filas');
+  cont.innerHTML = '';
+  $('vacio').style.display = estado.filas.length ? 'none' : 'block';
+
+  estado.filas.forEach((f, i) => {
+    const c = calcFila(f);
+    const div = document.createElement('div');
+    div.className = 'row';
+    if (animarTodo){ div.classList.add('animate-item'); div.style.animationDelay = (i * 55) + 'ms'; }
+    else if (f.id === animarId){ div.classList.add('animate-item'); }
+    div.innerHTML = `
+      <div class="row-head">
+        <div class="row-idx">${i + 1}</div>
+        <input class="row-name" data-k="desc" placeholder="Muro ${i + 1} — descripción (opcional)" value="${escapeHtml(f.desc)}">
+        <div class="seg">
+          <button data-modo="dim"  class="${f.modo === 'dim'  ? 'on' : ''}">Largo × Alto</button>
+          <button data-modo="area" class="${f.modo === 'area' ? 'on' : ''}">Área</button>
+        </div>
+        <button class="btn-icon danger" data-del="1" title="Eliminar muro">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="row-grid">
+        ${f.modo === 'dim' ? `
+          <div class="field"><label>Largo (m)</label>
+            <input data-k="largo" type="text" inputmode="decimal" placeholder="0.00" value="${escapeHtml(f.largo)}"></div>
+          <div class="field"><label>Alto (m)</label>
+            <input data-k="alto" type="text" inputmode="decimal" placeholder="0.00" value="${escapeHtml(f.alto)}"></div>
+        ` : `
+          <div class="field" style="grid-column:span 2"><label>Área (m²)</label>
+            <input data-k="area" type="text" inputmode="decimal" placeholder="0.00" value="${escapeHtml(f.area)}"></div>
+        `}
+        <div class="field"><label>Cantidad iguales</label>
+          <input data-k="cant" type="text" inputmode="numeric" value="${escapeHtml(f.cant)}"></div>
+        <div class="field"><label>Vanos a descontar (m²)</label>
+          <input data-k="descuento" type="text" inputmode="decimal" placeholder="0.00" value="${escapeHtml(f.descuento)}"></div>
+      </div>
+      <div class="row-foot">
+        <p class="muted num">Área neta <b style="color:var(--zinc-300)">${nf(c.neta)} m²</b>
+          ${c.desc > 0 ? `<span class="dim"> · descontado ${nf(c.desc)} m²</span>` : ''}</p>
+        <p class="num" style="font-size:13px;font-weight:800;color:#fff">${ni(c.und)}
+          <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">und</span></p>
+      </div>`;
+
+    // Cambio de modo
+    div.querySelectorAll('[data-modo]').forEach(b => {
+      b.addEventListener('click', () => { f.modo = b.dataset.modo; guardar(); pintarFilas(); pintarTotales(); });
+    });
+    // Eliminar
+    div.querySelector('[data-del]').addEventListener('click', () => {
+      estado.filas = estado.filas.filter(x => x.id !== f.id);
+      guardar(); pintarFilas(); pintarTotales();
+    });
+    // Campos: se recalcula sin volver a pintar la fila para no perder el foco
+    div.querySelectorAll('[data-k]').forEach(inp => {
+      inp.addEventListener('input', () => {
+        // Los campos numéricos son type=text para aceptar coma decimal (2,5) —
+        // input[type=number] la descarta y devolvería vacío. Se filtra lo demás.
+        if (inp.dataset.k !== 'desc'){
+          const limpio = inp.value.replace(/[^0-9.,]/g, '');
+          if (limpio !== inp.value) inp.value = limpio;
+        }
+        f[inp.dataset.k] = inp.value;
+        const cc = calcFila(f);
+        const foot = div.querySelector('.row-foot');
+        foot.children[0].innerHTML = `Área neta <b style="color:var(--zinc-300)">${nf(cc.neta)} m²</b>` +
+          (cc.desc > 0 ? `<span class="dim"> · descontado ${nf(cc.desc)} m²</span>` : '');
+        foot.children[1].innerHTML = `${ni(cc.und)} <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">und</span>`;
+        guardar(); pintarTotales();
+      });
+    });
+
+    cont.appendChild(div);
+  });
+  animarTodo = false; animarId = null;
+}
+
+function pintarFicha(){
+  const u = unidadActual(), j = junta();
+  $('fichaMedidas').textContent = `${dim(u.l)} × ${dim(u.h)} × ${dim(u.a)} cm`;
+  $('fichaModulo').textContent  = `${nf(u.l + j, 1)} × ${nf(u.h + j, 1)} cm`;
+  $('fichaUM2').textContent     = nf(porM2(), 2);
+  $('fichaNota').innerHTML = `Cara vista <b style="color:var(--zinc-400)">${dim(u.l)} × ${dim(u.h)} cm</b>, ` +
+    `espesor de muro <b style="color:var(--zinc-400)">${dim(u.a)} cm</b>. Junta de ${nf(j, 1)} cm en horizontal y vertical.`;
+  $('totUnidad').textContent = `${u.nombre} · ${dim(u.l)}×${dim(u.h)}×${dim(u.a)}`;
+}
+
+function pintarTotales(){
+  const t = totales();
+  $('totBruta').textContent   = nf(t.bruta);
+  $('totDesc').textContent    = nf(t.desc);
+  $('totNeta').textContent    = nf(t.neta);
+  $('totMortero').textContent = nf(t.mortero, 3);
+  $('totFinal').textContent   = ni(t.final);
+  $('totDetalle').textContent =
+    `${ni(t.und)} und netas + ${nf(num(estado.desperdicio), 1)} % de desperdicio · ` +
+    `${nf(porM2(), 2)} und/m² · ${nf(t.neta)} m² de muro`;
+}
+
+function pintarTodo(){ pintarFicha(); pintarFilas(); pintarTotales(); }
+
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, m =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+}
+
+/* ── Exportación ────────────────────────────────────────── */
+function resumenTexto(){
+  const u = unidadActual(), t = totales();
+  const L = [];
+  L.push('STICK QUANTITY — Mampostería');
+  L.push(`Unidad: ${u.nombre} (${dim(u.l)} × ${dim(u.h)} × ${dim(u.a)} cm)`);
+  L.push(`Junta: ${nf(junta(),1)} cm · Rendimiento: ${nf(porM2(),2)} und/m² · Desperdicio: ${nf(num(estado.desperdicio),1)} %`);
+  L.push('');
+  estado.filas.forEach((f, i) => {
+    const c = calcFila(f);
+    const d = f.modo === 'dim'
+      ? `${nf(num(f.largo))} × ${nf(num(f.alto))} m`
+      : `${nf(num(f.area))} m²`;
+    L.push(`${i + 1}. ${f.desc || 'Muro ' + (i + 1)} — ${d} × ${num(f.cant) || 0} = ${nf(c.neta)} m² → ${ni(c.und)} und`);
+  });
+  L.push('');
+  L.push(`Área neta total: ${nf(t.neta)} m²`);
+  L.push(`Mortero de pega: ${nf(t.mortero, 3)} m³`);
+  L.push(`TOTAL A PEDIR: ${ni(t.final)} unidades`);
+  return L.join('\n');
+}
+
+/* Genera el contenido del CSV. Separado de la descarga para poder probarlo. */
+function csvTexto(){
+  const u = unidadActual(), t = totales();
+  const sep = ';';
+  const filas = [
+    ['STICK QUANTITY - Mamposteria'],
+    ['Unidad', u.nombre, `${u.l}x${u.h}x${u.a} cm`],
+    ['Junta (cm)', nf(junta(), 1)],
+    ['Rendimiento (und/m2)', nf(porM2(), 2)],
+    ['Desperdicio (%)', nf(num(estado.desperdicio), 1)],
+    [],
+    ['#', 'Descripcion', 'Modo', 'Largo (m)', 'Alto (m)', 'Area (m2)', 'Cant', 'Descuento (m2)', 'Area neta (m2)', 'Unidades'],
+  ];
+  estado.filas.forEach((f, i) => {
+    const c = calcFila(f);
+    filas.push([
+      i + 1, f.desc || `Muro ${i + 1}`, f.modo === 'dim' ? 'Largo x Alto' : 'Area',
+      f.modo === 'dim' ? nf(num(f.largo)) : '', f.modo === 'dim' ? nf(num(f.alto)) : '',
+      f.modo === 'area' ? nf(num(f.area)) : '', num(f.cant) || 0,
+      nf(c.desc), nf(c.neta), Math.ceil(c.und),
+    ]);
+  });
+  filas.push([]);
+  filas.push(['Area bruta (m2)', nf(t.bruta)]);
+  filas.push(['Descuentos (m2)', nf(t.desc)]);
+  filas.push(['Area neta (m2)', nf(t.neta)]);
+  filas.push(['Mortero de pega (m3)', nf(t.mortero, 3)]);
+  filas.push(['TOTAL A PEDIR (und)', t.final]);
+
+  // BOM inicial para que Excel en Windows reconozca UTF-8 (tildes y m²/m³)
+  return '﻿' + filas.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(sep)).join('\r\n');
+}
+
+function exportarCsv(){
+  const blob = new Blob([csvTexto()], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'stick-quantity-mamposteria.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('CSV exportado');
+}
+
+/* ── Eventos ────────────────────────────────────────────── */
+function sincronizarVisibilidad(){
+  $('wrapCustom').style.display      = estado.unidad === 'custom' ? 'block' : 'none';
+  $('wrapJuntaCustom').style.display = estado.juntaSel === 'custom' ? 'block' : 'none';
+}
+
+$('selUnidad').addEventListener('change', e => {
+  estado.unidad = e.target.value;
+  sincronizarVisibilidad(); guardar(); pintarTodo();
+});
+$('selJunta').addEventListener('change', e => {
+  estado.juntaSel = e.target.value;
+  sincronizarVisibilidad(); guardar(); pintarTodo();
+});
+/* Filtro de entrada: se registra antes que los cálculos para que estos lean el valor ya limpio */
+['inpDesp','inpJunta','cL','cH','cA'].forEach(id => {
+  $(id).addEventListener('input', e => {
+    const limpio = e.target.value.replace(/[^0-9.,]/g, '');
+    if (limpio !== e.target.value) e.target.value = limpio;
+  });
+});
+
+$('inpJunta').addEventListener('input', e => { estado.juntaCustom = e.target.value; guardar(); pintarFicha(); pintarFilasSuave(); });
+$('inpDesp').addEventListener('input',  e => { estado.desperdicio = e.target.value;  guardar(); pintarTotales(); });
+$('selPega').addEventListener('change', e => { estado.pega = e.target.value; guardar(); pintarTotales(); });
+['cL','cH','cA'].forEach(id => {
+  $(id).addEventListener('input', e => {
+    estado.custom[id[1].toLowerCase()] = num(e.target.value);
+    guardar(); pintarFicha(); pintarFilasSuave();
+  });
+});
+
+/* Actualiza subtotales sin re-pintar los inputs (conserva el foco) */
+function pintarFilasSuave(){
+  const cont = $('filas');
+  estado.filas.forEach((f, i) => {
+    const div = cont.children[i]; if (!div) return;
+    const c = calcFila(f), foot = div.querySelector('.row-foot');
+    foot.children[0].innerHTML = `Área neta <b style="color:var(--zinc-300)">${nf(c.neta)} m²</b>` +
+      (c.desc > 0 ? `<span class="dim"> · descontado ${nf(c.desc)} m²</span>` : '');
+    foot.children[1].innerHTML = `${ni(c.und)} <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">und</span>`;
+  });
+  pintarTotales();
+}
+
+$('btnAgregar').addEventListener('click', () => {
+  const f = nuevaFila();
+  estado.filas.push(f);
+  animarId = f.id;
+  guardar(); pintarFilas(); pintarTotales();
+  const cont = $('filas');
+  const ultimo = cont.lastElementChild;
+  if (ultimo) ultimo.querySelector('.row-name').focus();
+});
+
+$('btnLimpiar').addEventListener('click', () => {
+  if (!confirm('¿Borrar todos los muros de la lista?')) return;
+  estado.filas = [nuevaFila()];
+  guardar(); pintarFilas(); pintarTotales();
+  toast('Lista vacía');
+});
+
+$('btnCopiar').addEventListener('click', async () => {
+  const txt = resumenTexto();
+  try {
+    await navigator.clipboard.writeText(txt);
+    toast('Resumen copiado');
+  } catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    toast('Resumen copiado');
+  }
+});
+
+$('btnCsv').addEventListener('click', exportarCsv);
+
+/* ── Arranque ───────────────────────────────────────────── */
+cargar();
+pintarSelectUnidad();
+$('selUnidad').value = estado.unidad;
+$('selJunta').value  = estado.juntaSel;
+$('inpJunta').value  = estado.juntaCustom;
+$('inpDesp').value   = estado.desperdicio;
+$('selPega').value   = estado.pega;
+$('cL').value = estado.custom.l; $('cH').value = estado.custom.h; $('cA').value = estado.custom.a;
+sincronizarVisibilidad();
+pintarTodo();
+</script>
+</body>
+</html>
