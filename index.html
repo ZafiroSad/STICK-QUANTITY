@@ -171,6 +171,12 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
 
 /* ── Bloques ── */
 .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:11px}
+/* En móvil el CTA no cabe junto al título: baja a su propia línea */
+@media (max-width:560px){
+  .section-head{flex-direction:column;align-items:stretch;gap:12px}
+  .section-head .btn-primary{width:100%}
+  .section-head .btn-danger{align-self:flex-start}
+}
 .pad{padding:18px}
 @media (min-width:640px){.pad{padding:22px}}
 .grid{display:grid;gap:12px}
@@ -190,9 +196,20 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
   font-size:14px;font-weight:700;letter-spacing:-.01em;padding:4px 0}
 .row-name::placeholder{color:var(--zinc-600);font-weight:600}
 .row-grid{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+/* Los labels largos ("Vanos a descontar (m²)") envuelven en dos líneas: se
+   alinean abajo para que los inputs de la misma fila queden a la misma altura */
+.row-grid .field>label{min-height:2.1em;display:flex;align-items:flex-end}
 @media (min-width:720px){.row-grid{grid-template-columns:repeat(4,1fr)}}
 .row-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;
   margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.05);flex-wrap:wrap}
+/* En móvil el nombre del muro comparte línea solo con el índice y la X;
+   el selector de modo baja a una línea propia a ancho completo. */
+@media (max-width:560px){
+  .row-head{flex-wrap:wrap}
+  .row-head .seg{order:3;flex:1 1 100%;justify-content:stretch}
+  .row-head .seg button{flex:1}
+  .row-head .btn-icon{order:2}
+}
 
 /* Resumen */
 .stat{background:rgba(9,9,11,.4);border:1px solid rgba(63,63,70,.35);border-radius:16px;padding:14px 15px}
