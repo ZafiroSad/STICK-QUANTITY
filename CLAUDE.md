@@ -42,6 +42,8 @@ Piezas clave dentro de `index.html`:
 - `calcFila()` / `totales()` — cálculo por fila y agregado con desperdicio.
 - `pintarFilasSuave()` — actualiza subtotales **sin** re-pintar los inputs, para no perder el
   foco mientras se escribe (mismo problema ya resuelto en STICK FIT v1.13.0).
+- `csvTexto()` / `exportarCsv()` — generación y descarga separadas, para poder verificar el
+  contenido del CSV sin depender de que el navegador materialice la descarga.
 
 ## Decisiones tomadas
 - **Repo público.** Excepción deliberada a la regla de repos privados por defecto: la utilidad es
@@ -58,6 +60,15 @@ Piezas clave dentro de `index.html`:
 - **El mortero es estimación de volumen de junta**, no de mortero total: no incluye relleno de
   celdas, dovelas ni inyección. Declarado en la UI y en el README.
 - **Sin backend, sin cuentas, sin analítica.** La app no envía nada a ningún servidor.
+- **Campos numéricos en `type="text"` con `inputmode="decimal"`, no `type="number"`.** En Colombia
+  se escribe la coma decimal (`2,5`) y `input[type=number]` la descarta: el campo devuelve cadena
+  vacía y el cálculo daba cero en silencio. Se filtra la entrada a `[0-9.,]` y `num()` normaliza la
+  coma a punto. Regla a replicar en los capítulos siguientes.
+- **Animación de fila solo en el primer render y en la fila nueva.** Repintar la lista completa en
+  cada cambio de modo re-animaba todas las filas (parpadeo). Controlado con `animarTodo`/`animarId`.
+- **El total se redondea hacia arriba una sola vez, sobre el agregado** (`Math.ceil` en `totales()`);
+  los subtotales por fila se muestran redondeados al entero más cercano. Antes el detalle usaba
+  `ceil` sobre el neto y no cuadraba con la suma visible de las filas.
 
 ## Pendientes y problemas conocidos
 - Verificar las medidas del catálogo contra fichas técnicas reales (Ladrillera Santafé, Ocaña,
