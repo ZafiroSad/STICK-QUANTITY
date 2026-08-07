@@ -8,11 +8,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="STICK QUANTITY">
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <title>STICK QUANTITY</title>
 <meta name="description" content="Calculadora de cantidades de obra. Mampostería: ladrillos, juntas y mortero de pega.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="STICK QUANTITY">
 <meta property="og:description" content="Calculadora de cantidades de obra. Mampostería: ladrillos, juntas y mortero de pega.">
+<meta property="og:image" content="./icon-512.png">
+<meta name="twitter:card" content="summary">
 <style>
 /* ============================================================
    STICK QUANTITY — sistema visual STICK (dark-first zinc) en CSS puro
@@ -250,9 +253,20 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
   <div class="topbar-inner">
     <div class="brand">
       <div class="brand-mark">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e4e4e7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/>
-          <path d="M12 4v6M8 14v6M16 14v6"/>
+        <!-- Marca oficial: geometria medida de LOGO.png (caja del glifo 961x859).
+             El hueco vertical se recorta con mascara para que se vea el fondo del tile. -->
+        <svg width="18" height="16" viewBox="0 0 961 859" aria-hidden="true">
+          <mask id="qmark">
+            <rect x="-20" y="-20" width="1001" height="899" fill="#fff"/>
+            <rect x="369" y="-20" width="134" height="899" fill="#000"/>
+          </mask>
+          <g mask="url(#qmark)" fill="#e4e4e7">
+            <rect x="269" y="0"   width="268" height="132" rx="66"/>
+            <rect x="77"  y="182" width="595" height="132" rx="66"/>
+            <rect x="195" y="364" width="766" height="132" rx="66"/>
+            <rect x="0"   y="546" width="796" height="132" rx="66"/>
+            <rect x="269" y="728" width="370" height="132" rx="66"/>
+          </g>
         </svg>
       </div>
       <div style="min-width:0">

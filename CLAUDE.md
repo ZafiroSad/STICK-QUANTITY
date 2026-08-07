@@ -23,6 +23,9 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Desperdicio global (5 % por defecto), mortero de pega estimado, exportación CSV y copia de
   resumen en texto.
 - Persistencia en `localStorage` bajo la clave `stick-quantity-v1`.
+- **Marca propia aplicada (2026-08-06):** favicon, ícono de iOS, imagen de enlace compartido y marca
+  del encabezado salen del maestro `LOGO.png`. Reemplaza el ícono provisional de dos hiladas de
+  ladrillo.
 
 ## Arquitectura
 Un solo archivo `index.html` con CSS y JS embebidos, sin build ni dependencias —
@@ -31,7 +34,10 @@ mismo patrón que STICK FIT y URL-MP4 (proyectos autónomos, sin acoplar).
 | Archivo | Rol |
 |---|---|
 | `index.html` | Toda la app: estilos, catálogo, motor de cálculo y UI |
-| `favicon.svg` | Marca (dos hiladas de ladrillo, trazo zinc-200) |
+| `LOGO.png` | **Maestro de marca** (2000×2000, glifo blanco sobre `#1e1f1f`) |
+| `favicon.svg` | Marca vectorial sobre placa `#18181b` r14 — derivada del maestro |
+| `apple-touch-icon.png` | Ícono iOS 180×180, remuestreado del maestro |
+| `icon-512.png` | Imagen de enlace compartido (`og:image`), 512×512 |
 | `README.md` | Documentación pública, fórmulas y advertencia técnica |
 | `.gitignore` | OS + editores + temporales |
 
@@ -47,6 +53,14 @@ Piezas clave dentro de `index.html`:
   contenido del CSV sin depender de que el navegador materialice la descarga.
 
 ## Decisiones tomadas
+- **Logo propio (2026-08-06).** El Señor Stick entregó `LOGO.png`: un glifo tipo almohadilla formado
+  por 5 barras horizontales redondeadas partidas por un hueco vertical. Se reprodujo **como vector**
+  (no como PNG incrustado) midiendo el maestro píxel a píxel: caja del glifo 961×859, barras de
+  132 px de alto con paso de 182 px y radio 66, hueco vertical de 134 px en x 369–503. El hueco se
+  recorta con una `<mask>` en vez de dibujar 10 piezas sueltas, porque las barras 1 y 5 quedan
+  cortadas a media curva y como rectángulos redondeados independientes no darían la misma forma.
+  Ese mismo SVG alimenta el `favicon.svg` y la marca del encabezado; el PNG maestro alimenta el
+  `apple-touch-icon` (iOS no acepta SVG) y el `og:image`.
 - **Repo público.** Excepción deliberada a la regla de repos privados por defecto: la utilidad es
   general y no expone datos del Señor Stick (todo vive en `localStorage` del visitante).
 - **Un solo HTML, sin build.** GitHub Pages sirve el archivo tal cual; no hay CI ni compilación
@@ -80,7 +94,6 @@ Piezas clave dentro de `index.html`:
 - No hay PWA (`manifest.json` / service worker). Evaluar si se quiere instalable como STICK FIT.
 - Falta soporte de aparejos distintos al de soga (unidad pegada de tizón o de canto cambia la cara
   vista); hoy se resuelve con la opción Personalizada.
-- No hay logo propio; la marca del header es un SVG inline.
 
 ## Nota de despliegue (2026-08-06)
 El primer despliegue quedó bloqueado por una caída de GitHub (Actions y Pages en `major_outage`;
