@@ -7,7 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="STICK QUANTITY">
+<!-- El SVG lo usan Chrome, Edge y Firefox (nitido a cualquier tamaño). Safari NO
+     soporta favicon en SVG y cae al PNG; sin él la pestaña quedaría sin ícono. -->
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="icon" href="./favicon.png" type="image/png" sizes="64x64">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <title>STICK QUANTITY</title>
 <meta name="description" content="Calculadora de cantidades de obra. Mampostería: ladrillos, juntas y mortero de pega.">
@@ -260,7 +263,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
             <rect x="-20" y="-20" width="1001" height="899" fill="#fff"/>
             <rect x="369" y="-20" width="134" height="899" fill="#000"/>
           </mask>
-          <g mask="url(#qmark)" fill="#e4e4e7">
+          <g mask="url(#qmark)" fill="#ffffff">
             <rect x="269" y="0"   width="268" height="132" rx="66"/>
             <rect x="77"  y="182" width="595" height="132" rx="66"/>
             <rect x="195" y="364" width="766" height="132" rx="66"/>

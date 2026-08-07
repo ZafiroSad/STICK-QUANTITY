@@ -35,9 +35,11 @@ mismo patrón que STICK FIT y URL-MP4 (proyectos autónomos, sin acoplar).
 |---|---|
 | `index.html` | Toda la app: estilos, catálogo, motor de cálculo y UI |
 | `LOGO.png` | **Maestro de marca** (2000×2000, glifo blanco sobre `#1e1f1f`) |
-| `favicon.svg` | Marca vectorial sobre placa `#18181b` r14 — derivada del maestro |
+| `favicon.svg` | Favicon vectorial (Chrome, Edge, Firefox) |
+| `favicon.png` | Favicon 64×64 de respaldo — **Safari no soporta SVG** |
 | `apple-touch-icon.png` | Ícono iOS 180×180, remuestreado del maestro |
 | `icon-512.png` | Imagen de enlace compartido (`og:image`), 512×512 |
+| `tools/gen-favicon.ps1` | Redibuja `favicon.png` con la geometría del logo. Fuera de la app |
 | `README.md` | Documentación pública, fórmulas y advertencia técnica |
 | `.gitignore` | OS + editores + temporales |
 
@@ -61,6 +63,12 @@ Piezas clave dentro de `index.html`:
   cortadas a media curva y como rectángulos redondeados independientes no darían la misma forma.
   Ese mismo SVG alimenta el `favicon.svg` y la marca del encabezado; el PNG maestro alimenta el
   `apple-touch-icon` (iOS no acepta SVG) y el `og:image`.
+- **Favicon doble: SVG + PNG (2026-08-06).** `favicon.svg` se declara primero y lo usan Chrome, Edge
+  y Firefox; **Safari no soporta favicon en SVG** y caería a nada, así que se declara detrás
+  `favicon.png` (64×64, `tools/gen-favicon.ps1`). Importa porque el Señor Stick revisa desde iPhone,
+  donde Safari sí muestra el ícono en la barra de pestañas. Los dos archivos son gemelos exactos:
+  fondo `#1e1f1f` a sangre y glifo blanco con **cobertura 0.86**, no la del maestro (0.48) — a 16 px
+  el glifo del maestro queda diminuto. Mismo criterio que `tools/gen-icons.ps1` de STICK FIT.
 - **Repo público.** Excepción deliberada a la regla de repos privados por defecto: la utilidad es
   general y no expone datos del Señor Stick (todo vive en `localStorage` del visitante).
 - **Un solo HTML, sin build.** GitHub Pages sirve el archivo tal cual; no hay CI ni compilación

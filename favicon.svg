@@ -1,14 +1,16 @@
 <!-- STICK QUANTITY - marca oficial. Geometria medida de LOGO.png (2000x2000):
-     5 barras de 132px de alto, paso 182px, radio 66, partidas por un hueco vertical
-     de 134px. El sistema de coordenadas interno (961x859) es la caja del glifo. -->
+     5 barras de 132 de alto, paso 182, radio 66, partidas por un hueco vertical
+     de 134. El sistema de coordenadas interno (961x859) es la caja del glifo.
+     Fondo y color identicos al maestro; la cobertura sube a 0.86 para que el
+     glifo se lea a 16 px. Gemelo exacto de favicon.png (tools/gen-favicon.ps1). -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#18181b"/>
-  <svg x="12" y="14" width="40" height="36" viewBox="0 0 961 859">
+  <rect width="64" height="64" fill="#1e1f1f"/>
+  <svg x="4.48" y="7.4" width="55.04" height="49.2" viewBox="0 0 961 859">
     <mask id="fav-gap">
       <rect x="-20" y="-20" width="1001" height="899" fill="#fff"/>
       <rect x="369" y="-20" width="134" height="899" fill="#000"/>
     </mask>
-    <g mask="url(#fav-gap)" fill="#e4e4e7">
+    <g mask="url(#fav-gap)" fill="#ffffff">
       <rect x="269" y="0"   width="268" height="132" rx="66"/>
       <rect x="77"  y="182" width="595" height="132" rx="66"/>
       <rect x="195" y="364" width="766" height="132" rx="66"/>
