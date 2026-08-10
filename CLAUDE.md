@@ -54,6 +54,33 @@ Piezas clave dentro de `index.html`:
 - `csvTexto()` / `exportarCsv()` — generación y descarga separadas, para poder verificar el
   contenido del CSV sin depender de que el navegador materialice la descarga.
 
+## Migración al UI SYSTEM v2 «Campo y Vidrio» (2026-08-09)
+
+Cuarta app migrada de la familia (tras AROS, PROJECTS y ASSETS). Al ser un solo HTML sin Tailwind,
+la migración se hizo sobre las variables CSS propias, no copiando el `index.css` canónico:
+
+- **Rampa grafito.** Las variables `--zinc-*` conservan sus nombres y cambian todos sus valores a los
+  grises fríos del portafolio. Se añaden `--tinta` (`#f7f8fa`) y `--contratinta` (`#15161b`), que
+  sustituyen a los `#fff`/`#000` fijos: el blanco y el negro puros salen de la paleta.
+- **El campo** (`.campo` + 4 `.masa` + `.grano`) sustituye al `background-image` radial del `body`;
+  todo el contenido pasa a `.lienzo`. Tokens `--bg`, `--bg-2`, `--bg-3`.
+- **Vidrio líquido** en tarjetas (`.card` a 26 px), topbar, botones secundarios, botones ícono, toast
+  y campos, con `--v-fondo`/`--v-borde`/`--v-blur`/`--v-filo`/`--v-sombra`.
+- **Píldoras:** `.btn-primary`, `.btn-secondary`, `.btn-danger`, `.btn-icon`, `.seg`, `.chip`,
+  `.field input/select` y el toast pasan a `border-radius: 999px`.
+- **Modo claro (§10, ahora obligatorio en toda la familia):** bloque `html.light` que reespeja la
+  rampa e invierte el filo del vidrio, botón Sol/Luna `#btnTema` en la topbar, persistencia en
+  `localStorage` (`stick:tema`) y script anti-destello en el `<head>` antes del `<style>`.
+- `theme-color` del `<head>` actualizado de `#0c0d10` a `#15161b`.
+
+**Defecto encontrado al verificar en modo claro** (no supuesto: se vio en captura): cuatro textos
+tenían `color:#fff` en estilos en línea del marcado —el título "STICK QUANTITY" de la topbar, las
+medidas nominales, la unidad del resumen y el contador de unidades por fila— y quedaban blancos
+sobre fondo blanco. Corregidos a `var(--tinta)`. El `fill="#ffffff"` del SVG de la marca **se
+conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
+
+Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
+
 ## Decisiones tomadas
 - **Logo propio (2026-08-06).** El Señor Stick entregó `LOGO.png`: un glifo tipo almohadilla formado
   por 5 barras horizontales redondeadas partidas por un hueco vertical. Se reprodujo **como vector**
@@ -75,6 +102,7 @@ Piezas clave dentro de `index.html`:
   que mantener. Descartado React+Vite por sobredimensionado para una calculadora.
 - **Sistema visual Stick en CSS puro**, variante AROS (Century Gothic → AppleGothic →
   Trebuchet MS → system-ui), según `STICK_UI_SYSTEM.md` §0.4 (la variante por defecto es AROS).
+  **Desde el 2026-08-09 rige la v2 «Campo y Vidrio»** — ver sección de migración más abajo.
 - **Anti-zoom de la familia Stick aplicado** (meta viewport + `touch-action:manipulation` +
   campos a 16px bajo `pointer:coarse`).
 - **Medidas del catálogo declaradas como nominales típicas**, no como dato normativo: varían por

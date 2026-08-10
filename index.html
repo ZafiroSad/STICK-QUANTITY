@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0c0d10">
+<meta name="theme-color" content="#15161b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="STICK QUANTITY">
@@ -19,28 +19,115 @@
 <meta property="og:description" content="Calculadora de cantidades de obra. Mampostería: ladrillos, juntas y mortero de pega.">
 <meta property="og:image" content="./icon-512.png">
 <meta name="twitter:card" content="summary">
+<!-- Anti-destello: aplica el tema ANTES del primer pintado (STICK_UI_SYSTEM.md §10) -->
+<script>try{if(localStorage.getItem('stick:tema')==='claro')document.documentElement.classList.add('light')}catch(e){}</script>
 <style>
 /* ============================================================
-   STICK QUANTITY — sistema visual STICK (dark-first zinc) en CSS puro
+   STICK QUANTITY — sistema visual STICK v2 «Campo y Vidrio» en CSS puro
+   Rector: STICK_UI_SYSTEM.md. No hay color de fondo: hay un CAMPO.
    ============================================================ */
 :root{
-  --bg:#0c0d10;
-  --zinc-950:#09090b; --zinc-900:#18181b; --zinc-850:#1f1f23; --zinc-800:#27272a;
-  --zinc-750:#333338; --zinc-700:#3f3f46; --zinc-650:#494951; --zinc-600:#52525b;
-  --zinc-550:#62626b; --zinc-500:#71717a; --zinc-450:#898992; --zinc-400:#a1a1aa;
-  --zinc-350:#babac1; --zinc-300:#d4d4d8; --zinc-200:#e4e4e7; --zinc-100:#f4f4f5;
+  /* Rampa grafito — mismos nombres que la escala zinc, valores del PORTAFOLIO */
+  --bg:#15161b; --bg-2:#1d1f26; --bg-3:#101116;
+  --zinc-950:#15161b; --zinc-900:#1d1f26; --zinc-850:#21242e; --zinc-800:#2a2e39;
+  --zinc-750:#333743; --zinc-700:#3c404c; --zinc-650:#464a57; --zinc-600:#565a66;
+  --zinc-550:#676b78; --zinc-500:#797d8a; --zinc-450:#9397a3; --zinc-400:#adb0bb;
+  --zinc-350:#babdc8; --zinc-300:#c9ccd6; --zinc-200:#dfe1e8; --zinc-100:#eef0f4;
+  --tinta:#f7f8fa; --contratinta:#15161b;
   --emerald:#34d399; --rose:#fb7185; --amber:#fbbf24; --amber-250:#fddf6e; --sky:#38bdf8;
   --font:'Century Gothic','AppleGothic','Trebuchet MS',system-ui,-apple-system,sans-serif;
-  --ease:cubic-bezier(.16,1,.3,1);
+
+  /* Tres curvas, y solo tres */
+  --ease:cubic-bezier(.16,1,.3,1);      /* = --salida */
+  --suave:cubic-bezier(.4,0,.2,1);
+  --resorte:cubic-bezier(.34,1.56,.64,1);
+
+  /* Vidrio liquido */
+  --v-fondo:linear-gradient(148deg,rgba(255,255,255,.085) 0%,rgba(255,255,255,.028) 44%,rgba(255,255,255,.055) 100%);
+  --v-borde:rgba(255,255,255,.11);
+  --v-blur:blur(16px) saturate(175%);
+  --v-filo:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(255,255,255,.045),
+           inset 1px 0 0 rgba(255,255,255,.05),inset -1px 0 0 rgba(255,255,255,.05);
+  --v-sombra:0 22px 60px -26px rgba(0,0,0,.85);
+  --linea:rgba(255,255,255,.10); --linea-fuerte:rgba(255,255,255,.26);
+
+  /* Masas del campo */
+  --masa-1:hsl(214 22% 62% / .30); --masa-2:hsl(32 30% 64% / .22);
+  --masa-3:hsl(28 16% 58% / .20);  --masa-4:hsl(196 18% 60% / .18);
+  --masa-op:.55; --grano-op:.045;
 }
+
+/* ── MODO CLARO (obligatorio en toda app de la familia — §10) ── */
+html.light{
+  color-scheme:light;
+  --bg:#f1f2f5; --bg-2:#fafbfc; --bg-3:#e7e9ee;
+  --zinc-950:#ffffff; --zinc-900:#f4f5f7; --zinc-850:#eceef1; --zinc-800:#e3e5ea;
+  --zinc-750:#d8dbe1; --zinc-700:#cfd2da; --zinc-650:#c1c5cf; --zinc-600:#9ba0ad;
+  --zinc-550:#878d9b; --zinc-500:#6f7583; --zinc-450:#5d6270; --zinc-400:#4b505d;
+  --zinc-350:#434854; --zinc-300:#383d48; --zinc-200:#2a2e39; --zinc-100:#1d1f26;
+  --tinta:#15161b; --contratinta:#ffffff;
+  --emerald:#059669; --rose:#e11d48; --amber:#d97706; --amber-250:#92400e; --sky:#0284c7;
+
+  --v-fondo:linear-gradient(148deg,rgba(255,255,255,.86) 0%,rgba(255,255,255,.62) 44%,rgba(255,255,255,.78) 100%);
+  --v-borde:rgba(21,22,27,.10);
+  --v-filo:inset 0 1px 0 rgba(255,255,255,.90),inset 0 -1px 0 rgba(21,22,27,.045),
+           inset 1px 0 0 rgba(255,255,255,.55),inset -1px 0 0 rgba(21,22,27,.03);
+  --v-sombra:0 18px 46px -24px rgba(21,22,27,.30);
+  --linea:rgba(21,22,27,.10); --linea-fuerte:rgba(21,22,27,.24);
+
+  --masa-1:hsl(214 42% 62% / .20); --masa-2:hsl(32 56% 64% / .17);
+  --masa-3:hsl(28 34% 58% / .14);  --masa-4:hsl(196 40% 60% / .14);
+  --masa-op:.70; --grano-op:.030;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--bg);font-family:var(--font);-webkit-text-size-adjust:100%;text-size-adjust:100%;
   touch-action:manipulation}
 body{
   background:var(--bg);color:var(--zinc-100);font-family:var(--font);
   -webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden;
-  background-image:radial-gradient(1200px 700px at 50% -10%,rgba(82,82,91,.06),transparent 60%);
 }
+
+/* ── EL CAMPO — lo que sustituye al fondo plano ── */
+.campo{position:fixed;inset:-420px 0;z-index:0;pointer-events:none;overflow:hidden;will-change:transform;
+  background:radial-gradient(130% 85% at 50% -12%,rgba(196,204,220,.07),transparent 62%),
+             linear-gradient(180deg,var(--bg-2) 0%,var(--bg) 48%,var(--bg-3) 100%)}
+html.light .campo{background:radial-gradient(130% 85% at 50% -12%,rgba(21,22,27,.045),transparent 62%),
+             linear-gradient(180deg,var(--bg-2) 0%,var(--bg) 48%,var(--bg-3) 100%)}
+/* Solo se anima translate: animar scale re-rasteriza el desenfoque cada cuadro */
+.masa{position:absolute;border-radius:50%;filter:blur(72px);opacity:var(--masa-op);
+  will-change:transform;contain:strict}
+.m1{width:66vmax;height:66vmax;left:-20vmax;top:-16vmax;
+  background:radial-gradient(circle,var(--masa-1),transparent 68%);animation:derivaA 52s var(--suave) infinite}
+.m2{width:56vmax;height:56vmax;right:-18vmax;top:6vmax;
+  background:radial-gradient(circle,var(--masa-2),transparent 66%);animation:derivaB 64s var(--suave) infinite}
+.m3{width:74vmax;height:74vmax;left:10vmax;bottom:-32vmax;
+  background:radial-gradient(circle,var(--masa-3),transparent 68%);animation:derivaC 70s var(--suave) infinite}
+.m4{width:46vmax;height:46vmax;right:4vmax;bottom:-10vmax;
+  background:radial-gradient(circle,var(--masa-4),transparent 66%);animation:derivaB 58s var(--suave) infinite reverse}
+@keyframes derivaA{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(9vmax,7vmax,0)}}
+@keyframes derivaB{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(-11vmax,9vmax,0)}}
+@keyframes derivaC{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(8vmax,-8vmax,0)}}
+.grano{position:absolute;inset:0;opacity:var(--grano-op);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)'/%3E%3C/svg%3E")}
+.lienzo{position:relative;z-index:1}
+
+/* ── VIDRIO LIQUIDO ── */
+.vidrio{position:relative;background:var(--v-fondo);
+  backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
+  border:1px solid var(--v-borde);box-shadow:var(--v-filo),var(--v-sombra)}
+
+/* ── Toggle de modo claro (obligatorio, §10) ── */
+.btn-tema{width:32px;height:32px;border-radius:999px;background:var(--v-fondo);
+  backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
+  border:1px solid var(--v-borde);box-shadow:var(--v-filo);
+  color:var(--zinc-500);display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:color .3s var(--suave),border-color .3s var(--suave),transform .35s var(--resorte)}
+.btn-tema:hover{color:var(--tinta);border-color:var(--linea-fuerte);transform:translateY(-2px)}
+.btn-tema:active{transform:scale(.95)}
+.btn-tema .luna{display:none}
+html.light .btn-tema .sol{display:none}
+html.light .btn-tema .luna{display:block}
 button,input,select,textarea{font-family:inherit}
 /* Safari en iOS hace zoom automatico al enfocar un campo cuya fuente mida
    menos de 16px: en pantallas tactiles se fuerzan a 16px. */
@@ -65,18 +152,19 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── Tarjetas ── */
 .card{
-  background:rgba(31,31,35,.60);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-radius:22px;border:1px solid rgba(63,63,70,.40);
-  box-shadow:0 8px 32px rgba(0,0,0,.35);
-  transition:border-color .35s var(--ease),box-shadow .35s var(--ease),transform .35s var(--ease);
+  background:var(--v-fondo);backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
+  border-radius:26px;border:1px solid var(--v-borde);
+  box-shadow:var(--v-filo),var(--v-sombra);
+  transition:border-color .45s var(--ease),box-shadow .45s var(--ease),transform .45s var(--ease);
 }
-.card.hoverable:hover{border-color:rgba(82,82,91,.65);
-  box-shadow:0 20px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04)}
+.card.hoverable:hover{border-color:var(--linea-fuerte);
+  box-shadow:var(--v-filo),0 30px 70px -28px rgba(0,0,0,.92);transform:translateY(-3px)}
+html.light .card.hoverable:hover{box-shadow:var(--v-filo),0 26px 56px -26px rgba(21,22,27,.34)}
 
 /* ── Texto ── */
-.h1{font-size:26px;font-weight:700;letter-spacing:-.02em;color:#fff}
-.h2{font-size:20px;font-weight:700;letter-spacing:-.01em;color:#fff}
-.h3{font-size:15px;font-weight:700;color:#fff}
+.h1{font-size:26px;font-weight:700;letter-spacing:-.02em;color:var(--tinta)}
+.h2{font-size:20px;font-weight:700;letter-spacing:-.01em;color:var(--tinta)}
+.h3{font-size:15px;font-weight:700;color:var(--tinta)}
 .label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--zinc-500)}
 .label-mono{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--zinc-400)}
 .sub{font-size:13px;color:var(--zinc-400);line-height:1.5}
@@ -85,36 +173,39 @@ button,input,select,textarea{font-family:inherit}
 
 /* ── Botones ── */
 .btn-primary{
-  background:#fff;color:#000;border:none;border-radius:12px;padding:13px 18px;
-  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;
-  box-shadow:0 4px 16px rgba(0,0,0,.25);
-  transition:transform .2s var(--ease),background .15s ease,box-shadow .2s ease;
+  background:var(--tinta);color:var(--contratinta);border:none;border-radius:999px;padding:13px 22px;
+  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.10em;cursor:pointer;
+  box-shadow:0 8px 26px -12px rgba(0,0,0,.8);
+  transition:transform .35s var(--resorte),background .2s var(--suave),box-shadow .35s var(--suave);
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
 }
-.btn-primary:hover{background:#e4e4e7;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
-.btn-primary:active{transform:scale(.97);box-shadow:none}
+.btn-primary:hover{background:var(--zinc-100);transform:translateY(-3px);box-shadow:0 18px 40px -16px rgba(0,0,0,.85)}
+.btn-primary:active{transform:translateY(-1px) scale(.985);box-shadow:none}
 .btn-secondary{
-  background:rgba(24,24,27,.8);color:var(--zinc-200);border:1px solid rgba(63,63,70,.8);
-  border-radius:12px;padding:11px 14px;font-size:12px;font-weight:700;cursor:pointer;
-  transition:all .2s var(--ease);display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--v-fondo);backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
+  color:var(--zinc-200);border:1px solid var(--v-borde);box-shadow:var(--v-filo);
+  border-radius:999px;padding:11px 18px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:transform .35s var(--resorte),border-color .25s var(--suave),box-shadow .35s var(--suave);
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
 }
-.btn-secondary:hover{background:rgba(39,39,42,.85);border-color:rgba(82,82,91,.8);transform:translateY(-1px)}
-.btn-secondary:active{transform:scale(.97)}
+.btn-secondary:hover{border-color:var(--linea-fuerte);transform:translateY(-2px);box-shadow:var(--v-filo),0 18px 40px -22px rgba(0,0,0,.85)}
+.btn-secondary:active{transform:translateY(0) scale(.985)}
 .btn-danger{
-  background:rgba(251,113,133,.08);color:var(--rose);border:1px solid rgba(251,113,133,.18);
-  border-radius:12px;padding:11px 14px;font-size:12px;font-weight:700;cursor:pointer;
+  background:rgba(251,113,133,.08);color:var(--rose);border:1px solid rgba(251,113,133,.20);
+  border-radius:999px;padding:11px 20px;font-size:12px;font-weight:700;cursor:pointer;
   transition:background .2s ease,transform .2s var(--ease);
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
 }
-.btn-danger:hover{background:rgba(251,113,133,.16);transform:translateY(-1px)}
+.btn-danger:hover{background:rgba(251,113,133,.16);transform:translateY(-2px)}
 .btn-danger:active{transform:scale(.97)}
 .btn-icon{
-  width:32px;height:32px;border-radius:11px;background:rgba(24,24,27,.8);
-  border:1px solid var(--zinc-800);color:var(--zinc-500);cursor:pointer;
+  width:32px;height:32px;border-radius:999px;background:var(--v-fondo);
+  backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
+  border:1px solid var(--v-borde);box-shadow:var(--v-filo);color:var(--zinc-500);cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;
-  transition:all .2s var(--ease);flex:none;
+  transition:color .3s var(--suave),border-color .3s var(--suave),transform .35s var(--resorte);flex:none;
 }
-.btn-icon:hover{color:#fff;border-color:var(--zinc-700)}
+.btn-icon:hover{color:var(--tinta);border-color:var(--linea-fuerte);transform:translateY(-2px)}
 .btn-icon.danger:hover{color:var(--rose);border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.08)}
 .btn-icon:active{transform:scale(.93)}
 
@@ -122,44 +213,47 @@ button,input,select,textarea{font-family:inherit}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field>label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--zinc-500)}
 .field input,.field select{
-  width:100%;background:rgba(9,9,11,.60);border:1px solid var(--zinc-800);border-radius:12px;
-  padding:11px 13px;font-size:14px;font-weight:600;color:#fff;outline:none;
+  width:100%;background:rgba(255,255,255,.045);border:1px solid var(--v-borde);border-radius:999px;
+  padding:11px 18px;font-size:14px;font-weight:600;color:var(--tinta);outline:none;
   font-variant-numeric:tabular-nums;
   transition:border-color .2s ease,background .2s ease,box-shadow .2s ease;
 }
 .field input:focus,.field select:focus{
-  border-color:var(--zinc-600);background:rgba(9,9,11,.85);box-shadow:0 0 0 3px rgba(82,82,91,.15);
+  border-color:var(--linea-fuerte);background:rgba(255,255,255,.08);box-shadow:0 0 0 3px rgba(255,255,255,.07);
 }
+html.light .field input,html.light .field select{background:rgba(255,255,255,.80)}
+html.light .field input:focus,html.light .field select:focus{background:#fff;box-shadow:0 0 0 3px rgba(21,22,27,.06)}
 .field select{cursor:pointer;appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
-.field select option{background:#18181b;color:#fff}
+  background-repeat:no-repeat;background-position:right 16px center;padding-right:38px}
+.field select option{background:var(--zinc-900);color:var(--tinta)}
 .field input::placeholder{color:var(--zinc-600);font-weight:500}
 input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
 /* ── Segmented control (modo de la fila) ── */
-.seg{display:inline-flex;background:rgba(9,9,11,.6);border:1px solid var(--zinc-800);
-  border-radius:11px;padding:3px;gap:3px}
+.seg{display:inline-flex;background:rgba(255,255,255,.045);border:1px solid var(--v-borde);
+  border-radius:999px;padding:3px;gap:3px}
+html.light .seg{background:rgba(255,255,255,.70)}
 .seg button{
   background:transparent;border:none;color:var(--zinc-500);cursor:pointer;
   font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-  padding:7px 11px;border-radius:8px;transition:all .2s var(--ease);white-space:nowrap;
+  padding:7px 13px;border-radius:999px;transition:all .2s var(--ease);white-space:nowrap;
 }
 .seg button:hover{color:var(--zinc-300)}
-.seg button.on{background:rgba(255,255,255,.09);color:#fff}
+.seg button.on{background:var(--tinta);color:var(--contratinta)}
 
 /* ── Shell ── */
 header.topbar{
-  position:sticky;top:0;z-index:40;background:rgba(12,13,16,.72);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(39,39,42,.40);padding-top:env(safe-area-inset-top);
+  position:sticky;top:0;z-index:40;background:color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
+  border-bottom:1px solid var(--linea);padding-top:env(safe-area-inset-top);
 }
 .topbar-inner{height:64px;display:flex;align-items:center;justify-content:space-between;
   gap:14px;padding:0 18px;max-width:1120px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:11px;min-width:0}
-.brand-mark{width:34px;height:34px;border-radius:11px;border:1px solid rgba(63,63,70,.6);
+.brand-mark{width:34px;height:34px;border-radius:14px;border:1px solid var(--v-borde);
   background:linear-gradient(145deg,#27272a,#131316);display:flex;align-items:center;
   justify-content:center;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.45)}
 main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-direction:column;gap:22px}
@@ -167,12 +261,12 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
 /* ── Barra de capítulos ── */
 .chapters{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
 .chip{
-  border-radius:999px;border:1px solid rgba(63,63,70,.5);background:rgba(24,24,27,.6);
+  border-radius:999px;border:1px solid var(--v-borde);background:rgba(255,255,255,.045);
   color:var(--zinc-400);font-size:11px;font-weight:700;letter-spacing:.04em;
   padding:8px 14px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;
 }
-.chip.on{background:rgba(255,255,255,.94);color:#000;border-color:transparent}
-.chip.soon{color:var(--zinc-600);border-style:dashed;border-color:rgba(63,63,70,.45)}
+.chip.on{background:var(--tinta);color:var(--contratinta);border-color:transparent}
+.chip.soon{color:var(--zinc-600);border-style:dashed;border-color:var(--linea)}
 .chip.soon span{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--zinc-700)}
 
 /* ── Bloques ── */
@@ -192,13 +286,14 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
 .g-custom{grid-template-columns:repeat(3,1fr)}
 
 /* Fila de muro */
-.row{background:rgba(9,9,11,.35);border:1px solid rgba(63,63,70,.35);border-radius:18px;padding:14px}
+.row{background:rgba(255,255,255,.035);border:1px solid var(--v-borde);border-radius:22px;padding:14px}
+html.light .row{background:rgba(255,255,255,.62)}
 .row:hover{border-color:rgba(82,82,91,.5)}
 .row-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .row-idx{width:26px;height:26px;border-radius:9px;background:rgba(255,255,255,.06);
   color:var(--zinc-400);font-size:11px;font-weight:700;display:flex;align-items:center;
   justify-content:center;flex:none;font-variant-numeric:tabular-nums}
-.row-name{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;
+.row-name{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--tinta);
   font-size:14px;font-weight:700;letter-spacing:-.01em;padding:4px 0}
 .row-name::placeholder{color:var(--zinc-600);font-weight:600}
 .row-grid{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
@@ -218,9 +313,10 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
 }
 
 /* Resumen */
-.stat{background:rgba(9,9,11,.4);border:1px solid rgba(63,63,70,.35);border-radius:16px;padding:14px 15px}
+.stat{background:rgba(255,255,255,.035);border:1px solid var(--v-borde);border-radius:20px;padding:14px 15px}
+html.light .stat{background:rgba(255,255,255,.62)}
 .stat .k{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--zinc-500)}
-.stat .v{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;
+.stat .v{font-size:22px;font-weight:800;color:var(--tinta);letter-spacing:-.02em;
   font-variant-numeric:tabular-nums;margin-top:6px;line-height:1.1}
 .stat .u{font-size:11px;font-weight:700;color:var(--zinc-500);margin-left:4px}
 .g-stats{grid-template-columns:1fr 1fr}
@@ -230,7 +326,7 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
   background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap
 }
-.hero .v{font-size:38px;font-weight:800;color:#fff;letter-spacing:-.03em;
+.hero .v{font-size:38px;font-weight:800;color:var(--tinta);letter-spacing:-.03em;
   font-variant-numeric:tabular-nums;line-height:1}
 .note{
   border-radius:14px;border:1px solid rgba(251,191,36,.16);background:rgba(251,191,36,.05);
@@ -239,8 +335,9 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
 .note b{color:var(--amber-250);font-weight:700}
 .toast{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:60;
-  background:rgba(24,24,27,.96);border:1px solid rgba(63,63,70,.5);border-radius:14px;
-  padding:11px 18px;font-size:12px;font-weight:700;color:#fff;
+  background:var(--v-fondo);backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
+  border:1px solid var(--v-borde);box-shadow:var(--v-filo),var(--v-sombra);border-radius:999px;
+  padding:11px 20px;font-size:12px;font-weight:700;color:var(--tinta);
   box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;pointer-events:none;
   transition:opacity .25s var(--ease),transform .25s var(--ease);
 }
@@ -251,6 +348,17 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 </style>
 </head>
 <body>
+
+<!-- El campo: cuatro masas de luz que derivan + grano. Sustituye al fondo plano. §4.0 -->
+<div class="campo" aria-hidden="true">
+  <div class="masa m1"></div>
+  <div class="masa m2"></div>
+  <div class="masa m3"></div>
+  <div class="masa m4"></div>
+  <div class="grano"></div>
+</div>
+
+<div class="lienzo">
 
 <header class="topbar">
   <div class="topbar-inner">
@@ -273,11 +381,20 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
         </svg>
       </div>
       <div style="min-width:0">
-        <p style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.01em;line-height:1.1">STICK QUANTITY</p>
+        <p style="font-size:13px;font-weight:800;color:var(--tinta);letter-spacing:-.01em;line-height:1.1">STICK QUANTITY</p>
         <p style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--zinc-500);margin-top:3px">Cantidades de obra</p>
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
+      <!-- Modo claro: obligatorio en toda app de la familia (STICK_UI_SYSTEM.md §10) -->
+      <button class="btn-tema" id="btnTema" title="Modo claro" aria-label="Alternar modo claro">
+        <svg class="sol" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+        </svg>
+        <svg class="luna" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+        </svg>
+      </button>
       <button class="btn-icon" id="btnCopiar" title="Copiar resumen">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
@@ -379,7 +496,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
                   display:flex;flex-wrap:wrap;gap:20px 30px;align-items:flex-end">
         <div>
           <p class="label">Medidas nominales</p>
-          <p id="fichaMedidas" class="num" style="font-size:15px;font-weight:700;color:#fff;margin-top:5px">—</p>
+          <p id="fichaMedidas" class="num" style="font-size:15px;font-weight:700;color:var(--tinta);margin-top:5px">—</p>
         </div>
         <div>
           <p class="label">Módulo con junta</p>
@@ -440,7 +557,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
         </div>
         <div style="text-align:right">
           <p class="label" style="color:var(--zinc-400)">Unidad</p>
-          <p id="totUnidad" style="font-size:14px;font-weight:700;color:#fff;margin-top:7px">—</p>
+          <p id="totUnidad" style="font-size:14px;font-weight:700;color:var(--tinta);margin-top:7px">—</p>
         </div>
       </div>
 
@@ -463,6 +580,9 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 </main>
 
 <footer class="foot">STICK QUANTITY · v1.0.0 · Familia Stick</footer>
+
+</div><!-- /.lienzo -->
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -671,7 +791,7 @@ function pintarFilas(){
       <div class="row-foot">
         <p class="muted num">Área neta <b style="color:var(--zinc-300)">${nf(c.neta)} m²</b>
           ${c.desc > 0 ? `<span class="dim"> · descontado ${nf(c.desc)} m²</span>` : ''}</p>
-        <p class="num" style="font-size:13px;font-weight:800;color:#fff">${ni(c.und)}
+        <p class="num" style="font-size:13px;font-weight:800;color:var(--tinta)">${ni(c.und)}
           <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">und</span></p>
       </div>`;
 
@@ -890,6 +1010,14 @@ $('selPega').value   = estado.pega;
 $('cL').value = estado.custom.l; $('cH').value = estado.custom.h; $('cA').value = estado.custom.a;
 sincronizarVisibilidad();
 pintarTodo();
+
+/* Modo claro (STICK_UI_SYSTEM.md §10). La clase ya la pone el script anti-destello
+   del <head>; aquí solo se alterna y se persiste. */
+$('btnTema').addEventListener('click', () => {
+  const claro = document.documentElement.classList.toggle('light');
+  try { localStorage.setItem('stick:tema', claro ? 'claro' : 'oscuro'); } catch (e) {}
+  $('btnTema').title = claro ? 'Modo oscuro' : 'Modo claro';
+});
 </script>
 </body>
 </html>
