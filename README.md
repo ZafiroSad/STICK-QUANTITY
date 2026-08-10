@@ -12,7 +12,8 @@ servidor: se abre en el navegador y funciona también sin conexión una vez carg
 | Capítulo | Estado |
 |---|---|
 | Mampostería — ladrillos, junta y mortero de pega | Disponible |
-| Concreto | Pendiente |
+| Concreto — columnas y formaleta | Disponible |
+| Concreto — vigas y losas | Pendiente |
 | Acero de refuerzo | Pendiente |
 | Pañete / revoque | Pendiente |
 | Pisos y enchapes | Pendiente |
@@ -60,6 +61,66 @@ Las medidas del catálogo son **nominales típicas** y varían entre ladrilleras
 pedido, confirmar contra la ficha técnica del proveedor o medir la unidad en obra y usar la opción
 *Personalizada*. La estimación de mortero cubre únicamente el volumen de junta: no incluye relleno
 de celdas, dovelas ni mortero de inyección.
+
+---
+
+## Concreto — columnas
+
+Calcula el volumen de concreto y el área de formaleta a partir de:
+
+- **Sección** — rectangular (b × h en cm), circular (Ø en cm) o libre (área y perímetro
+  medidos directamente, para secciones en L, T o cualquier otra forma).
+- **Altura, cantidad de columnas iguales** y **caras a formaletear**.
+- **Mezcla** — 17.5 / 21 / 24.5 / 28 MPa con dosificación de referencia, o una propia.
+- **Suministro** — premezclado (se pide en m³) o hecho en obra (se piden cemento, arena,
+  grava y agua).
+- **Formaleta** — metálica o madera, usos previstos y desperdicio propio.
+
+Entrega el volumen a pedir, el área de contacto de la formaleta, el juego a montar, los
+tableros de madera equivalentes, el desmoldante y los materiales de la mezcla.
+
+### Fórmulas
+
+Volumen de concreto:
+
+```
+V = A_sección · altura · cantidad
+```
+
+con `A` rectangular = `b · h`, circular = `π · D² / 4`, o el área declarada en modo libre.
+Las secciones se escriben en cm y la altura en m.
+
+Área de formaleta, medida como **área de contacto** con el concreto:
+
+```
+A_form = p_contacto · altura · cantidad
+```
+
+`p_contacto` es el perímetro efectivamente encofrado. Una columna exenta encofra su perímetro
+completo; una columna de confinamiento embebida en el muro solo encofra las caras libres. Las
+caras que se retiran son las de dimensión `h`:
+
+| Caras | Perímetro de contacto |
+|---|---|
+| 4 — columna exenta | `2 · (b + h)` |
+| 3 — una cara contra muro | `2b + h` |
+| 2 — confinamiento | `2b` |
+| 1 | `b` |
+| 0 | `0` |
+
+En sección circular el número de caras se lee como fracción del perímetro `π · D`:
+4 = completo, 3 = ¾, 2 = ½, 1 = ¼.
+
+La **formaleta a montar** es el área de contacto dividida entre los usos previstos, más su
+desperdicio: es lo que hay que tener físicamente en obra si se rota el juego. El área de
+contacto en sí no lleva desperdicio, porque es una medida y no un material.
+
+### Advertencia técnica
+
+Las dosificaciones son **valores de referencia** para mezcla hecha en obra: el diseño de mezcla
+del laboratorio y la ficha del cemento mandan sobre esa tabla. El cálculo cubre *solo el concreto
+de la columna* — no incluye acero de refuerzo, alambre, separadores, dados de cimentación ni la
+porción de columna embebida en viga o losa.
 
 ---
 

@@ -14,7 +14,25 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.0.0 (capítulo Mampostería completo)
+## Estado actual — v1.1.0 (Mampostería + Concreto de columnas)
+
+### Capítulo Concreto — columnas (2026-08-10)
+Segundo capítulo. La barra de capítulos deja de ser decorativa: `Mampostería` y
+`Concreto · Columnas` son `<button data-cap>` que alternan `#vistaMamposteria` / `#vistaColumnas`;
+el capítulo activo se recuerda en `localStorage` (`stick:capitulo`) y los botones de copiar/CSV
+de la topbar despachan al capítulo visible.
+
+- Filas de columna ilimitadas, cada una en modo **Rectangular** (b × h cm), **Circular** (Ø cm) o
+  **Libre** (área m² y perímetro m declarados a mano — cubre secciones en L, T o cualquier otra).
+- Altura en m, cantidad de columnas iguales y **caras a formaletear** (4/3/2/1/0).
+- Mezcla: 17.5 / 21 / 24.5 / 28 MPa con dosificación de referencia por m³, o **Personalizada**.
+- Suministro **premezclado** (pide m³, con sugerencia redondeada al medio m³) o **hecho en obra**
+  (pide cemento en sacos de 50 kg, arena, grava y agua).
+- Formaleta metálica o de madera, con usos previstos, desperdicio propio y desmoldante en L/m².
+- Persistencia independiente en `localStorage` bajo `stick-quantity-columnas-v1`, para no tocar
+  los datos ya guardados de mampostería.
+
+## Estado anterior — v1.0.0 (capítulo Mampostería completo)
 - Catálogo de unidades: bloque de arcilla H-10/H-12/H-15/H-20, estructural 12/15/20,
   tolete común, tolete prensado, farol, bloque de concreto 10/12/15/20, y **Personalizada**.
 - Junta seleccionable (1.0 / 1.5 / 2.0 / 2.5 / 3.0 cm + valor propio).
@@ -54,6 +72,15 @@ Piezas clave dentro de `index.html`:
 - `csvTexto()` / `exportarCsv()` — generación y descarga separadas, para poder verificar el
   contenido del CSV sin depender de que el navegador materialice la descarga.
 
+Capítulo de columnas (mismo archivo, funciones con sufijo `Col`):
+- `MEZCLAS` — dosificaciones de referencia por m³ (sacos de 50 kg, arena, grava, agua).
+  **Agregar resistencias aquí, no en la UI.**
+- `seccionCol()` / `perimetroCol()` — área de la sección y perímetro efectivamente encofrado.
+- `calcCol()` / `totalesCol()` — volumen y formaleta por fila, y el agregado con desperdicios.
+- `pintarFilasColSuave()` — mismo criterio que en mampostería: actualiza los pies sin re-pintar
+  los inputs, para no perder el foco.
+- `pintarCapitulo()` — alterna las dos vistas y el estado `on` de los chips.
+
 ## Migración al UI SYSTEM v2 «Campo y Vidrio» (2026-08-09)
 
 Cuarta app migrada de la familia (tras AROS, PROJECTS y ASSETS). Al ser un solo HTML sin Tailwind,
@@ -82,6 +109,22 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **La formaleta se mide como área de contacto, no como perímetro completo (2026-08-10).** La
+  columna de confinamiento —el caso más común en obra pequeña— va embebida en el muro y solo
+  encofra dos caras; cobrar su perímetro completo infla la cantidad casi al doble. Por eso la fila
+  tiene un selector de caras y las caras que se retiran son siempre las de dimensión `h`, en el
+  orden `4 → 2(b+h)`, `3 → 2b+h`, `2 → 2b`, `1 → b`. En sección circular el mismo selector se lee
+  como fracción del perímetro (4 = completo, 3 = ¾, 2 = ½, 1 = ¼).
+- **El desperdicio de formaleta va sobre el juego a montar, no sobre el área de contacto
+  (2026-08-10).** El área de contacto es una *medida* del elemento y no admite desperdicio; lo que
+  se desperdicia es el material que se compra. Por eso `juego = área / usos · (1 + desp)` y el área
+  de contacto se muestra limpia.
+- **Estado y clave de `localStorage` separados por capítulo (2026-08-10).** `stick-quantity-v1`
+  para mampostería y `stick-quantity-columnas-v1` para columnas. Meter todo en una sola clave
+  habría invalidado los datos que el Señor Stick ya tiene guardados.
+- **Modo Libre en vez de un catálogo de secciones raras (2026-08-10).** Mismo criterio que la
+  opción *Personalizada* de mampostería: en lugar de inventar un catálogo de columnas en L y en T,
+  se deja declarar el área y el perímetro medidos. Cubre cualquier sección sin fingir precisión.
 - **Logo propio (2026-08-06).** El Señor Stick entregó `LOGO.png`: un glifo tipo almohadilla formado
   por 5 barras horizontales redondeadas partidas por un hueco vertical. Se reprodujo **como vector**
   (no como PNG incrustado) midiendo el maestro píxel a píxel: caja del glifo 961×859, barras de
@@ -125,8 +168,15 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
 - Verificar las medidas del catálogo contra fichas técnicas reales (Ladrillera Santafé, Ocaña,
   Alfa). Hoy son valores de mercado comunes; el estructural 33×23 y el tolete 25×6.5×12.5 son
   los de mayor incertidumbre.
-- Capítulos siguientes: concreto (vigas, columnas, losas), acero de refuerzo (despiece y peso por
+- Capítulos siguientes: concreto de vigas y losas, acero de refuerzo (despiece y peso por
   diámetro), pañete, pisos y enchapes.
+- **Dosificaciones del capítulo de concreto sin verificar contra fichas técnicas.** Son valores de
+  mercado comunes (6.5 a 9.5 sacos/m³ según resistencia); el agua es la de mayor incertidumbre
+  porque depende del asentamiento. Confirmar con Argos / Cemex antes de darlos por buenos.
+- El capítulo de columnas no incluye acero de refuerzo: hasta que exista el capítulo de acero, el
+  despiece de estribos y longitudinales sigue siendo manual.
+- Las columnas de sección variable (troncocónicas, con cambio de sección por piso) se resuelven
+  hoy con varias filas; no hay un modo propio.
 - No hay PWA (`manifest.json` / service worker). Evaluar si se quiere instalable como STICK FIT.
 - Falta soporte de aparejos distintos al de soga (unidad pegada de tizón o de canto cambia la cara
   vista); hoy se resuelve con la opción Personalizada.

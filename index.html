@@ -13,10 +13,10 @@
 <link rel="icon" href="./favicon.png" type="image/png" sizes="64x64">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <title>STICK QUANTITY</title>
-<meta name="description" content="Calculadora de cantidades de obra. Mampostería: ladrillos, juntas y mortero de pega.">
+<meta name="description" content="Calculadora de cantidades de obra. Mampostería y concreto de columnas: ladrillos, mortero, volumen y formaleta.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="STICK QUANTITY">
-<meta property="og:description" content="Calculadora de cantidades de obra. Mampostería: ladrillos, juntas y mortero de pega.">
+<meta property="og:description" content="Calculadora de cantidades de obra. Mampostería y concreto de columnas: ladrillos, mortero, volumen y formaleta.">
 <meta property="og:image" content="./icon-512.png">
 <meta name="twitter:card" content="summary">
 <!-- Anti-destello: aplica el tema ANTES del primer pintado (STICK_UI_SYSTEM.md §10) -->
@@ -268,6 +268,12 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
 .chip.on{background:var(--tinta);color:var(--contratinta);border-color:transparent}
 .chip.soon{color:var(--zinc-600);border-style:dashed;border-color:var(--linea)}
 .chip.soon span{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--zinc-700)}
+/* Los capítulos activos son <button>: heredan fuente y reaccionan al puntero */
+button.chip{font-family:inherit;cursor:pointer;
+  transition:color .25s var(--suave),border-color .25s var(--suave),transform .35s var(--resorte)}
+button.chip:hover{color:var(--zinc-200);border-color:var(--linea-fuerte);transform:translateY(-2px)}
+button.chip.on:hover{color:var(--contratinta)}
+button.chip:active{transform:scale(.97)}
 
 /* ── Bloques ── */
 .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:11px}
@@ -319,6 +325,8 @@ html.light .stat{background:rgba(255,255,255,.62)}
 .stat .v{font-size:22px;font-weight:800;color:var(--tinta);letter-spacing:-.02em;
   font-variant-numeric:tabular-nums;margin-top:6px;line-height:1.1}
 .stat .u{font-size:11px;font-weight:700;color:var(--zinc-500);margin-left:4px}
+/* Línea secundaria de una tarjeta de resumen (p. ej. tableros de madera) */
+.stat .s{font-size:10.5px;font-weight:600;color:var(--zinc-500);margin-top:6px;line-height:1.4}
 .g-stats{grid-template-columns:1fr 1fr}
 @media (min-width:820px){.g-stats{grid-template-columns:repeat(4,1fr)}}
 .hero{
@@ -412,18 +420,25 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 <main>
 
   <!-- Capítulos -->
-  <div class="chapters no-sb animate-fade-in">
-    <div class="chip on">
+  <div class="chapters no-sb animate-fade-in" id="capitulos">
+    <button class="chip on" data-cap="mamposteria">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/>
       </svg>
       Mampostería
-    </div>
-    <div class="chip soon">Concreto <span>Pronto</span></div>
+    </button>
+    <button class="chip" data-cap="columnas">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="3" width="6" height="18" rx="1"/><line x1="4" y1="3" x2="20" y2="3"/><line x1="4" y1="21" x2="20" y2="21"/>
+      </svg>
+      Concreto · Columnas
+    </button>
     <div class="chip soon">Acero <span>Pronto</span></div>
     <div class="chip soon">Pañete <span>Pronto</span></div>
     <div class="chip soon">Pisos <span>Pronto</span></div>
   </div>
+
+<div id="vistaMamposteria" style="display:flex;flex-direction:column;gap:22px">
 
   <!-- Parámetros -->
   <section class="animate-rise">
@@ -577,9 +592,178 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
     </div>
   </section>
 
+</div><!-- /#vistaMamposteria -->
+
+<!-- ═══════════════ CAPÍTULO: CONCRETO — COLUMNAS ═══════════════ -->
+<div id="vistaColumnas" style="display:none;flex-direction:column;gap:22px">
+
+  <!-- Mezcla y formaleta -->
+  <section class="animate-rise">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Mezcla y formaleta</h2>
+        <p class="sub">Resistencia del concreto, cómo se suministra y cuántos usos tendrá la formaleta.</p>
+      </div>
+    </div>
+
+    <div class="card pad">
+      <div class="grid g-params">
+        <div class="field">
+          <label for="selFc">Resistencia f'c</label>
+          <select id="selFc"></select>
+        </div>
+        <div class="field">
+          <label for="selSuministro">Suministro</label>
+          <select id="selSuministro">
+            <option value="premezclado">Premezclado</option>
+            <option value="obra">Hecho en obra</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="inpDespCon">Desperdicio concreto (%)</label>
+          <input id="inpDespCon" type="text" inputmode="decimal" value="5">
+        </div>
+        <div class="field">
+          <label for="inpUsos">Usos previstos de la formaleta</label>
+          <input id="inpUsos" type="text" inputmode="numeric" value="6">
+        </div>
+      </div>
+
+      <!-- Dosificación personalizada -->
+      <div id="wrapDosis" style="display:none;margin-top:14px">
+        <p class="label" style="margin-bottom:9px">Dosificación por m³ de concreto</p>
+        <div class="grid g-custom">
+          <div class="field">
+            <label for="dCem">Cemento (sacos 50 kg)</label>
+            <input id="dCem" type="text" inputmode="decimal" value="7.5">
+          </div>
+          <div class="field">
+            <label for="dAre">Arena (m³)</label>
+            <input id="dAre" type="text" inputmode="decimal" value="0.52">
+          </div>
+          <div class="field">
+            <label for="dGra">Grava / triturado (m³)</label>
+            <input id="dGra" type="text" inputmode="decimal" value="0.55">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g-params" style="margin-top:12px">
+        <div class="field">
+          <label for="selFormaleta">Tipo de formaleta</label>
+          <select id="selFormaleta">
+            <option value="metalica">Metálica / prefabricada</option>
+            <option value="madera">Madera — tablero 1.22 × 2.44 m</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="inpDesmold">Desmoldante (L/m²)</label>
+          <input id="inpDesmold" type="text" inputmode="decimal" value="0.04">
+        </div>
+        <div class="field">
+          <label for="inpDespForm">Desperdicio formaleta (%)</label>
+          <input id="inpDespForm" type="text" inputmode="decimal" value="10">
+        </div>
+      </div>
+
+      <!-- Ficha de la mezcla -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.05);
+                  display:flex;flex-wrap:wrap;gap:20px 30px;align-items:flex-end">
+        <div>
+          <p class="label">Dosificación por m³</p>
+          <p id="fichaDosis" class="num" style="font-size:15px;font-weight:700;color:var(--tinta);margin-top:5px">—</p>
+        </div>
+        <div>
+          <p class="label">Formaleta</p>
+          <p id="fichaFormaleta" style="font-size:15px;font-weight:700;color:var(--zinc-300);margin-top:5px">—</p>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <p id="fichaNotaCon" class="muted" style="font-size:11px"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Columnas -->
+  <section class="animate-rise" style="animation-delay:.06s">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Columnas</h2>
+        <p class="sub">Una fila por tipo de columna. Sección rectangular, circular o libre.</p>
+      </div>
+      <button class="btn-primary" id="btnAgregarCol">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Agregar columna
+      </button>
+    </div>
+
+    <div class="card pad">
+      <div id="filasCol" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="vacioCol" class="empty" style="display:none">
+        Sin columnas todavía. Toca <b style="color:var(--zinc-400)">Agregar columna</b> para empezar.
+      </div>
+    </div>
+  </section>
+
+  <!-- Resumen columnas -->
+  <section class="animate-rise" style="animation-delay:.12s">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Resumen</h2>
+        <p class="sub">Concreto a pedir y formaleta a montar, con desperdicio incluido.</p>
+      </div>
+      <button class="btn-danger" id="btnLimpiarCol">Limpiar todo</button>
+    </div>
+
+    <div class="card pad" style="display:flex;flex-direction:column;gap:14px">
+      <div class="hero">
+        <div>
+          <p class="label" style="color:var(--zinc-400)">Concreto a pedir</p>
+          <p style="margin-top:8px"><span class="v" id="colFinal">0.00</span>
+            <span style="font-size:13px;font-weight:700;color:var(--zinc-400);margin-left:6px">m³</span></p>
+          <p class="muted" id="colDetalle" style="margin-top:7px">—</p>
+        </div>
+        <div style="text-align:right">
+          <p class="label" style="color:var(--zinc-400)">Formaleta de contacto</p>
+          <p style="margin-top:7px"><span class="num" id="colArea" style="font-size:24px;font-weight:800;color:var(--tinta)">0.00</span>
+            <span style="font-size:12px;font-weight:700;color:var(--zinc-500);margin-left:4px">m²</span></p>
+          <p class="muted" id="colAreaDet" style="margin-top:6px">—</p>
+        </div>
+      </div>
+
+      <div class="grid g-stats">
+        <div class="stat"><p class="k">Columnas</p><p class="v"><span id="colCant">0</span><span class="u">und</span></p></div>
+        <div class="stat"><p class="k">Volumen neto</p><p class="v"><span id="colNeto">0.000</span><span class="u">m³</span></p></div>
+        <div class="stat"><p class="k">Formaleta a montar</p><p class="v"><span id="colJuego">0.00</span><span class="u">m²</span></p>
+          <p class="s" id="colTableros" style="display:none"></p></div>
+        <div class="stat"><p class="k">Desmoldante</p><p class="v"><span id="colDesmold">0.0</span><span class="u">L</span></p></div>
+      </div>
+
+      <!-- Solo cuando el concreto se hace en obra -->
+      <div id="wrapMateriales" class="grid g-stats" style="display:none">
+        <div class="stat"><p class="k">Cemento</p><p class="v"><span id="colCem">0</span><span class="u">sacos</span></p></div>
+        <div class="stat"><p class="k">Arena</p><p class="v"><span id="colAre">0.00</span><span class="u">m³</span></p></div>
+        <div class="stat"><p class="k">Grava</p><p class="v"><span id="colGra">0.00</span><span class="u">m³</span></p></div>
+        <div class="stat"><p class="k">Agua</p><p class="v"><span id="colAgua">0</span><span class="u">L</span></p></div>
+      </div>
+
+      <div class="note">
+        <b>Verificar antes de pedir.</b> Las dosificaciones son valores de referencia para mezcla hecha en obra:
+        el diseño de mezcla del laboratorio y la ficha del cemento mandan sobre esta tabla. El cálculo cubre
+        <i>solo el concreto de la columna</i> —no incluye acero de refuerzo, alambre, separadores, dados de
+        cimentación ni la porción de columna embebida en viga o losa. La formaleta se mide como
+        <i>área de contacto</i> con el concreto; el juego a montar supone que se reutiliza el número de usos indicado.
+      </div>
+    </div>
+  </section>
+
+</div><!-- /#vistaColumnas -->
+
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.0.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.1.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -985,7 +1169,7 @@ $('btnLimpiar').addEventListener('click', () => {
 });
 
 $('btnCopiar').addEventListener('click', async () => {
-  const txt = resumenTexto();
+  const txt = capActivo === 'columnas' ? resumenTextoCol() : resumenTexto();
   try {
     await navigator.clipboard.writeText(txt);
     toast('Resumen copiado');
@@ -997,7 +1181,491 @@ $('btnCopiar').addEventListener('click', async () => {
   }
 });
 
-$('btnCsv').addEventListener('click', exportarCsv);
+$('btnCsv').addEventListener('click', () => {
+  if (capActivo === 'columnas') exportarCsvCol(); else exportarCsv();
+});
+
+/* ============================================================
+   CAPÍTULO CONCRETO — COLUMNAS
+   ------------------------------------------------------------
+   Volumen de concreto por columna:
+
+     V = A_sección · altura · cantidad
+
+   con A rectangular = b·h, circular = π·D²/4, o libre (dato directo).
+   Las secciones se escriben en cm y la altura en m: se dividen por 100
+   antes de multiplicar, para no mezclar unidades.
+
+   Formaleta — se mide como ÁREA DE CONTACTO con el concreto:
+
+     A_form = p_contacto · altura · cantidad
+
+   donde p_contacto es el perímetro efectivamente encofrado. Una columna
+   exenta encofra su perímetro completo 2(b+h); una columna de
+   confinamiento embebida en el muro solo encofra las caras libres. Las
+   caras que se retiran son las de dimensión h, en este orden:
+
+     4 caras -> 2(b+h)   3 caras -> 2b+h   2 caras -> 2b   1 cara -> b
+
+   En sección circular el número de caras se lee como fracción del
+   perímetro: 4 = π·D completo, 3 = 3/4, 2 = 1/2, 1 = 1/4.
+
+   La formaleta A MONTAR es el área de contacto dividida entre los usos
+   previstos (lo que hay que tener físicamente en obra si se rota el
+   juego), más su desperdicio. El área de contacto en sí NO lleva
+   desperdicio: es una medida, no un material.
+   ============================================================ */
+
+/* Dosificaciones de referencia por m³, mezcla en obra, cemento de 50 kg */
+const MEZCLAS = [
+  { id:'17.5', nombre:'17.5 MPa · 2500 psi', cem:6.5, are:0.55, gra:0.55, agua:180 },
+  { id:'21',   nombre:'21 MPa · 3000 psi',   cem:7.5, are:0.52, gra:0.55, agua:190 },
+  { id:'24.5', nombre:'24.5 MPa · 3500 psi', cem:8.5, are:0.50, gra:0.54, agua:195 },
+  { id:'28',   nombre:'28 MPa · 4000 psi',   cem:9.5, are:0.48, gra:0.53, agua:200 },
+];
+const TABLERO_M2 = 1.22 * 2.44;   // tablero de madera estándar, 2.9768 m²
+const CLAVE_COL  = 'stick-quantity-columnas-v1';
+const CLAVE_CAP  = 'stick:capitulo';
+
+let estadoCol = {
+  fc: '21',
+  dosis: { cem:7.5, are:0.52, gra:0.55 },
+  suministro: 'premezclado',
+  desperdicio: 5,
+  usos: 6,
+  formaleta: 'metalica',
+  desmoldante: 0.04,
+  despForm: 10,
+  filas: [],
+};
+
+let capActivo = 'mamposteria';
+
+function nuevaCol(){
+  return { id:uid(), desc:'', forma:'rect', b:'', h:'', d:'', area:'', perim:'',
+           altura:'', cant:1, caras:'4' };
+}
+
+function mezclaActual(){
+  if (estadoCol.fc === 'custom'){
+    return { id:'custom', nombre:'Personalizada',
+             cem:num(estadoCol.dosis.cem), are:num(estadoCol.dosis.are),
+             gra:num(estadoCol.dosis.gra), agua:null };
+  }
+  return MEZCLAS.find(m => m.id === estadoCol.fc) || MEZCLAS[1];
+}
+
+/* ── Cálculo por columna ────────────────────────────────── */
+function seccionCol(f){                       // m²
+  if (f.forma === 'circ'){ const d = num(f.d) / 100; return Math.PI * d * d / 4; }
+  if (f.forma === 'libre') return Math.max(0, num(f.area));
+  return Math.max(0, (num(f.b) / 100) * (num(f.h) / 100));
+}
+function perimetroCol(f){                     // m de contacto, por columna
+  if (f.forma === 'libre') return Math.max(0, num(f.perim));
+  const caras = Math.max(0, Math.min(4, Math.round(num(f.caras))));
+  if (f.forma === 'circ') return Math.PI * (num(f.d) / 100) * (caras / 4);
+  const b = Math.max(0, num(f.b) / 100), h = Math.max(0, num(f.h) / 100);
+  return [0, b, 2 * b, 2 * b + h, 2 * (b + h)][caras];
+}
+function calcCol(f){
+  const cant  = Math.max(0, Math.round(num(f.cant)) || 0);
+  const alt   = Math.max(0, num(f.altura));
+  const sec   = seccionCol(f);
+  const perim = perimetroCol(f);
+  return { cant, alt, sec, perim, vol: sec * alt * cant, area: perim * alt * cant };
+}
+function totalesCol(){
+  const t = { cant:0, vol:0, area:0 };
+  estadoCol.filas.forEach(f => {
+    const c = calcCol(f);
+    t.cant += c.cant; t.vol += c.vol; t.area += c.area;
+  });
+  const m  = mezclaActual();
+  const kc = 1 + num(estadoCol.desperdicio) / 100;
+  const kf = 1 + num(estadoCol.despForm) / 100;
+  const usos = Math.max(1, Math.round(num(estadoCol.usos)) || 1);
+
+  t.volPedir  = t.vol * kc;
+  t.volMixer  = Math.ceil(t.volPedir * 2) / 2;      // el premezclado se pide en pasos de 0,5 m³
+  t.juego     = (t.area / usos) * kf;
+  t.tableros  = Math.ceil(t.juego / TABLERO_M2);
+  t.desmold   = t.area * num(estadoCol.desmoldante);
+  t.cemento   = Math.ceil(t.volPedir * m.cem);
+  t.arena     = t.volPedir * m.are;
+  t.grava     = t.volPedir * m.gra;
+  t.agua      = m.agua === null ? null : t.volPedir * m.agua;
+  return t;
+}
+
+/* ── Render ─────────────────────────────────────────────── */
+function pintarSelectFc(){
+  const sel = $('selFc');
+  sel.innerHTML = '';
+  const og = document.createElement('optgroup');
+  og.label = 'Resistencias usuales';
+  MEZCLAS.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m.id; o.textContent = `${m.nombre} — ${dim(m.cem)} sacos/m³`;
+    og.appendChild(o);
+  });
+  sel.appendChild(og);
+  const og2 = document.createElement('optgroup');
+  og2.label = 'Otra';
+  const o2 = document.createElement('option');
+  o2.value = 'custom'; o2.textContent = 'Personalizada — diseño de mezcla propio';
+  og2.appendChild(o2); sel.appendChild(og2);
+  sel.value = estadoCol.fc;
+}
+
+const CARAS_TXT = {
+  '4':'4 caras — columna exenta',
+  '3':'3 caras — una contra muro',
+  '2':'2 caras — confinamiento',
+  '1':'1 cara',
+  '0':'Sin formaleta',
+};
+
+let animarTodoCol = true, animarIdCol = null;
+
+function pieCol(c){
+  const geo = `Sección <b style="color:var(--zinc-300)">${nf(c.sec, 3)} m²</b>` +
+    (c.perim > 0 ? `<span class="dim"> · contacto ${nf(c.perim, 2)} m/col</span>` : '');
+  const res = `${nf(c.vol, 3)} <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">m³</span>` +
+    ` <span class="dim" style="font-weight:600">·</span> ${nf(c.area, 2)} ` +
+    `<span style="font-size:10px;font-weight:700;color:var(--zinc-500)">m² form.</span>`;
+  return [geo, res];
+}
+
+function pintarFilasCol(){
+  const cont = $('filasCol');
+  cont.innerHTML = '';
+  $('vacioCol').style.display = estadoCol.filas.length ? 'none' : 'block';
+
+  estadoCol.filas.forEach((f, i) => {
+    const c = calcCol(f);
+    const div = document.createElement('div');
+    div.className = 'row';
+    if (animarTodoCol){ div.classList.add('animate-item'); div.style.animationDelay = (i * 55) + 'ms'; }
+    else if (f.id === animarIdCol){ div.classList.add('animate-item'); }
+
+    const campoSeccion = f.forma === 'rect' ? `
+        <div class="field"><label>Base b (cm)</label>
+          <input data-k="b" type="text" inputmode="decimal" placeholder="30" value="${escapeHtml(f.b)}"></div>
+        <div class="field"><label>Lado h (cm)</label>
+          <input data-k="h" type="text" inputmode="decimal" placeholder="30" value="${escapeHtml(f.h)}"></div>
+      ` : f.forma === 'circ' ? `
+        <div class="field" style="grid-column:span 2"><label>Diámetro (cm)</label>
+          <input data-k="d" type="text" inputmode="decimal" placeholder="35" value="${escapeHtml(f.d)}"></div>
+      ` : `
+        <div class="field"><label>Área de sección (m²)</label>
+          <input data-k="area" type="text" inputmode="decimal" placeholder="0.000" value="${escapeHtml(f.area)}"></div>
+        <div class="field"><label>Perímetro a formaletear (m)</label>
+          <input data-k="perim" type="text" inputmode="decimal" placeholder="0.00" value="${escapeHtml(f.perim)}"></div>
+      `;
+
+    const campoCaras = f.forma === 'libre' ? '' : `
+        <div class="field" style="grid-column:span 2"><label>Caras a formaletear</label>
+          <select data-k="caras">
+            ${Object.entries(CARAS_TXT).map(([v, txt]) =>
+              `<option value="${v}"${String(f.caras) === v ? ' selected' : ''}>${txt}</option>`).join('')}
+          </select></div>`;
+
+    const [pieGeo, pieRes] = pieCol(c);
+
+    div.innerHTML = `
+      <div class="row-head">
+        <div class="row-idx">${i + 1}</div>
+        <input class="row-name" data-k="desc" placeholder="C-${i + 1} — eje / piso (opcional)" value="${escapeHtml(f.desc)}">
+        <div class="seg">
+          <button data-forma="rect"  class="${f.forma === 'rect'  ? 'on' : ''}">Rect.</button>
+          <button data-forma="circ"  class="${f.forma === 'circ'  ? 'on' : ''}">Circular</button>
+          <button data-forma="libre" class="${f.forma === 'libre' ? 'on' : ''}">Libre</button>
+        </div>
+        <button class="btn-icon danger" data-del="1" title="Eliminar columna">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="row-grid">
+        ${campoSeccion}
+        <div class="field"><label>Altura (m)</label>
+          <input data-k="altura" type="text" inputmode="decimal" placeholder="0.00" value="${escapeHtml(f.altura)}"></div>
+        <div class="field"><label>Cantidad iguales</label>
+          <input data-k="cant" type="text" inputmode="numeric" value="${escapeHtml(f.cant)}"></div>
+        ${campoCaras}
+      </div>
+      <div class="row-foot">
+        <p class="muted num">${pieGeo}</p>
+        <p class="num" style="font-size:13px;font-weight:800;color:var(--tinta)">${pieRes}</p>
+      </div>`;
+
+    // Cambio de forma de sección
+    div.querySelectorAll('[data-forma]').forEach(b => {
+      b.addEventListener('click', () => {
+        f.forma = b.dataset.forma; guardarCol(); pintarFilasCol(); pintarTotalesCol();
+      });
+    });
+    // Eliminar
+    div.querySelector('[data-del]').addEventListener('click', () => {
+      estadoCol.filas = estadoCol.filas.filter(x => x.id !== f.id);
+      guardarCol(); pintarFilasCol(); pintarTotalesCol();
+    });
+    // Campos: se recalcula el pie sin re-pintar la fila, para no perder el foco
+    div.querySelectorAll('[data-k]').forEach(inp => {
+      const evt = inp.tagName === 'SELECT' ? 'change' : 'input';
+      inp.addEventListener(evt, () => {
+        // type=text + filtro: input[type=number] descarta la coma decimal (2,5)
+        if (inp.dataset.k !== 'desc' && inp.tagName !== 'SELECT'){
+          const limpio = inp.value.replace(/[^0-9.,]/g, '');
+          if (limpio !== inp.value) inp.value = limpio;
+        }
+        f[inp.dataset.k] = inp.value;
+        const [g, r] = pieCol(calcCol(f));
+        const foot = div.querySelector('.row-foot');
+        foot.children[0].innerHTML = g;
+        foot.children[1].innerHTML = r;
+        guardarCol(); pintarTotalesCol();
+      });
+    });
+
+    cont.appendChild(div);
+  });
+  animarTodoCol = false; animarIdCol = null;
+}
+
+/* Actualiza los pies sin re-pintar los inputs (conserva el foco) */
+function pintarFilasColSuave(){
+  const cont = $('filasCol');
+  estadoCol.filas.forEach((f, i) => {
+    const div = cont.children[i]; if (!div) return;
+    const [g, r] = pieCol(calcCol(f));
+    const foot = div.querySelector('.row-foot');
+    foot.children[0].innerHTML = g;
+    foot.children[1].innerHTML = r;
+  });
+  pintarTotalesCol();
+}
+
+function pintarFichaCon(){
+  const m = mezclaActual();
+  const usos = Math.max(1, Math.round(num(estadoCol.usos)) || 1);
+  $('fichaDosis').textContent =
+    `${dim(m.cem)} sacos · ${nf(m.are, 2)} m³ arena · ${nf(m.gra, 2)} m³ grava`;
+  $('fichaFormaleta').textContent =
+    `${estadoCol.formaleta === 'madera' ? 'Madera' : 'Metálica'} · ${usos} uso${usos === 1 ? '' : 's'}`;
+  $('fichaNotaCon').innerHTML = estadoCol.suministro === 'premezclado'
+    ? `Suministro <b style="color:var(--zinc-400)">premezclado</b>: se pide volumen en m³, la dosificación ` +
+      `queda a cargo de la planta y aquí solo sirve de referencia.`
+    : `Mezcla <b style="color:var(--zinc-400)">hecha en obra</b>: ${dim(m.cem)} sacos de 50 kg por m³` +
+      (m.agua === null ? '' : `, con ~${dim(m.agua)} L de agua`) + `. Valores de referencia, no diseño de mezcla.`;
+}
+
+function pintarTotalesCol(){
+  const t = totalesCol(), m = mezclaActual();
+  const usos = Math.max(1, Math.round(num(estadoCol.usos)) || 1);
+
+  $('colFinal').textContent  = nf(t.volPedir, 2);
+  $('colNeto').textContent   = nf(t.vol, 3);
+  $('colCant').textContent   = ni(t.cant);
+  $('colArea').textContent   = nf(t.area, 2);
+  $('colJuego').textContent  = nf(t.juego, 2);
+  $('colDesmold').textContent = nf(t.desmold, 1);
+  $('colCem').textContent    = ni(t.cemento);
+  $('colAre').textContent    = nf(t.arena, 2);
+  $('colGra').textContent    = nf(t.grava, 2);
+  $('colAgua').textContent   = t.agua === null ? '—' : ni(t.agua);
+
+  $('colDetalle').textContent =
+    `${nf(t.vol, 3)} m³ netos + ${nf(num(estadoCol.desperdicio), 1)} % de desperdicio · ` +
+    `${ni(t.cant)} columna${t.cant === 1 ? '' : 's'}` +
+    (estadoCol.suministro === 'premezclado' ? ` · pedido al medio m³: ${nf(t.volMixer, 1)} m³` : '');
+  $('colAreaDet').textContent =
+    `${usos} uso${usos === 1 ? '' : 's'} · ${nf(num(estadoCol.despForm), 1)} % de desperdicio`;
+
+  $('wrapMateriales').style.display = estadoCol.suministro === 'obra' ? 'grid' : 'none';
+  const tab = $('colTableros');
+  tab.style.display = estadoCol.formaleta === 'madera' ? 'block' : 'none';
+  tab.textContent   = `≈ ${ni(t.tableros)} tablero${t.tableros === 1 ? '' : 's'} de 1,22 × 2,44 m`;
+}
+
+function pintarTodoCol(){ pintarFichaCon(); pintarFilasCol(); pintarTotalesCol(); }
+
+/* ── Persistencia ───────────────────────────────────────── */
+function guardarCol(){
+  try { localStorage.setItem(CLAVE_COL, JSON.stringify(estadoCol)); } catch(e){}
+}
+function cargarCol(){
+  try {
+    const raw = localStorage.getItem(CLAVE_COL);
+    if (raw) estadoCol = Object.assign(estadoCol, JSON.parse(raw));
+  } catch(e){}
+  if (!Array.isArray(estadoCol.filas) || !estadoCol.filas.length) estadoCol.filas = [nuevaCol()];
+  try { capActivo = localStorage.getItem(CLAVE_CAP) === 'columnas' ? 'columnas' : 'mamposteria'; } catch(e){}
+}
+
+/* ── Exportación del capítulo ───────────────────────────── */
+function descCol(f, i){ return f.desc || `C-${i + 1}`; }
+function geomCol(f){
+  if (f.forma === 'circ')  return `Ø${dim(num(f.d))} cm`;
+  if (f.forma === 'libre') return `${nf(num(f.area), 3)} m² de sección`;
+  return `${dim(num(f.b))} × ${dim(num(f.h))} cm`;
+}
+
+function resumenTextoCol(){
+  const t = totalesCol(), m = mezclaActual();
+  const usos = Math.max(1, Math.round(num(estadoCol.usos)) || 1);
+  const L = [];
+  L.push('STICK QUANTITY — Concreto de columnas');
+  L.push(`Mezcla: ${m.nombre} · ${estadoCol.suministro === 'obra' ? 'hecha en obra' : 'premezclada'}`);
+  L.push(`Desperdicio concreto: ${nf(num(estadoCol.desperdicio), 1)} % · Formaleta: ` +
+         `${estadoCol.formaleta === 'madera' ? 'madera' : 'metálica'}, ${usos} uso${usos === 1 ? '' : 's'}`);
+  L.push('');
+  estadoCol.filas.forEach((f, i) => {
+    const c = calcCol(f);
+    L.push(`${i + 1}. ${descCol(f, i)} — ${geomCol(f)} × ${nf(c.alt, 2)} m × ${c.cant} = ` +
+           `${nf(c.vol, 3)} m³ · ${nf(c.area, 2)} m² de formaleta`);
+  });
+  L.push('');
+  L.push(`Volumen neto: ${nf(t.vol, 3)} m³`);
+  L.push(`Área de contacto de formaleta: ${nf(t.area, 2)} m²`);
+  L.push(`Formaleta a montar: ${nf(t.juego, 2)} m²` +
+         (estadoCol.formaleta === 'madera' ? ` (${ni(t.tableros)} tableros)` : ''));
+  L.push(`Desmoldante: ${nf(t.desmold, 1)} L`);
+  if (estadoCol.suministro === 'obra'){
+    L.push(`Cemento: ${ni(t.cemento)} sacos de 50 kg`);
+    L.push(`Arena: ${nf(t.arena, 2)} m³ · Grava: ${nf(t.grava, 2)} m³` +
+           (t.agua === null ? '' : ` · Agua: ${ni(t.agua)} L`));
+  }
+  L.push(`TOTAL A PEDIR: ${nf(t.volPedir, 2)} m³ de concreto` +
+         (estadoCol.suministro === 'premezclado' ? ` (${nf(t.volMixer, 1)} m³ al medio m³)` : ''));
+  return L.join('\n');
+}
+
+function csvTextoCol(){
+  const t = totalesCol(), m = mezclaActual();
+  const sep = ';';
+  const usos = Math.max(1, Math.round(num(estadoCol.usos)) || 1);
+  const filas = [
+    ['STICK QUANTITY - Concreto de columnas'],
+    ['Mezcla', m.nombre],
+    ['Suministro', estadoCol.suministro === 'obra' ? 'Hecho en obra' : 'Premezclado'],
+    ['Desperdicio concreto (%)', nf(num(estadoCol.desperdicio), 1)],
+    ['Formaleta', estadoCol.formaleta === 'madera' ? 'Madera' : 'Metalica'],
+    ['Usos de la formaleta', usos],
+    ['Desperdicio formaleta (%)', nf(num(estadoCol.despForm), 1)],
+    [],
+    ['#', 'Descripcion', 'Seccion', 'b (cm)', 'h (cm)', 'Diametro (cm)', 'Area seccion (m2)',
+     'Altura (m)', 'Cant', 'Caras', 'Perimetro contacto (m)', 'Volumen (m3)', 'Formaleta (m2)'],
+  ];
+  estadoCol.filas.forEach((f, i) => {
+    const c = calcCol(f);
+    filas.push([
+      i + 1, descCol(f, i),
+      f.forma === 'rect' ? 'Rectangular' : f.forma === 'circ' ? 'Circular' : 'Libre',
+      f.forma === 'rect' ? nf(num(f.b), 1) : '',
+      f.forma === 'rect' ? nf(num(f.h), 1) : '',
+      f.forma === 'circ' ? nf(num(f.d), 1) : '',
+      nf(c.sec, 4), nf(c.alt, 2), c.cant,
+      f.forma === 'libre' ? '' : f.caras,
+      nf(c.perim, 3), nf(c.vol, 4), nf(c.area, 3),
+    ]);
+  });
+  filas.push([]);
+  filas.push(['Volumen neto (m3)', nf(t.vol, 3)]);
+  filas.push(['Volumen a pedir (m3)', nf(t.volPedir, 3)]);
+  if (estadoCol.suministro === 'premezclado') filas.push(['Pedido al medio m3', nf(t.volMixer, 1)]);
+  filas.push(['Area de contacto formaleta (m2)', nf(t.area, 2)]);
+  filas.push(['Formaleta a montar (m2)', nf(t.juego, 2)]);
+  if (estadoCol.formaleta === 'madera') filas.push(['Tableros 1.22x2.44 (und)', t.tableros]);
+  filas.push(['Desmoldante (L)', nf(t.desmold, 1)]);
+  if (estadoCol.suministro === 'obra'){
+    filas.push(['Cemento (sacos 50 kg)', t.cemento]);
+    filas.push(['Arena (m3)', nf(t.arena, 2)]);
+    filas.push(['Grava (m3)', nf(t.grava, 2)]);
+    filas.push(['Agua (L)', t.agua === null ? '' : Math.round(t.agua)]);
+  }
+
+  // BOM inicial para que Excel en Windows reconozca UTF-8 (tildes y m²/m³)
+  return '﻿' + filas.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(sep)).join('\r\n');
+}
+
+function exportarCsvCol(){
+  const blob = new Blob([csvTextoCol()], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'stick-quantity-columnas.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('CSV exportado');
+}
+
+/* ── Eventos del capítulo ───────────────────────────────── */
+function sincronizarVisibilidadCol(){
+  $('wrapDosis').style.display = estadoCol.fc === 'custom' ? 'block' : 'none';
+}
+
+$('selFc').addEventListener('change', e => {
+  estadoCol.fc = e.target.value;
+  sincronizarVisibilidadCol(); guardarCol(); pintarFichaCon(); pintarTotalesCol();
+});
+$('selSuministro').addEventListener('change', e => {
+  estadoCol.suministro = e.target.value; guardarCol(); pintarFichaCon(); pintarTotalesCol();
+});
+$('selFormaleta').addEventListener('change', e => {
+  estadoCol.formaleta = e.target.value; guardarCol(); pintarFichaCon(); pintarTotalesCol();
+});
+/* Filtro de entrada: se registra antes que los cálculos para que estos lean el valor ya limpio */
+['inpDespCon','inpUsos','inpDesmold','inpDespForm','dCem','dAre','dGra'].forEach(id => {
+  $(id).addEventListener('input', e => {
+    const limpio = e.target.value.replace(/[^0-9.,]/g, '');
+    if (limpio !== e.target.value) e.target.value = limpio;
+  });
+});
+$('inpDespCon').addEventListener('input',  e => { estadoCol.desperdicio = e.target.value; guardarCol(); pintarTotalesCol(); });
+$('inpUsos').addEventListener('input',     e => { estadoCol.usos = e.target.value; guardarCol(); pintarFichaCon(); pintarTotalesCol(); });
+$('inpDesmold').addEventListener('input',  e => { estadoCol.desmoldante = e.target.value; guardarCol(); pintarTotalesCol(); });
+$('inpDespForm').addEventListener('input', e => { estadoCol.despForm = e.target.value; guardarCol(); pintarTotalesCol(); });
+['dCem','dAre','dGra'].forEach(id => {
+  $(id).addEventListener('input', e => {
+    estadoCol.dosis[id.slice(1).toLowerCase()] = e.target.value;
+    guardarCol(); pintarFichaCon(); pintarTotalesCol();
+  });
+});
+
+$('btnAgregarCol').addEventListener('click', () => {
+  const f = nuevaCol();
+  estadoCol.filas.push(f);
+  animarIdCol = f.id;
+  guardarCol(); pintarFilasCol(); pintarTotalesCol();
+  const ultimo = $('filasCol').lastElementChild;
+  if (ultimo) ultimo.querySelector('.row-name').focus();
+});
+
+$('btnLimpiarCol').addEventListener('click', () => {
+  if (!confirm('¿Borrar todas las columnas de la lista?')) return;
+  estadoCol.filas = [nuevaCol()];
+  guardarCol(); pintarFilasCol(); pintarTotalesCol();
+  toast('Lista vacía');
+});
+
+/* ── Cambio de capítulo ─────────────────────────────────── */
+function pintarCapitulo(){
+  $('vistaMamposteria').style.display = capActivo === 'mamposteria' ? 'flex' : 'none';
+  $('vistaColumnas').style.display    = capActivo === 'columnas'    ? 'flex' : 'none';
+  document.querySelectorAll('#capitulos [data-cap]').forEach(b =>
+    b.classList.toggle('on', b.dataset.cap === capActivo));
+}
+document.querySelectorAll('#capitulos [data-cap]').forEach(b => {
+  b.addEventListener('click', () => {
+    if (capActivo === b.dataset.cap) return;
+    capActivo = b.dataset.cap;
+    try { localStorage.setItem(CLAVE_CAP, capActivo); } catch(e){}
+    pintarCapitulo();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+});
 
 /* ── Arranque ───────────────────────────────────────────── */
 cargar();
@@ -1010,6 +1678,20 @@ $('selPega').value   = estado.pega;
 $('cL').value = estado.custom.l; $('cH').value = estado.custom.h; $('cA').value = estado.custom.a;
 sincronizarVisibilidad();
 pintarTodo();
+
+cargarCol();
+pintarSelectFc();
+$('selFc').value          = estadoCol.fc;
+$('selSuministro').value  = estadoCol.suministro;
+$('selFormaleta').value   = estadoCol.formaleta;
+$('inpDespCon').value     = estadoCol.desperdicio;
+$('inpUsos').value        = estadoCol.usos;
+$('inpDesmold').value     = estadoCol.desmoldante;
+$('inpDespForm').value    = estadoCol.despForm;
+$('dCem').value = estadoCol.dosis.cem; $('dAre').value = estadoCol.dosis.are; $('dGra').value = estadoCol.dosis.gra;
+sincronizarVisibilidadCol();
+pintarTodoCol();
+pintarCapitulo();
 
 /* Modo claro (STICK_UI_SYSTEM.md §10). La clase ya la pone el script anti-destello
    del <head>; aquí solo se alterna y se persiste. */
