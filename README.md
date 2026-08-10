@@ -111,9 +111,10 @@ Las caras que se retiran son las del **largo**:
 | 1 | `ancho` |
 | 0 | nada |
 
-El conteo es el **juego para encofrar una columna de cada tipo**: la formaleta se desencofra y se
-rota, así que la cantidad de columnas iguales multiplica el concreto pero no las piezas. Quien
-funda varias del mismo tipo al tiempo multiplica.
+El total alcanza para **encofrar todas las columnas de la lista al mismo tiempo**: la cantidad de
+columnas iguales de cada fila multiplica tanto el concreto como las piezas. Seis columnas de
+30 × 30 y 3,60 m piden 72 formaletas de 30 × 120. Quien las funda por tandas y rote el juego pide
+solo lo de la tanda más grande: el detalle de cada fila muestra las piezas de una sola columna.
 
 ### Advertencia técnica
 

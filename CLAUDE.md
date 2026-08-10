@@ -124,10 +124,12 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
 ## Decisiones tomadas
 - **La formaleta se entrega en piezas, no en m² (2026-08-10, tras revisión).** El Señor Stick no
   compra metros cuadrados: pide formaletas de una medida. El resumen lista «30 × 120 cm → 12 und».
-- **El conteo es el juego para encofrar UNA columna de cada tipo (2026-08-10).** Lo decidió él con
-  un ejemplo: 30×30 de 3,60 m con panel de 30×120 son 12 piezas. La formaleta se desencofra y se
-  rota, así que la cantidad de columnas iguales de la fila multiplica el concreto pero no las
-  piezas. Quien funda varias al tiempo multiplica a mano.
+- **El conteo multiplica por la cantidad de columnas de la fila (2026-08-10, cuarta pasada).**
+  Primero se entregó el juego de UNA columna, leyendo mal su ejemplo («una columna de 3,60 de alto
+  de 30×30 necesitaría 12 formaletas de 1,20 × 0,30»): esa frase daba la tasa por columna, no decía
+  que no se multiplicara. Él lo corrigió — «hace mal el cálculo, pide menos formaletas». Hoy el
+  total alcanza para encofrar todas las columnas de la lista al tiempo, y el detalle de cada fila
+  sigue mostrando las piezas de una sola columna para quien funda por tandas y rote el juego.
 - **Cada cara se cubre por hiladas de altura uniforme (2026-08-10).** Teselar un rectángulo con
   rectángulos cualesquiera es un problema duro y además no es como se arma en obra. Se elige
   primero la combinación de alturas que suma la altura de la columna y luego se completa cada

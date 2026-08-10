@@ -719,8 +719,9 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
       <div class="note">
         <b>Verificar antes de pedir.</b> Las medidas del catálogo son las modulares habituales del
         mercado (paneles metálicos de columna): confirmar contra el catálogo del proveedor o alquilador
-        y agregar las que falten. El conteo es el <i>juego para encofrar una columna de cada tipo</i>:
-        si vas a fundir varias del mismo tipo al tiempo, multiplica. El cálculo cubre solo el concreto
+        y agregar las que falten. El conteo alcanza para <i>encofrar todas las columnas de la lista
+        al mismo tiempo</i>: si las fundes por tandas y rotas la formaleta, pide solo lo de la tanda
+        más grande —el detalle de cada fila trae las piezas de una columna. El cálculo cubre solo el concreto
         —no incluye acero de refuerzo, alambre, separadores ni dados de cimentación— y las secciones
         circular y libre solo entregan volumen, porque el panel recto no las encofra.
       </div>
@@ -731,7 +732,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.2.1 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.2.2 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -1180,9 +1181,10 @@ $('btnCsv').addEventListener('click', () => {
      4 -> [ancho, largo, ancho, largo]   3 -> [ancho, ancho, largo]
      2 -> [ancho, ancho]                 1 -> [ancho]
 
-   El conteo es el juego para encofrar UNA columna de cada tipo: la
-   formaleta se desencofra y se rota. Quien funda varias del mismo
-   tipo al tiempo multiplica.
+   El total de la fila multiplica ese juego por la cantidad de columnas
+   iguales: alcanza para encofrarlas todas al tiempo. El pie de la fila
+   sigue mostrando las piezas de UNA columna, para quien funda por
+   tandas y rote el juego.
    ============================================================ */
 
 const RESISTENCIAS = [
@@ -1359,7 +1361,12 @@ function calcCol(f){
   const cant = Math.max(0, Math.round(num(f.cant)) || 0);
   const alt  = Math.max(0, num(f.altura));
   const sec  = seccionCol(f);
-  return { cant, alt, sec, vol: sec * alt * cant, form: formaletaCol(f) };
+  const form = formaletaCol(f);
+  // `form` trae el juego de UNA columna; la fila pide para todas las suyas
+  const piezas = new Map();
+  if (form && cant > 0) form.piezas.forEach((n, id) => piezas.set(id, n * cant));
+  return { cant, alt, sec, vol: sec * alt * cant, form, piezas,
+           total: form ? form.total * cant : 0 };
 }
 
 function totalesCol(){
@@ -1369,10 +1376,8 @@ function totalesCol(){
     t.cant += c.cant;
     t.vol  += c.vol;
     t.porFc.set(f.fc, (t.porFc.get(f.fc) || 0) + c.vol);
-    if (c.form){
-      c.form.piezas.forEach((n, id) => t.piezas.set(id, (t.piezas.get(id) || 0) + n));
-      if (!c.form.ok || c.form.exAlto > 0 || c.form.exAncho > 0) t.avisos = true;
-    }
+    c.piezas.forEach((n, id) => t.piezas.set(id, (t.piezas.get(id) || 0) + n));
+    if (c.form && (!c.form.ok || c.form.exAlto > 0 || c.form.exAncho > 0)) t.avisos = true;
   });
   const k = 1 + num(estadoCol.desperdicio) / 100;
   t.volPedir = t.vol * k;
@@ -1470,9 +1475,11 @@ let animarTodoCol = true, animarIdCol = null;
 function pieCol(f, c){
   const geo = [`Sección <b style="color:var(--zinc-300)">${nf(c.sec, 3)} m²</b>`];
   if (c.form){
-    if (!c.form.ok) geo.push('<span class="aviso">sin formaleta que encaje</span>');
+    if (!c.form.ok) geo.push('<span class="aviso">la medida elegida no está en el catálogo</span>');
     else if (c.form.total) {
-      geo.push(`<span class="dim">${piezasTexto(c.form.piezas)}</span>`);
+      // El detalle es de UNA columna; el total en negrilla ya viene multiplicado
+      geo.push(`<span class="dim">${piezasTexto(c.form.piezas)}` +
+               `${c.cant === 1 ? '' : ' por columna'}</span>`);
       if (c.form.exAlto > 0)  geo.push(`<span class="aviso">sobra ${dim(c.form.exAlto)} cm de alto</span>`);
       if (c.form.exAncho > 0) geo.push(`<span class="aviso">sobra ${dim(c.form.exAncho)} cm de ancho</span>`);
     }
@@ -1480,8 +1487,8 @@ function pieCol(f, c){
     geo.push('<span class="dim">formaleta no aplica a esta sección</span>');
   }
   const res = `${nf(c.vol, 3)} <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">m³</span>` +
-    (c.form && c.form.total
-      ? ` <span class="dim" style="font-weight:600">·</span> ${ni(c.form.total)} ` +
+    (c.total
+      ? ` <span class="dim" style="font-weight:600">·</span> ${ni(c.total)} ` +
         `<span style="font-size:10px;font-weight:700;color:var(--zinc-500)">form.</span>`
       : '');
   return [geo.join(' <span class="dim">·</span> '), res];
@@ -1612,7 +1619,7 @@ function pintarTotalesCol(){
     `${nf(t.vol, 3)} m³ netos + ${nf(num(estadoCol.desperdicio), 1)} % de desperdicio · ` +
     `${ni(t.cant)} columna${t.cant === 1 ? '' : 's'} · al medio m³: ${nf(t.volMixer, 1)} m³`;
   $('colFormDet').textContent = t.formTot
-    ? 'Juego para encofrar una columna de cada tipo'
+    ? `Alcanza para encofrar las ${ni(t.cant)} columnas al tiempo`
     : 'Registra una columna rectangular para contarlas';
 
   // Concreto por resistencia
@@ -1686,7 +1693,7 @@ function resumenTextoCol(){
   L.push('');
   estadoCol.filas.forEach((f, i) => {
     const c = calcCol(f);
-    const form = c.form && c.form.total ? ` · formaleta: ${piezasTexto(c.form.piezas)}` : '';
+    const form = c.total ? ` · ${ni(c.total)} formaletas: ${piezasTexto(c.piezas)}` : '';
     L.push(`${i + 1}. ${descCol(f, i)} — ${nombreFc(f.fc)} · ${geomCol(f)} × ${nf(c.alt, 2)} m × ${c.cant} = ` +
            `${nf(c.vol, 3)} m³${form}`);
   });
@@ -1695,7 +1702,7 @@ function resumenTextoCol(){
   [...t.porFc.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
     .forEach(([id, v]) => L.push(`  ${nombreFc(id)}: ${nf(v * k, 2)} m³`));
   L.push('');
-  L.push('FORMALETAS A PEDIR (juego para una columna de cada tipo)');
+  L.push('FORMALETAS A PEDIR (para encofrar todas las columnas al tiempo)');
   if (!t.piezas.size) L.push('  —');
   [...t.piezas.entries()].sort((a, b) => b[1] - a[1]).forEach(([id, n]) => {
     const [a, h] = id.split('x');
@@ -1715,7 +1722,8 @@ function csvTextoCol(){
     ['Desperdicio de concreto (%)', nf(num(estadoCol.desperdicio), 1)],
     [],
     ['#', 'Descripcion', 'Resistencia', 'Seccion', 'Ancho (cm)', 'Largo (cm)', 'Diametro (cm)',
-     'Area seccion (m2)', 'Altura (m)', 'Cant', 'Caras', 'Volumen (m3)', 'Formaletas (und)', 'Detalle formaleta'],
+     'Area seccion (m2)', 'Altura (m)', 'Cant', 'Caras', 'Volumen (m3)',
+     'Formaletas de la fila (und)', 'Detalle formaleta'],
   ];
   estadoCol.filas.forEach((f, i) => {
     const c = calcCol(f);
@@ -1728,8 +1736,8 @@ function csvTextoCol(){
       nf(c.sec, 4), nf(c.alt, 2), c.cant,
       f.forma === 'rect' ? f.caras : '',
       nf(c.vol, 4),
-      c.form ? c.form.total : '',
-      c.form ? piezasTexto(c.form.piezas) : '',
+      c.form ? c.total : '',
+      c.form ? piezasTexto(c.piezas) : '',
     ]);
   });
   filas.push([]);
