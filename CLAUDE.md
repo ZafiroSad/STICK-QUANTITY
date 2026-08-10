@@ -14,7 +14,7 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.1.0 (Mampostería + Concreto de columnas)
+## Estado actual — v1.2.0 (Mampostería + Concreto de columnas)
 
 ### Capítulo Concreto — columnas (2026-08-10)
 Segundo capítulo. La barra de capítulos deja de ser decorativa: `Mampostería` y
@@ -22,15 +22,23 @@ Segundo capítulo. La barra de capítulos deja de ser decorativa: `Mampostería`
 el capítulo activo se recuerda en `localStorage` (`stick:capitulo`) y los botones de copiar/CSV
 de la topbar despachan al capítulo visible.
 
-- Filas de columna ilimitadas, cada una en modo **Rectangular** (b × h cm), **Circular** (Ø cm) o
-  **Libre** (área m² y perímetro m declarados a mano — cubre secciones en L, T o cualquier otra).
+- Botón **Registrar columna**. Filas ilimitadas, cada una en modo **Rectangular** (ancho × largo
+  en cm), **Circular** (Ø cm) o **Libre** (área m² declarada a mano).
+- Cada fila trae su propia **resistencia** (17.5 a 35 MPa) y el resumen entrega el concreto
+  **agrupado por resistencia**, para poder pedir por separado a la planta.
 - Altura en m, cantidad de columnas iguales y **caras a formaletear** (4/3/2/1/0).
-- Mezcla: 17.5 / 21 / 24.5 / 28 MPa con dosificación de referencia por m³, o **Personalizada**.
-- Suministro **premezclado** (pide m³, con sugerencia redondeada al medio m³) o **hecho en obra**
-  (pide cemento en sacos de 50 kg, arena, grava y agua).
-- Formaleta metálica o de madera, con usos previstos, desperdicio propio y desmoldante en L/m².
+- **Catálogo de formaletas** (`FORMALETAS`): paneles modulares de columna, desactivables uno a uno
+  y ampliables con medidas propias desde la UI.
+- La formaleta se entrega en **piezas contadas por medida**, no en m². Cada fila escoge
+  `Automática` —el motor combina las medidas activas— o una medida concreta («Solo 30 × 120 cm»).
 - Persistencia independiente en `localStorage` bajo `stick-quantity-columnas-v1`, para no tocar
   los datos ya guardados de mampostería.
+
+**Segunda pasada tras revisión del Señor Stick (2026-08-10):** la primera versión entregaba m² de
+formaleta, dosificación de mezcla (cemento/arena/grava/agua) y «usos previstos». Se retiró todo:
+no entendía los usos previstos, no necesitaba el desglose de materiales y lo que quería era el
+conteo de piezas. Su frase de referencia —«una columna de 3,60 de alto de 30×30 necesitaría 12
+formaletas de 1,20 × 0,30»— es hoy un caso de prueba.
 
 ## Estado anterior — v1.0.0 (capítulo Mampostería completo)
 - Catálogo de unidades: bloque de arcilla H-10/H-12/H-15/H-20, estructural 12/15/20,
@@ -73,12 +81,16 @@ Piezas clave dentro de `index.html`:
   contenido del CSV sin depender de que el navegador materialice la descarga.
 
 Capítulo de columnas (mismo archivo, funciones con sufijo `Col`):
-- `MEZCLAS` — dosificaciones de referencia por m³ (sacos de 50 kg, arena, grava, agua).
-  **Agregar resistencias aquí, no en la UI.**
-- `seccionCol()` / `perimetroCol()` — área de la sección y perímetro efectivamente encofrado.
-- `calcCol()` / `totalesCol()` — volumen y formaleta por fila, y el agregado con desperdicios.
-- `pintarFilasColSuave()` — mismo criterio que en mampostería: actualiza los pies sin re-pintar
-  los inputs, para no perder el foco.
+- `RESISTENCIAS` — lista de f'c. `FORMALETAS` — catálogo de paneles `{a, h}` en cm.
+  **Agregar referencias aquí, no en la UI.**
+- `seccionCol()` / `carasCol()` — área de la sección y anchos de las caras a encofrar.
+- `cubrir()` — reparto mínimo de piezas sobre una longitud (cambio de moneda en cm).
+- `elegirCorte()` — entre los totales que alcanzan el objetivo escoge el mejor:
+  exacto → menos piezas → menos sobrante. La usan tanto el ancho como la altura.
+- `encofrarCara()` — cubre una cara por hiladas: elige la combinación de alturas y completa cada
+  hilada a lo ancho. `PENA_ANCHO` castiga la hilada que no cierra exacta.
+- `formaletaCol()` / `calcCol()` / `totalesCol()` — piezas por columna, volumen por fila y el
+  agregado (concreto por resistencia + piezas por medida).
 - `pintarCapitulo()` — alterna las dos vistas y el estado `on` de los chips.
 
 ## Migración al UI SYSTEM v2 «Campo y Vidrio» (2026-08-09)
@@ -109,6 +121,25 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **La formaleta se entrega en piezas, no en m² (2026-08-10, tras revisión).** El Señor Stick no
+  compra metros cuadrados: pide formaletas de una medida. El resumen lista «30 × 120 cm → 12 und».
+- **El conteo es el juego para encofrar UNA columna de cada tipo (2026-08-10).** Lo decidió él con
+  un ejemplo: 30×30 de 3,60 m con panel de 30×120 son 12 piezas. La formaleta se desencofra y se
+  rota, así que la cantidad de columnas iguales de la fila multiplica el concreto pero no las
+  piezas. Quien funda varias al tiempo multiplica a mano.
+- **Cada cara se cubre por hiladas de altura uniforme (2026-08-10).** Teselar un rectángulo con
+  rectángulos cualesquiera es un problema duro y además no es como se arma en obra. Se elige
+  primero la combinación de alturas que suma la altura de la columna y luego se completa cada
+  hilada a lo ancho. Da la respuesta que da un maestro con el catálogo en la mano.
+- **La hilada que no cierra exacta a lo ancho pesa más que cualquier conteo de piezas
+  (`PENA_ANCHO`, 2026-08-10).** Sin ese castigo el DP prefería una hilada alta que desborda la cara
+  —un panel de 40 sobre una cara de 30— antes que tres hiladas exactas de 30. Se vio en prueba, no
+  se supuso.
+- **La resistencia va en la fila, no arriba (2026-08-10).** Es un dato de la columna, no del
+  capítulo, y permite que el resumen agrupe el concreto por f'c para pedirlo por separado.
+- **Fuera dosificación, suministro y usos previstos (2026-08-10).** Los quitó el Señor Stick en la
+  revisión: los usos no se entendían y el desglose de cemento/arena/grava no le servía. Con ellos
+  se fue también el desmoldante, que colgaba de los m².
 - **La formaleta se mide como área de contacto, no como perímetro completo (2026-08-10).** La
   columna de confinamiento —el caso más común en obra pequeña— va embebida en el muro y solo
   encofra dos caras; cobrar su perímetro completo infla la cantidad casi al doble. Por eso la fila
@@ -170,11 +201,17 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
   los de mayor incertidumbre.
 - Capítulos siguientes: concreto de vigas y losas, acero de refuerzo (despiece y peso por
   diámetro), pañete, pisos y enchapes.
-- **Dosificaciones del capítulo de concreto sin verificar contra fichas técnicas.** Son valores de
-  mercado comunes (6.5 a 9.5 sacos/m³ según resistencia); el agua es la de mayor incertidumbre
-  porque depende del asentamiento. Confirmar con Argos / Cemex antes de darlos por buenos.
+- **El catálogo de formaletas no está verificado contra un proveedor.** Son las medidas modulares
+  habituales de panel metálico de columna (anchos en pasos de 5 cm, alturas 60/120/150/240).
+  Confirmar contra Forsa / Formesan / el alquilador de la zona. Mitigado: cada medida se puede
+  desactivar y se pueden agregar propias desde la UI.
+- El capítulo ya no calcula dosificación de mezcla. Si vuelve a hacer falta, la tabla anterior
+  (6.5 a 9.5 sacos/m³ según resistencia) está en el historial de git, sin verificar.
 - El capítulo de columnas no incluye acero de refuerzo: hasta que exista el capítulo de acero, el
   despiece de estribos y longitudinales sigue siendo manual.
+- **Las secciones circular y libre solo entregan volumen.** El panel recto no encofra un círculo;
+  faltaría un catálogo de camisa circular (tubo de cartón / molde curvo) que no se ha verificado.
+- El conteo de formaletas no incluye accesorios: grapas, pines, chavetas, alineadores ni puntales.
 - Las columnas de sección variable (troncocónicas, con cambio de sección por piso) se resuelven
   hoy con varias filas; no hay un modo propio.
 - No hay PWA (`manifest.json` / service worker). Evaluar si se quiere instalable como STICK FIT.

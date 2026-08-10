@@ -66,18 +66,15 @@ de celdas, dovelas ni mortero de inyección.
 
 ## Concreto — columnas
 
-Calcula el volumen de concreto y el área de formaleta a partir de:
+Calcula el volumen de concreto y **cuántas formaletas pedir**, contadas por medida.
 
-- **Sección** — rectangular (b × h en cm), circular (Ø en cm) o libre (área y perímetro
-  medidos directamente, para secciones en L, T o cualquier otra forma).
+- **Sección** — rectangular (ancho × largo en cm), circular (Ø en cm) o libre (área declarada).
+- **Resistencia por columna** — 17.5 a 35 MPa. El resumen agrupa el concreto por resistencia.
 - **Altura, cantidad de columnas iguales** y **caras a formaletear**.
-- **Mezcla** — 17.5 / 21 / 24.5 / 28 MPa con dosificación de referencia, o una propia.
-- **Suministro** — premezclado (se pide en m³) o hecho en obra (se piden cemento, arena,
-  grava y agua).
-- **Formaleta** — metálica o madera, usos previstos y desperdicio propio.
-
-Entrega el volumen a pedir, el área de contacto de la formaleta, el juego a montar, los
-tableros de madera equivalentes, el desmoldante y los materiales de la mezcla.
+- **Catálogo de formaletas** — medidas modulares de panel metálico de columna, cada una
+  activable o desactivable, y se pueden agregar las propias.
+- **Formaleta por fila** — `Automática`, que combina las medidas activas buscando el mejor
+  encaje, o una medida concreta («Solo 30 × 120 cm»).
 
 ### Fórmulas
 
@@ -87,40 +84,40 @@ Volumen de concreto:
 V = A_sección · altura · cantidad
 ```
 
-con `A` rectangular = `b · h`, circular = `π · D² / 4`, o el área declarada en modo libre.
+con `A` rectangular = `ancho · largo`, circular = `π · D² / 4`, o el área declarada en modo libre.
 Las secciones se escriben en cm y la altura en m.
 
-Área de formaleta, medida como **área de contacto** con el concreto:
+**Formaleta.** Cada cara a encofrar es un rectángulo de ancho `W` y altura `H` que se cubre por
+hiladas de altura uniforme: primero se escoge la combinación de alturas de panel que suma `H`, y
+cada hilada se completa a lo ancho con los paneles que existan en esa altura. Entre las
+combinaciones posibles gana, en este orden, la que **cierra exacto**, la de **menos piezas** y la
+de **menos sobrante**.
 
-```
-A_form = p_contacto · altura · cantidad
-```
+> Columna de 30 × 30 cm y 3,60 m de alto, 4 caras, con paneles de 30 × 120: cada cara son tres
+> paneles → **12 formaletas**. Con el catálogo completo la opción automática usa 30 × 240 + 30 × 120
+> por cara y baja a 8.
 
-`p_contacto` es el perímetro efectivamente encofrado. Una columna exenta encofra su perímetro
-completo; una columna de confinamiento embebida en el muro solo encofra las caras libres. Las
-caras que se retiran son las de dimensión `h`:
+Las caras que se retiran son las del **largo**:
 
-| Caras | Perímetro de contacto |
+| Caras | Se encofra |
 |---|---|
-| 4 — columna exenta | `2 · (b + h)` |
-| 3 — una cara contra muro | `2b + h` |
-| 2 — confinamiento | `2b` |
-| 1 | `b` |
-| 0 | `0` |
+| 4 — columna exenta | `ancho, largo, ancho, largo` |
+| 3 — una cara contra muro | `ancho, ancho, largo` |
+| 2 — confinamiento | `ancho, ancho` |
+| 1 | `ancho` |
+| 0 | nada |
 
-En sección circular el número de caras se lee como fracción del perímetro `π · D`:
-4 = completo, 3 = ¾, 2 = ½, 1 = ¼.
-
-La **formaleta a montar** es el área de contacto dividida entre los usos previstos, más su
-desperdicio: es lo que hay que tener físicamente en obra si se rota el juego. El área de
-contacto en sí no lleva desperdicio, porque es una medida y no un material.
+El conteo es el **juego para encofrar una columna de cada tipo**: la formaleta se desencofra y se
+rota, así que la cantidad de columnas iguales multiplica el concreto pero no las piezas. Quien
+funda varias del mismo tipo al tiempo multiplica.
 
 ### Advertencia técnica
 
-Las dosificaciones son **valores de referencia** para mezcla hecha en obra: el diseño de mezcla
-del laboratorio y la ficha del cemento mandan sobre esa tabla. El cálculo cubre *solo el concreto
-de la columna* — no incluye acero de refuerzo, alambre, separadores, dados de cimentación ni la
-porción de columna embebida en viga o losa.
+Las medidas del catálogo son las **modulares habituales** del mercado, no el catálogo verificado de
+un proveedor: confirmar con el alquilador y agregar las que falten. El cálculo cubre solo el
+concreto — no incluye acero de refuerzo, alambre, separadores, dados de cimentación ni los
+accesorios de la formaleta (grapas, pines, alineadores, puntales). Las secciones circular y libre
+solo entregan volumen, porque el panel recto no las encofra.
 
 ---
 
