@@ -71,8 +71,9 @@ Calcula el volumen de concreto y **cuántas formaletas pedir**, contadas por med
 - **Sección** — rectangular (ancho × largo en cm), circular (Ø en cm) o libre (área declarada).
 - **Resistencia por columna** — 17.5 a 35 MPa. El resumen agrupa el concreto por resistencia.
 - **Altura, cantidad de columnas iguales** y **caras a formaletear**.
-- **Catálogo de formaletas** — medidas modulares de panel metálico de columna, cada una
-  activable o desactivable, y se pueden agregar las propias.
+- **Catálogo de formaletas** — de fábrica trae los anchos de 25 a 60 cm en pasos de 5, todos de
+  1,20 m de alto. Cada medida se activa o desactiva, y se pueden agregar otras (un ancho de 20,
+  un panel de 2,40 de alto). El catálogo se muestra agrupado por altura de panel.
 - **Formaleta por fila** — `Automática`, que combina las medidas activas buscando el mejor
   encaje, o una medida concreta («Solo 30 × 120 cm»).
 
@@ -94,8 +95,11 @@ combinaciones posibles gana, en este orden, la que **cierra exacto**, la de **me
 de **menos sobrante**.
 
 > Columna de 30 × 30 cm y 3,60 m de alto, 4 caras, con paneles de 30 × 120: cada cara son tres
-> paneles → **12 formaletas**. Con el catálogo completo la opción automática usa 30 × 240 + 30 × 120
-> por cara y baja a 8.
+> paneles → **12 formaletas**.
+
+Cuando una cara no cierra exacta —una columna de 20 cm de ancho sin panel de 20 en el catálogo, o
+una altura de 2,50 m con paneles de 1,20— la fila avisa cuántos centímetros sobran. La salida es
+agregar la medida que falta al catálogo.
 
 Las caras que se retiran son las del **largo**:
 
@@ -114,7 +118,8 @@ funda varias del mismo tipo al tiempo multiplica.
 ### Advertencia técnica
 
 Las medidas del catálogo son las **modulares habituales** del mercado, no el catálogo verificado de
-un proveedor: confirmar con el alquilador y agregar las que falten. El cálculo cubre solo el
+un proveedor: confirmar con el alquilador y agregar las que falten. Con solo paneles de 1,20 m de
+alto, las alturas de columna que no sean múltiplo de 1,20 no cierran exactas. El cálculo cubre solo el
 concreto — no incluye acero de refuerzo, alambre, separadores, dados de cimentación ni los
 accesorios de la formaleta (grapas, pines, alineadores, puntales). Las secciones circular y libre
 solo entregan volumen, porque el panel recto no las encofra.

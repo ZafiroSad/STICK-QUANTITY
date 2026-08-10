@@ -275,9 +275,13 @@ button.chip:hover{color:var(--zinc-200);border-color:var(--linea-fuerte);transfo
 button.chip.on:hover{color:var(--contratinta)}
 button.chip:active{transform:scale(.97)}
 
-/* ── Catálogo de formaletas ── */
-.chips-form{display:flex;flex-wrap:wrap;gap:8px}
-.chips-form .chip{font-size:11px;padding:7px 12px}
+/* ── Catálogo de formaletas: un grupo por altura de panel ── */
+.chips-form{display:flex;flex-direction:column;gap:18px}
+.grupo-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:9px}
+.grupo-head .muted{font-size:11px;white-space:nowrap}
+/* Rejilla en vez de flex-wrap: los anchos quedan alineados en columnas */
+.rejilla-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px}
+.rejilla-form .chip{justify-content:center;font-size:12px;padding:10px 8px}
 .chip .quitar{margin-left:3px;opacity:.5;font-weight:800;padding:0 2px}
 .chip .quitar:hover{opacity:1}
 .fila-add{margin-top:15px;padding-top:15px;border-top:1px solid var(--linea);
@@ -727,7 +731,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.2.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.2.1 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -1190,21 +1194,11 @@ const RESISTENCIAS = [
   { id:'35',   nombre:'35 MPa · 5000 psi'   },
 ];
 
-/* Paneles metálicos modulares de columna: anchos en pasos de 5 cm y
-   alturas comerciales. Medidas de mercado, NO catálogo verificado de
-   un proveedor — por eso son desactivables y ampliables desde la UI. */
-const FORMALETAS = [
-  { a:10, h:120 }, { a:15, h:120 },
-  { a:20, h:60 }, { a:20, h:120 }, { a:20, h:150 }, { a:20, h:240 },
-  { a:25, h:120 }, { a:25, h:150 }, { a:25, h:240 },
-  { a:30, h:60 }, { a:30, h:120 }, { a:30, h:150 }, { a:30, h:240 },
-  { a:35, h:120 }, { a:35, h:150 },
-  { a:40, h:60 }, { a:40, h:120 }, { a:40, h:150 }, { a:40, h:240 },
-  { a:45, h:120 }, { a:45, h:150 },
-  { a:50, h:120 }, { a:50, h:150 }, { a:50, h:240 },
-  { a:55, h:120 },
-  { a:60, h:60 }, { a:60, h:120 }, { a:60, h:150 }, { a:60, h:240 },
-];
+/* Paneles metálicos de columna: anchos de 25 a 60 cm en pasos de 5, todos de
+   1,20 m de alto. Es la serie que pidió el Señor Stick y la que se maneja en
+   obra pequeña. NO es el catálogo verificado de un proveedor: cualquier otra
+   medida —un 20 de ancho, un panel de 2,40 de alto— se agrega desde la UI. */
+const FORMALETAS = [25, 30, 35, 40, 45, 50, 55, 60].map(a => ({ a, h:120 }));
 
 const CLAVE_COL = 'stick-quantity-columnas-v1';
 const CLAVE_CAP = 'stick:capitulo';
@@ -1413,18 +1407,40 @@ function piezasTexto(piezas){
     }).join(', ');
 }
 
+/* El catálogo se agrupa por altura de panel: dentro de un grupo todas las
+   piezas miden lo mismo de alto, así que el chip solo lleva el ancho. Una tira
+   plana de "25 × 120 cm, 30 × 120 cm, …" repetía el alto en cada ficha y no se
+   leía. La rejilla alinea los anchos en columnas en vez de dejarlos dentados. */
 function pintarChipsForm(){
   const cont = $('chipsForm');
   const off = new Set(estadoCol.off || []);
   const extras = new Set((estadoCol.extra || []).map(idRef));
   cont.innerHTML = '';
-  catalogoCol()
-    .sort((x, y) => x.a - y.a || x.h - y.h)
-    .forEach(r => {
+
+  const grupos = new Map();
+  catalogoCol().forEach(r => {
+    if (!grupos.has(r.h)) grupos.set(r.h, []);
+    grupos.get(r.h).push(r);
+  });
+
+  [...grupos.entries()].sort((a, b) => a[0] - b[0]).forEach(([h, refs]) => {
+    refs.sort((x, y) => x.a - y.a);
+    const vivas = refs.filter(r => !off.has(r.id)).length;
+    const g = document.createElement('div');
+    g.innerHTML =
+      `<div class="grupo-head">
+         <p class="label-mono">Alto ${nf(h / 100, 2)} m</p>
+         <p class="muted">${vivas} de ${refs.length}</p>
+       </div>
+       <div class="rejilla-form"></div>`;
+    const rej = g.querySelector('.rejilla-form');
+
+    refs.forEach(r => {
       const b = document.createElement('button');
       b.className = 'chip' + (off.has(r.id) ? '' : ' on');
       b.dataset.ref = r.id;
-      b.textContent = txtRef(r);
+      b.title = txtRef(r);
+      b.textContent = `${dim(r.a)} cm`;
       if (extras.has(r.id)){
         const x = document.createElement('span');
         x.className = 'quitar'; x.textContent = '×'; x.title = 'Quitar del catálogo';
@@ -1441,10 +1457,12 @@ function pintarChipsForm(){
         estadoCol.off = [...s];
         guardarCol(); pintarChipsForm(); pintarFilasCol(); pintarTotalesCol();
       });
-      cont.appendChild(b);
+      rej.appendChild(b);
     });
-  const todas = !(estadoCol.off || []).length;
-  $('btnTodasForm').textContent = todas ? 'Desactivar todas' : 'Activar todas';
+    cont.appendChild(g);
+  });
+
+  $('btnTodasForm').textContent = (estadoCol.off || []).length ? 'Activar todas' : 'Desactivar todas';
 }
 
 let animarTodoCol = true, animarIdCol = null;

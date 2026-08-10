@@ -27,8 +27,9 @@ de la topbar despachan al capítulo visible.
 - Cada fila trae su propia **resistencia** (17.5 a 35 MPa) y el resumen entrega el concreto
   **agrupado por resistencia**, para poder pedir por separado a la planta.
 - Altura en m, cantidad de columnas iguales y **caras a formaletear** (4/3/2/1/0).
-- **Catálogo de formaletas** (`FORMALETAS`): paneles modulares de columna, desactivables uno a uno
-  y ampliables con medidas propias desde la UI.
+- **Catálogo de formaletas** (`FORMALETAS`): anchos de 25 a 60 cm en pasos de 5, todos de 1,20 m de
+  alto. Desactivables uno a uno y ampliables con medidas propias desde la UI. Se muestra **agrupado
+  por altura de panel**, con el chip llevando solo el ancho.
 - La formaleta se entrega en **piezas contadas por medida**, no en m². Cada fila escoge
   `Automática` —el motor combina las medidas activas— o una medida concreta («Solo 30 × 120 cm»).
 - Persistencia independiente en `localStorage` bajo `stick-quantity-columnas-v1`, para no tocar
@@ -135,6 +136,13 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
   (`PENA_ANCHO`, 2026-08-10).** Sin ese castigo el DP prefería una hilada alta que desborda la cara
   —un panel de 40 sobre una cara de 30— antes que tres hiladas exactas de 30. Se vio en prueba, no
   se supuso.
+- **El catálogo arranca en 25 cm de ancho y solo 1,20 m de alto (2026-08-10, tercera pasada).** La
+  primera versión traía 29 referencias en una tira plana y el Señor Stick la vio desordenada. Pidió
+  la serie 25→60 de 5 en 5, toda de 1,20. Lo que falte se agrega desde la UI: la app avisa cuando
+  una cara no cierra, así que el hueco se ve en vez de esconderse.
+- **El catálogo se agrupa por altura de panel (2026-08-10).** Dentro de un grupo todas las piezas
+  miden lo mismo de alto, así que el chip solo lleva el ancho; repetir "× 120 cm" en cada ficha era
+  ruido. Rejilla `auto-fill` en vez de `flex-wrap` para que los anchos queden alineados en columnas.
 - **La resistencia va en la fila, no arriba (2026-08-10).** Es un dato de la columna, no del
   capítulo, y permite que el resumen agrupe el concreto por f'c para pedirlo por separado.
 - **Fuera dosificación, suministro y usos previstos (2026-08-10).** Los quitó el Señor Stick en la
@@ -201,10 +209,12 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
   los de mayor incertidumbre.
 - Capítulos siguientes: concreto de vigas y losas, acero de refuerzo (despiece y peso por
   diámetro), pañete, pisos y enchapes.
-- **El catálogo de formaletas no está verificado contra un proveedor.** Son las medidas modulares
-  habituales de panel metálico de columna (anchos en pasos de 5 cm, alturas 60/120/150/240).
-  Confirmar contra Forsa / Formesan / el alquilador de la zona. Mitigado: cada medida se puede
-  desactivar y se pueden agregar propias desde la UI.
+- **El catálogo de formaletas no está verificado contra un proveedor.** Confirmar contra Forsa /
+  Formesan / el alquilador de la zona. Mitigado: cada medida se puede desactivar y se pueden
+  agregar propias desde la UI.
+- **Con un catálogo de solo 1,20 m de alto, las alturas que no sean múltiplo de 1,20 no cierran.**
+  Una columna de 2,50 m avisa que sobran 110 cm. Falta decidir con el Señor Stick si se agrega de
+  fábrica una serie de alturas cortas (30/45/60/90 cm) para rematar, o si eso se resuelve a mano.
 - El capítulo ya no calcula dosificación de mezcla. Si vuelve a hacer falta, la tabla anterior
   (6.5 a 9.5 sacos/m³ según resistencia) está en el historial de git, sin verificar.
 - El capítulo de columnas no incluye acero de refuerzo: hasta que exista el capítulo de acero, el
