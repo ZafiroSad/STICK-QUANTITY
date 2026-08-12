@@ -32,6 +32,10 @@ Tercer capítulo, nacido de replicar «pero mejor» el Excel de obra
 - **Exportación a .xlsx sin dependencias** (`zipStore`, ZIP «store» a mano): **una hoja por tanda**
   más una hoja **CONSOLIDADO** cuando hay más de una. Lleva el croquis dentro como **figura
   vectorial** (`custGeom`, no imagen) anclada en la columna CROQUIS, y el logo en A1 de cada hoja.
+- **La hoja sale viva, con fórmulas**, no con números muertos: `L. TOTAL = H·I`, `PESO = J·kg/m`,
+  subtotales con `SUM`, resumen por diámetro con `SUMIF` sobre las filas de datos, y el consolidado
+  referenciando las hojas de cada tanda. Probado en Excel real: subir una cantidad de 4 a 8 movió
+  la fila, el subtotal, el resumen de la hoja (88,82 → 103,64 kg) y el consolidado (151,14 → 165,96).
 - Masas nominales NTC 2289; ganchos NSR-10 C.7.1 (90° = 12 db; 180° = 4 db ≥ 6,5 cm;
   estribos 135° = 6 db ≥ 7,5 cm, dos por estribo). Las longitudes se suman **cara a cara**.
 - Persistencia propia en `localStorage` bajo `stick-quantity-acero-v1`, con migración automática
@@ -185,6 +189,11 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
   tenía que sumar a mano, y es justo el trabajo que la app quita.
 - **Las varillas no se combinan entre tandas ni entre filas (2026-08-12).** Cada corte sale de su
   varilla; combinar sobrantes de dos fundidas distintas sería contabilidad, no obra.
+- **El .xlsx exportado lleva fórmulas, no valores muertos (2026-08-12).** Es lo único que el Excel
+  del Señor Stick hacía y la primera versión de la exportación no: su columna `M2` es
+  `=2*((C4*F4)+(D4*F4))`, viva. Si la hoja exportada solo trajera números, corregir una cantidad
+  allá obligaría a volver a la app. El conteo de **varillas** sí queda estático: sale de un reparto
+  por corte real, no de una multiplicación, y fingirlo con una fórmula sería mentir.
 - **La formaleta se entrega en piezas, no en m² (2026-08-10, tras revisión).** El Señor Stick no
   compra metros cuadrados: pide formaletas de una medida. El resumen lista «30 × 120 cm → 12 und».
 - **El conteo multiplica por la cantidad de columnas de la fila (2026-08-10, cuarta pasada).**

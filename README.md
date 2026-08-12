@@ -162,6 +162,10 @@ librerías): **una hoja por tanda** y una hoja **CONSOLIDADO** cuando hay más d
 el croquis de cada barra como **figura vectorial**, la columna `A` libre para marcar con «x» lo ya
 cortado, y la marca de STICK QUANTITY en la esquina.
 
+La hoja sale **viva**: los metrajes, los pesos, los subtotales, el resumen por diámetro y el
+consolidado son fórmulas. Corregir una cantidad dentro de Excel recalcula todo lo demás, incluida
+la hoja de consolidado, sin volver a la app.
+
 ### Advertencia técnica
 
 El despiece **no** resuelve traslapos, longitudes de desarrollo ni alambre de amarre: si una pieza
