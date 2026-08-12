@@ -337,7 +337,12 @@ html.light .row{background:rgba(255,255,255,.62)}
 /* Los labels largos ("Vanos a descontar (m²)") envuelven en dos líneas: se
    alinean abajo para que los inputs de la misma fila queden a la misma altura */
 .row-grid .field>label{min-height:2.1em;display:flex;align-items:flex-end}
-@media (min-width:720px){.row-grid{grid-template-columns:repeat(4,1fr)}}
+@media (min-width:720px){
+  .row-grid{grid-template-columns:repeat(4,1fr)}
+  /* Doble escuadra: dos campos por renglón —las escuadras arriba, el tramo
+     recto y el botón B = C abajo—, que es como se lee la figura */
+  .row-grid .mitad{grid-column:span 2}
+}
 /* Con 2 columnas no cabe un select largo: ocupa la línea entera */
 @media (max-width:719px){.row-grid .ancho-2{grid-column:span 2}}
 .row-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -1002,7 +1007,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.6.1 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.7.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -2270,7 +2275,11 @@ const FIGURAS = [
   { id:'esc1',    nombre:'Escuadra sencilla', titulo:'Escuadra sencilla',
     campos:[{ k:'a', et:'A — tramo recto (m)', ph:'4.20' },
             { k:'b', et:'B — escuadra (m)',    ph:'0.30' }] },
+  /* `campos` va en el orden en que la barra recorre sus tramos —de ahí sale el
+     desglose «0,30 + 2,10 + 0,30»—; `ui` es el orden en que se ven en pantalla:
+     las dos escuadras arriba, y abajo el tramo recto junto al botón B = C. */
   { id:'esc2',    nombre:'Doble escuadra',    titulo:'Doble escuadra',
+    ui:['b','c','a'],
     campos:[{ k:'b', et:'B — escuadra izq. (m)', ph:'0.30' },
             { k:'a', et:'A — tramo recto (m)',   ph:'4.20' },
             { k:'c', et:'C — escuadra der. (m)', ph:'0.30' }] },
@@ -2307,13 +2316,21 @@ let animarTodoAce = true, animarIdAce = null;
    Adentro van las posiciones que comparten esa misma longitud —«arriba 4 de #5,
    abajo 3 de #4»—, cada una con su cantidad y su diámetro. Así una viga entera
    cabe en una tarjeta en vez de estirarse en cinco. */
+/* Nombre por defecto de la posición. En obra la primera barra de una viga es la
+   de arriba y la segunda la de abajo; en una tarjeta de estribo, es un estribo.
+   AUTO_DET son los nombres que puso la app: si el Señor Stick no los cambió, se
+   pueden reemplazar al cambiar de figura; lo que él escriba no se toca. */
+const AUTO_DET = ['arriba', 'abajo', 'estribo', ''];
+const detAuto = (fig, i) => fig === 'estribo' ? 'estribo'
+                          : i === 0 ? 'arriba' : i === 1 ? 'abajo' : '';
+
 function nuevaLinea(det = '', dia = '4'){
   return { id:uid(), det, cant:'1', dia };
 }
 function nuevaAce(){
   return { id:uid(), elem:'', fig:'recta',
            a:'', b:'', c:'', sb:'', sh:'', ge:'',
-           iguales:true, ganchos:'0', lineas:[nuevaLinea()] };
+           iguales:true, ganchos:'0', lineas:[nuevaLinea(detAuto('recta', 0))] };
 }
 
 /* La cantidad admite sumas: «11+7+11» son los estribos de los dos extremos y
@@ -2589,22 +2606,23 @@ function pintarFilasAce(){
     if (animarTodoAce){ div.classList.add('animate-item'); div.style.animationDelay = (i * 55) + 'ms'; }
     else if (f.id === animarIdAce){ div.classList.add('animate-item'); }
 
-    const campos = fig.campos.map(cp => {
+    // `ui` reordena solo lo que se ve; el cálculo sigue usando `campos`
+    const enPantalla = fig.ui ? fig.ui.map(k => fig.campos.find(c => c.k === k)) : fig.campos;
+    const media = fig.ui ? ' mitad' : '';
+    const campos = enPantalla.map(cp => {
       // En doble escuadra con «iguales» puesto, C no se escribe: la copia de B
       const espejo = cp.k === 'c' && f.iguales;
       return `
-        <div class="field"><label>${cp.et}</label>
+        <div class="field${media}"><label>${cp.et}</label>
           <input data-k="${cp.k}" type="text" inputmode="decimal" placeholder="${cp.ph}"
             value="${escapeHtml(espejo ? f.b : f[cp.k])}"${espejo ? ' disabled' : ''}></div>`;
     }).join('');
 
     const botonIguales = f.fig === 'esc2' ? `
-        <div class="field"><label>Escuadras</label>
+        <div class="field mitad"><label>Escuadras</label>
           <button class="btn-espejo${f.iguales ? ' on' : ''}" data-iguales="1"
             title="Las dos escuadras miden lo mismo">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2.2" stroke-linecap="round"><path d="M5 9h14M5 15h14"/></svg>
-            ${f.iguales ? 'B = C' : 'Distintas'}
+            ${f.iguales ? 'B = C' : 'B y C distintas'}
           </button></div>` : '';
 
     const campoGancho = (f.fig !== 'estribo' && estadoAce.gancho !== 'no') ? `
@@ -2618,7 +2636,8 @@ function pintarFilasAce(){
     /* Las posiciones: cada una es una fila del Excel, todas con esta longitud */
     const lineas = c.lineas.map((x, j) => `
       <div class="linea" data-li="${j}">
-        <input class="li-det" data-lk="det" type="text" placeholder="arriba"
+        <input class="li-det" data-lk="det" type="text"
+          placeholder="${escapeHtml(detAuto(f.fig, j) || 'posición')}"
           value="${escapeHtml(x.l.det)}">
         <input class="li-cant" data-lk="cant" type="text" inputmode="text" placeholder="11+7+11"
           value="${escapeHtml(x.l.cant)}">
@@ -2676,6 +2695,7 @@ function pintarFilasAce(){
       b.addEventListener('click', () => {
         if (f.fig === b.dataset.fig) return;
         f.fig = b.dataset.fig;
+        f.lineas.forEach((l, j) => { if (AUTO_DET.includes(l.det)) l.det = detAuto(f.fig, j); });
         guardarAce(); pintarFilasAce(); pintarTotalesAce();
       });
     });
@@ -2760,7 +2780,7 @@ function pintarFilasAce(){
     });
     div.querySelector('[data-add]').addEventListener('click', () => {
       const ult = f.lineas[f.lineas.length - 1];
-      f.lineas.push(nuevaLinea('', ult ? ult.dia : '4'));
+      f.lineas.push(nuevaLinea(detAuto(f.fig, f.lineas.length), ult ? ult.dia : '4'));
       guardarAce(); pintarFilasAce(); pintarTotalesAce();
       // `div` quedó desprendido al repintar: hay que buscar la tarjeta nueva
       const card = $('filasAce').children[i];
@@ -3584,8 +3604,14 @@ $('aceGancho').addEventListener('change', e => { estadoAce.gancho = e.target.val
 $('btnAgregarAce').addEventListener('click', () => {
   const f = nuevaAce(), tanda = tandaAct();
   const ultima = tanda.filas[tanda.filas.length - 1];
-  if (ultima){ f.elem = ultima.elem; f.dia = ultima.dia; f.fig = ultima.fig;
-               f.cant = ultima.fig === 'estribo' ? '' : '1'; }
+  // Hereda elemento, figura y el diámetro de la última posición: con veinte
+  // vigas parecidas es lo que evita volver a escoger lo mismo cada vez
+  if (ultima){
+    f.elem = ultima.elem; f.fig = ultima.fig;
+    const ul = ultima.lineas[ultima.lineas.length - 1];
+    if (ul) f.lineas[0].dia = ul.dia;
+  }
+  f.lineas[0].det = detAuto(f.fig, 0);
   tanda.filas.push(f);
   animarIdAce = f.id;
   guardarAce(); pintarTodoAce();

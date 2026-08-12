@@ -14,7 +14,20 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.6.1 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.7.0 (Mampostería + Concreto de columnas + Acero)
+
+### Tercera pasada del capítulo Acero (2026-08-12)
+
+- **Doble escuadra:** los campos se ven como se lee la figura — las dos escuadras arriba (`B` izq.
+  y `C` der.) y abajo el tramo recto `A` junto al botón `B = C`. El orden de pantalla es una lista
+  aparte (`ui`) del orden geométrico (`campos`): el desglose sigue saliendo `0,30 + 2,10 + 0,30`,
+  que es como recorre la barra sus tramos.
+- **Las posiciones se nombran solas:** la primera `arriba`, la segunda `abajo`, y en una tarjeta de
+  estribo todas `estribo`. Al cambiar de figura se renombran **solo las que puso la app**
+  (`AUTO_DET`); lo que el Señor Stick escriba no se toca.
+- Una tarjeta nueva hereda elemento, figura y el diámetro de la última posición.
+
+## Estado anterior — v1.6.1 (Mampostería + Concreto de columnas + Acero)
 
 ### Mensaje de pedido por WhatsApp en el capítulo de columnas (2026-08-12)
 
