@@ -14,7 +14,7 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.6.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.6.1 (Mampostería + Concreto de columnas + Acero)
 
 ### Mensaje de pedido por WhatsApp en el capítulo de columnas (2026-08-12)
 
@@ -30,6 +30,13 @@ a proveedores y contratistas, y cada uno necesita una cosa distinta.
   detalle por columna al final. En concreto añade el redondeo a mixer (`volMixer`, pasos de 0,5 m³).
   Con los dos bloques activos el detalle va en dos renglones rotulados: el punto medio que los
   separaba se confundía con el de «21 MPa · 3000 psi».
+- **Segunda pasada del mensaje (2026-08-12).** El Señor Stick reescribió el detalle a mano y pasó
+  su versión. Cada columna es ahora un bloque de renglones cortos —título en negrita, geometría con
+  `|`, cantidades— separado por una línea en blanco. Al armarlo a mano se le renumeraron todas las
+  columnas como «1.»: **WhatsApp convierte una línea que empieza con `1. ` en lista numerada** y la
+  renumera. Por eso el título del bloque va como `*1. C30x30*`, con el asterisco de la negrita
+  delante: deja de ser lista y el número se conserva. Por lo mismo las viñetas son `•` literales y
+  nunca `- `.
 
 ### Segunda pasada del capítulo Acero tras revisión del Señor Stick (2026-08-12)
 

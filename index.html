@@ -1002,7 +1002,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.6.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.6.1 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -2001,10 +2001,10 @@ function resumenTextoCol(){
   if (conc){
     L.push('');
     if (ambos) L.push('*CONCRETO*');
-    L.push(`Total a pedir: *${nf(t.volPedir, 2)} m³*`);
-    L.push(`Ya incluye ${nf(num(estadoCol.desperdicio), 1)} % de desperdicio.`);
+    L.push(`Total: *${nf(t.volPedir, 2)} m³*`);
+    L.push(`Incluye ${nf(num(estadoCol.desperdicio), 1)} % de desperdicio.`);
     if (t.volMixer > t.volPedir + 1e-9){
-      L.push(`Si es premezclado: *${nf(t.volMixer, 2)} m³* (se despacha de 0,5 en 0,5 m³).`);
+      L.push(`Premezclado: pedir *${nf(t.volMixer, 2)} m³* (se despacha de 0,5 en 0,5 m³).`);
     }
     const fcs = [...t.porFc.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
     if (fcs.length === 1){
@@ -2033,21 +2033,28 @@ function resumenTextoCol(){
     }
   }
 
+  /* Cada columna es un bloque de renglones cortos separado por una línea en
+     blanco: en el chat se lee de un vistazo y no se enreda al hacer scroll.
+     El renglón del título NO puede empezar con «1. » —WhatsApp lo toma por una
+     lista numerada y renumera todo el mensaje, que es lo que le pasó al Señor
+     Stick al armarlo a mano—; con el asterisco de la negrita delante deja de
+     ser lista y el número se conserva. Por lo mismo las viñetas son «•»
+     literales y no «- », que sí dispara la lista. */
   if (estadoCol.filas.length && (conc || form)){
     L.push('');
     L.push('*DETALLE POR COLUMNA*');
     estadoCol.filas.forEach((f, i) => {
       const c = calcCol(f);
-      L.push(`${i + 1}. ${descCol(f, i)} — ${geomCol(f)}, h ${nf(c.alt, 2)} m, ${ni(c.cant)} und`);
-      /* Con los dos bloques activos cada dato va en su renglón y rotulado: el
-         punto medio que los separaba se confundía con el de «21 MPa · 3000 psi». */
+      L.push('');
+      L.push(`*${i + 1}. ${descCol(f, i)}*`);
+      L.push(`${geomCol(f)} | h ${nf(c.alt, 2)} m | ${ni(c.cant)} und`);
       if (ambos){
-        L.push(`    Concreto: ${nf(c.vol, 3)} m³ de ${nombreFc(f.fc)}`);
-        if (c.total) L.push(`    Formaleta: ${formTextoMsg(c.piezas, 'piezas')}`);
+        L.push(`Concreto: ${nf(c.vol, 3)} m³ de ${nombreFc(f.fc)}`);
+        L.push(`Formaleta: ${c.total ? formTextoMsg(c.piezas, 'piezas') : 'no lleva'}`);
       } else if (conc){
-        L.push(`    ${nf(c.vol, 3)} m³ de ${nombreFc(f.fc)}`);
-      } else if (c.total){
-        L.push(`    ${formTextoMsg(c.piezas)}`);
+        L.push(`${nf(c.vol, 3)} m³ de ${nombreFc(f.fc)}`);
+      } else {
+        L.push(c.total ? formTextoMsg(c.piezas) : 'Sin formaleta: no tiene caras a encofrar.');
       }
     });
   }
