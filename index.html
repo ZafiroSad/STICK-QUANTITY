@@ -266,6 +266,10 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
   padding:8px 14px;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;
 }
 .chip.on{background:var(--tinta);color:var(--contratinta);border-color:transparent}
+/* Interruptores de lo que entra al mensaje: el visto se apaga, no desaparece,
+   para que se vea que la opción existe y está sin marcar */
+.chip .tic{transition:opacity .2s var(--suave)}
+.chip:not(.on) .tic{opacity:.22}
 .chip.soon{color:var(--zinc-600);border-style:dashed;border-color:var(--linea)}
 .chip.soon span{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--zinc-700)}
 /* Los capítulos activos son <button>: heredan fuente y reaccionan al puntero */
@@ -793,9 +797,29 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
     <div class="section-head">
       <div>
         <h2 class="h2">Resumen</h2>
-        <p class="sub">Concreto a pedir y formaletas a conseguir, contadas por medida.</p>
+        <p class="sub">Concreto a pedir y formaletas a conseguir, contadas por medida.
+          Los dos interruptores deciden qué se copia.</p>
       </div>
-      <button class="btn-danger" id="btnLimpiarCol">Limpiar todo</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="chip on" data-cop="concreto" title="Incluir el concreto en el mensaje">
+          <svg class="tic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Concreto
+        </button>
+        <button class="chip on" data-cop="formaleta" title="Incluir la formaleta en el mensaje">
+          <svg class="tic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Formaleta
+        </button>
+        <button class="btn-secondary" id="btnCopiarCol">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copiar para WhatsApp
+        </button>
+        <button class="btn-danger" id="btnLimpiarCol">Limpiar todo</button>
+      </div>
     </div>
 
     <div class="card pad" style="display:flex;flex-direction:column;gap:16px">
@@ -978,7 +1002,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.5.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.6.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -1384,8 +1408,9 @@ $('btnLimpiar').addEventListener('click', () => {
 });
 
 $('btnCopiar').addEventListener('click', async () => {
-  const txt = capActivo === 'acero' ? resumenTextoAce()
-            : capActivo === 'columnas' ? resumenTextoCol() : resumenTexto();
+  // En columnas el mensaje depende de los interruptores, y el aviso lo dice
+  if (capActivo === 'columnas') return copiarCol();
+  const txt = capActivo === 'acero' ? resumenTextoAce() : resumenTexto();
   try {
     await navigator.clipboard.writeText(txt);
     toast('Resumen copiado');
@@ -1459,6 +1484,9 @@ let estadoCol = {
   off: [],      // ids de formaleta desactivados
   extra: [],    // medidas agregadas a mano
   filas: [],
+  // Qué entra al mensaje que se copia. Al de la planta de concreto no le sirve
+  // el conteo de formaleta, y al alquilador de formaleta no le sirve el m³.
+  copiar: { concreto:true, formaleta:true },
 };
 
 let capActivo = 'mamposteria';
@@ -1919,6 +1947,10 @@ function cargarCol(){
   } catch(e){}
   if (!Array.isArray(estadoCol.off))   estadoCol.off = [];
   if (!Array.isArray(estadoCol.extra)) estadoCol.extra = [];
+  // Guardados anteriores no traen los interruptores del mensaje
+  const cp = estadoCol.copiar || {};
+  estadoCol.copiar = { concreto: cp.concreto !== false, formaleta: cp.formaleta !== false };
+  if (!estadoCol.copiar.concreto && !estadoCol.copiar.formaleta) estadoCol.copiar.concreto = true;
   if (!Array.isArray(estadoCol.filas) || !estadoCol.filas.length) estadoCol.filas = [nuevaCol()];
   // Las filas guardadas por la versión anterior no traen fc ni ref
   estadoCol.filas = estadoCol.filas.map(f => Object.assign(nuevaCol(), f));
@@ -1936,32 +1968,92 @@ function geomCol(f){
   return `${dim(num(f.b))} × ${dim(num(f.h))} cm`;
 }
 
+/* «72 formaletas de 30 × 120 cm» cuando es una sola medida; con varias, el
+   total y entre paréntesis cuántas de cada una. `piezasTexto` no sirve aquí:
+   está pensado para el renglón de la fila, donde el total ya se ve al lado. */
+function formTextoMsg(piezas, sust = 'formaletas'){
+  const e = [...piezas.entries()].sort((a, b) => b[1] - a[1]);
+  if (!e.length) return '';
+  const med = id => { const [a, h] = id.split('x'); return `${dim(a)} × ${dim(h)} cm`; };
+  const tot = e.reduce((s, x) => s + x[1], 0);
+  return e.length === 1
+    ? `${ni(tot)} ${sust} de ${med(e[0][0])}`
+    : `${ni(tot)} ${sust} (${e.map(([id, n]) => `${ni(n)} de ${med(id)}`).join(', ')})`;
+}
+
+/* Mensaje para WhatsApp. Un proveedor no lee una tabla: lee un pedido corto con
+   el total arriba, en negrita, y el desglose debajo. WhatsApp entiende *negrita*
+   y _cursiva_ con asteriscos y guiones bajos, así que el mensaje llega formateado.
+   Los dos interruptores deciden qué bloques entran. */
 function resumenTextoCol(){
   const t = totalesCol();
   const k = 1 + num(estadoCol.desperdicio) / 100;
+  const conc = !!estadoCol.copiar.concreto;
+  const form = !!estadoCol.copiar.formaleta;
   const L = [];
-  L.push('STICK QUANTITY — Concreto de columnas');
-  L.push(`Desperdicio de concreto: ${nf(num(estadoCol.desperdicio), 1)} %`);
+  const hoy = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const cols = ni(t.cant), plural = t.cant === 1 ? '' : 's';
+
+  L.push(`*${conc && form ? 'PEDIDO DE OBRA' : conc ? 'PEDIDO DE CONCRETO' : 'PEDIDO DE FORMALETA'}*`);
+  L.push(`${cols} columna${plural} · ${hoy}`);
+
+  const ambos = conc && form;
+  if (conc){
+    L.push('');
+    if (ambos) L.push('*CONCRETO*');
+    L.push(`Total a pedir: *${nf(t.volPedir, 2)} m³*`);
+    L.push(`Ya incluye ${nf(num(estadoCol.desperdicio), 1)} % de desperdicio.`);
+    if (t.volMixer > t.volPedir + 1e-9){
+      L.push(`Si es premezclado: *${nf(t.volMixer, 2)} m³* (se despacha de 0,5 en 0,5 m³).`);
+    }
+    const fcs = [...t.porFc.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+    if (fcs.length === 1){
+      L.push(`Resistencia: ${nombreFc(fcs[0][0])}`);
+    } else if (fcs.length > 1){
+      L.push('');
+      L.push('Por resistencia:');
+      fcs.forEach(([id, v]) => L.push(`• ${nombreFc(id)} — ${nf(v * k, 2)} m³`));
+    }
+  }
+
+  if (form){
+    L.push('');
+    if (ambos) L.push('*FORMALETA*');
+    if (!t.piezas.size){
+      L.push('Sin piezas: ninguna columna de la lista tiene caras a formaletear.');
+    } else {
+      L.push(`Total: *${ni(t.formTot)} piezas*`);
+      L.push(`Alcanza para encofrar las ${cols} columna${plural} al mismo tiempo.`);
+      L.push('');
+      L.push('Por medida:');
+      [...t.piezas.entries()].sort((a, b) => b[1] - a[1]).forEach(([id, n]) => {
+        const [a, h] = id.split('x');
+        L.push(`• ${dim(a)} × ${dim(h)} cm — ${ni(n)} und`);
+      });
+    }
+  }
+
+  if (estadoCol.filas.length && (conc || form)){
+    L.push('');
+    L.push('*DETALLE POR COLUMNA*');
+    estadoCol.filas.forEach((f, i) => {
+      const c = calcCol(f);
+      L.push(`${i + 1}. ${descCol(f, i)} — ${geomCol(f)}, h ${nf(c.alt, 2)} m, ${ni(c.cant)} und`);
+      /* Con los dos bloques activos cada dato va en su renglón y rotulado: el
+         punto medio que los separaba se confundía con el de «21 MPa · 3000 psi». */
+      if (ambos){
+        L.push(`    Concreto: ${nf(c.vol, 3)} m³ de ${nombreFc(f.fc)}`);
+        if (c.total) L.push(`    Formaleta: ${formTextoMsg(c.piezas, 'piezas')}`);
+      } else if (conc){
+        L.push(`    ${nf(c.vol, 3)} m³ de ${nombreFc(f.fc)}`);
+      } else if (c.total){
+        L.push(`    ${formTextoMsg(c.piezas)}`);
+      }
+    });
+  }
+
   L.push('');
-  estadoCol.filas.forEach((f, i) => {
-    const c = calcCol(f);
-    const form = c.total ? ` · ${ni(c.total)} formaletas: ${piezasTexto(c.piezas)}` : '';
-    L.push(`${i + 1}. ${descCol(f, i)} — ${nombreFc(f.fc)} · ${geomCol(f)} × ${nf(c.alt, 2)} m × ${c.cant} = ` +
-           `${nf(c.vol, 3)} m³${form}`);
-  });
-  L.push('');
-  L.push('CONCRETO POR RESISTENCIA');
-  [...t.porFc.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
-    .forEach(([id, v]) => L.push(`  ${nombreFc(id)}: ${nf(v * k, 2)} m³`));
-  L.push('');
-  L.push('FORMALETAS A PEDIR (para encofrar todas las columnas al tiempo)');
-  if (!t.piezas.size) L.push('  —');
-  [...t.piezas.entries()].sort((a, b) => b[1] - a[1]).forEach(([id, n]) => {
-    const [a, h] = id.split('x');
-    L.push(`  ${dim(a)} × ${dim(h)} cm: ${ni(n)} und`);
-  });
-  L.push('');
-  L.push(`TOTAL: ${nf(t.volPedir, 2)} m³ de concreto · ${ni(t.formTot)} formaletas`);
+  L.push('_Cantidades calculadas con STICK QUANTITY. Verificar contra los planos._');
   return L.join('\n');
 }
 
@@ -2067,6 +2159,39 @@ $('btnLimpiarCol').addEventListener('click', () => {
   guardarCol(); pintarFilasCol(); pintarTotalesCol();
   toast('Lista vacía');
 });
+
+/* ── Qué entra al mensaje ────────────────────────────────
+   No se dejan apagar los dos: un mensaje vacío no le sirve a nadie, y el
+   botón de copiar tiene que entregar siempre algo. */
+function pintarCopiarCol(){
+  document.querySelectorAll('[data-cop]').forEach(b =>
+    b.classList.toggle('on', !!estadoCol.copiar[b.dataset.cop]));
+}
+document.querySelectorAll('[data-cop]').forEach(b => {
+  b.addEventListener('click', () => {
+    const otro = b.dataset.cop === 'concreto' ? 'formaleta' : 'concreto';
+    if (estadoCol.copiar[b.dataset.cop] && !estadoCol.copiar[otro]){
+      toast('Deja al menos uno activo'); return;
+    }
+    estadoCol.copiar[b.dataset.cop] = !estadoCol.copiar[b.dataset.cop];
+    guardarCol(); pintarCopiarCol();
+  });
+});
+
+async function copiarCol(){
+  const txt = resumenTextoCol();
+  try {
+    await navigator.clipboard.writeText(txt);
+  } catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  }
+  const q = estadoCol.copiar;
+  toast(q.concreto && q.formaleta ? 'Concreto y formaleta copiados'
+      : q.concreto ? 'Solo concreto copiado' : 'Solo formaleta copiada');
+}
+$('btnCopiarCol').addEventListener('click', copiarCol);
 
 /* ============================================================
    CAPÍTULO ACERO — DESPIECE
@@ -3504,6 +3629,7 @@ pintarTodo();
 
 cargarCol();
 $('inpDespCon').value = estadoCol.desperdicio;
+pintarCopiarCol();
 pintarTodoCol();
 
 cargarAce();

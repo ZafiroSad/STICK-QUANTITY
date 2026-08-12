@@ -14,7 +14,22 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.5.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.6.0 (Mampostería + Concreto de columnas + Acero)
+
+### Mensaje de pedido por WhatsApp en el capítulo de columnas (2026-08-12)
+
+El resumen se copiaba entero y en formato de listado técnico. El Señor Stick lo manda por WhatsApp
+a proveedores y contratistas, y cada uno necesita una cosa distinta.
+
+- **Dos interruptores** en la cabecera del resumen —`Concreto` y `Formaleta`— deciden qué entra al
+  mensaje. Se guardan en `estadoCol.copiar` y no se dejan apagar los dos.
+- **Botón «Copiar para WhatsApp»** visible en la sección; el ícono de la topbar despacha al mismo
+  sitio cuando el capítulo activo es columnas, y el aviso dice qué se copió.
+- **Mensaje reescrito** (`resumenTextoCol`): título según el modo —PEDIDO DE OBRA / DE CONCRETO /
+  DE FORMALETA—, el total arriba en `*negrita*` (WhatsApp la interpreta), el desglose debajo y el
+  detalle por columna al final. En concreto añade el redondeo a mixer (`volMixer`, pasos de 0,5 m³).
+  Con los dos bloques activos el detalle va en dos renglones rotulados: el punto medio que los
+  separaba se confundía con el de «21 MPa · 3000 psi».
 
 ### Segunda pasada del capítulo Acero tras revisión del Señor Stick (2026-08-12)
 
@@ -190,6 +205,13 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **El resumen de columnas se copia por partes, no entero (2026-08-12).** A la planta de concreto
+  no le sirve el conteo de formaleta y al alquilador de formaleta no le sirve el m³. Dos
+  interruptores, y el mensaje cambia hasta el título. No se dejan apagar los dos: un mensaje vacío
+  no le sirve a nadie y el botón tiene que entregar siempre algo.
+- **El mensaje se escribe para WhatsApp, no para una hoja (2026-08-12).** Total arriba en negrita,
+  desglose debajo, detalle al final; `*negrita*` y `_cursiva_` porque WhatsApp las interpreta. Sin
+  emojis: el registro del Señor Stick con proveedores es formal.
 - **La tarjeta agrupa UNA longitud de corte, no un elemento (2026-08-12, elegido por el Señor
   Stick).** Se le ofrecieron las dos formas con maqueta: tarjeta por longitud (con las posiciones
   adentro) o tarjeta por elemento (con varias figuras adentro). Escogió la primera. Una viga con

@@ -116,6 +116,17 @@ columnas iguales de cada fila multiplica tanto el concreto como las piezas. Seis
 30 × 30 y 3,60 m piden 72 formaletas de 30 × 120. Quien las funda por tandas y rote el juego pide
 solo lo de la tanda más grande: el detalle de cada fila muestra las piezas de una sola columna.
 
+### Pedido por WhatsApp
+
+El resumen se copia como un **mensaje de pedido**, listo para pegar en WhatsApp: el total arriba en
+negrita, el desglose debajo y el detalle por columna al final. Dos interruptores deciden qué entra —
+**Concreto**, **Formaleta** o los dos—, de modo que a la planta de concreto le llegue solo el m³ por
+resistencia y al alquilador de formaleta solo el conteo de piezas. El título del mensaje cambia
+según el caso: *PEDIDO DE OBRA*, *PEDIDO DE CONCRETO* o *PEDIDO DE FORMALETA*.
+
+En concreto, el mensaje añade el volumen redondeado a pasos de 0,5 m³, que es como se despacha el
+premezclado.
+
 ### Advertencia técnica
 
 Las medidas del catálogo son las **modulares habituales** del mercado, no el catálogo verificado de
