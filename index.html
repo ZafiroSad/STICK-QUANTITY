@@ -13,10 +13,10 @@
 <link rel="icon" href="./favicon.png" type="image/png" sizes="64x64">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <title>STICK QUANTITY</title>
-<meta name="description" content="Calculadora de cantidades de obra. Mampostería y concreto de columnas: ladrillos, mortero, volumen y formaleta.">
+<meta name="description" content="Calculadora de cantidades de obra. Mampostería, concreto de columnas y despiece de acero: ladrillos, mortero, volumen, formaleta y varillas, con exportación a Excel.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="STICK QUANTITY">
-<meta property="og:description" content="Calculadora de cantidades de obra. Mampostería y concreto de columnas: ladrillos, mortero, volumen y formaleta.">
+<meta property="og:description" content="Calculadora de cantidades de obra. Mampostería, concreto de columnas y despiece de acero: ladrillos, mortero, volumen, formaleta y varillas, con exportación a Excel.">
 <meta property="og:image" content="./icon-512.png">
 <meta name="twitter:card" content="summary">
 <!-- Anti-destello: aplica el tema ANTES del primer pintado (STICK_UI_SYSTEM.md §10) -->
@@ -380,6 +380,45 @@ html.light .stat{background:rgba(255,255,255,.62)}
 }
 .toast.on{opacity:1;transform:translateX(-50%) translateY(-6px)}
 .empty{text-align:center;padding:34px 18px;color:var(--zinc-600);font-size:13px}
+
+/* ── Capítulo Acero: la figura de la barra se escoge tocando el dibujo ──
+   Se prefirió el dibujo al texto porque en obra la figura se reconoce de
+   un vistazo y las letras A/B/C del dibujo son las mismas de los campos. */
+.figuras{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media (max-width:640px){.figuras{grid-template-columns:repeat(2,1fr)}}
+.fig{
+  background:rgba(255,255,255,.035);border:1px solid var(--v-borde);border-radius:18px;
+  padding:9px 6px 7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-family:inherit;
+  transition:border-color .25s var(--suave),background .25s var(--suave),transform .35s var(--resorte);
+}
+html.light .fig{background:rgba(255,255,255,.62)}
+.fig:hover{border-color:var(--linea-fuerte);transform:translateY(-2px)}
+.fig:active{transform:scale(.98)}
+.fig svg{width:100%;height:auto;max-width:132px;color:var(--zinc-500);display:block}
+.fig b{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--zinc-500);text-align:center;line-height:1.35}
+.fig.on{border-color:var(--linea-fuerte);background:rgba(255,255,255,.10)}
+html.light .fig.on{background:#fff}
+.fig.on svg{color:var(--tinta)}
+.fig.on b{color:var(--tinta)}
+/* Croquis acotado: el dibujo a escala de ESTA barra, con sus medidas.
+   No es el ícono del selector — se redibuja con lo que se escribe. */
+.croquis{margin-top:12px;border:1px solid var(--v-borde);border-radius:18px;
+  background:rgba(255,255,255,.025);padding:8px 12px 6px}
+html.light .croquis{background:rgba(255,255,255,.55)}
+/* Tope de ancho: sin él, en pantalla ancha el croquis se estira y con él
+   crecen los textos de las cotas, que quedan más grandes que los del formulario */
+.croquis svg{width:100%;height:auto;display:block;max-width:600px;margin:0 auto;
+  color:var(--tinta);font-family:inherit;overflow:visible}
+.croquis .pie{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  font-size:10px;font-weight:600;color:var(--zinc-600);letter-spacing:.02em;margin-top:2px}
+/* Desglose de la longitud: 0,30 + 4,20 + 0,30 = 4,80 m */
+.desglose{font-size:11px;color:var(--zinc-500);line-height:1.5;font-variant-numeric:tabular-nums}
+.desglose b{color:var(--zinc-300);font-weight:800}
+.g-ace{grid-template-columns:1fr}
+@media (min-width:560px){.g-ace{grid-template-columns:1fr 1fr}}
+@media (min-width:900px){.g-ace{grid-template-columns:repeat(5,1fr)}}
 footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
   font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--zinc-700);text-align:center}
 </style>
@@ -462,7 +501,12 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
       </svg>
       Concreto · Columnas
     </button>
-    <div class="chip soon">Acero <span>Pronto</span></div>
+    <button class="chip" data-cap="acero">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 17h11a4 4 0 0 0 4-4V7"/><path d="M21 5v6"/><path d="M3 21h6"/>
+      </svg>
+      Acero · Despiece
+    </button>
     <div class="chip soon">Pañete <span>Pronto</span></div>
     <div class="chip soon">Pisos <span>Pronto</span></div>
   </div>
@@ -730,9 +774,145 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </div><!-- /#vistaColumnas -->
 
+<!-- ═══════════════ CAPÍTULO: ACERO — DESPIECE ═══════════════ -->
+<div id="vistaAcero" style="display:none;flex-direction:column;gap:22px">
+
+  <!-- Parámetros del despiece -->
+  <section class="animate-rise">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Parámetros del despiece</h2>
+        <p class="sub">Se fijan una vez y valen para toda la lista. Lo demás se escribe fila por fila.</p>
+      </div>
+    </div>
+
+    <div class="card pad">
+      <div class="grid g-ace">
+        <div class="field">
+          <label for="aceTitulo">Nombre del despiece</label>
+          <input id="aceTitulo" type="text" placeholder="PRIMERA TANDA" maxlength="60">
+        </div>
+        <div class="field">
+          <label for="aceVarilla">Varilla comercial</label>
+          <select id="aceVarilla">
+            <option value="6">6,00 m</option>
+            <option value="9">9,00 m</option>
+            <option value="12">12,00 m</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="aceDesp">Desperdicio (%)</label>
+          <input id="aceDesp" type="text" inputmode="decimal" value="5">
+        </div>
+        <div class="field">
+          <label for="aceRecub">Recubrimiento (cm)</label>
+          <input id="aceRecub" type="text" inputmode="decimal" value="4">
+        </div>
+        <div class="field">
+          <label for="aceGancho">Gancho estándar</label>
+          <select id="aceGancho">
+            <option value="no">Sin gancho extra</option>
+            <option value="90">90° — 12 db</option>
+            <option value="180">180° — 4 db (mín. 6,5 cm)</option>
+          </select>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:14px;font-size:11px">
+        El recubrimiento solo se usa para los estribos: la app le resta <b style="color:var(--zinc-400)">2 ×</b>
+        recubrimiento a la sección para sacar la medida exterior del estribo. El gancho estándar se le suma
+        a las barras longitudinales que tú marques con 1 o 2 ganchos; los estribos siempre llevan sus dos
+        ganchos de 135° incluidos.
+      </p>
+    </div>
+  </section>
+
+  <!-- Despiece -->
+  <section class="animate-rise" style="animation-delay:.06s">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Despiece</h2>
+        <p class="sub">Una fila por marca de barra: elemento, figura, diámetro y medidas.</p>
+      </div>
+      <button class="btn-primary" id="btnAgregarAce">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Agregar barra
+      </button>
+    </div>
+
+    <div class="card pad">
+      <div id="filasAce" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="vacioAce" class="empty" style="display:none">
+        Sin barras todavía. Toca <b style="color:var(--zinc-400)">Agregar barra</b> para empezar.
+      </div>
+    </div>
+  </section>
+
+  <!-- Resumen acero -->
+  <section class="animate-rise" style="animation-delay:.12s">
+    <div class="section-head">
+      <div>
+        <h2 class="h2">Resumen</h2>
+        <p class="sub">Peso a pedir y varillas a comprar, contadas por diámetro.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-secondary" id="btnXlsxAce">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Exportar a Excel
+        </button>
+        <button class="btn-danger" id="btnLimpiarAce">Limpiar todo</button>
+      </div>
+    </div>
+
+    <div class="card pad" style="display:flex;flex-direction:column;gap:16px">
+      <div class="hero">
+        <div>
+          <p class="label" style="color:var(--zinc-400)">Acero a pedir</p>
+          <p style="margin-top:8px"><span class="v" id="aceFinal">0.00</span>
+            <span style="font-size:13px;font-weight:700;color:var(--zinc-400);margin-left:6px">kg</span></p>
+          <p class="muted" id="aceDetalle" style="margin-top:7px">—</p>
+        </div>
+        <div style="text-align:right">
+          <p class="label" style="color:var(--zinc-400)">Varillas a comprar</p>
+          <p style="margin-top:7px"><span class="num" id="aceVarTot" style="font-size:30px;font-weight:800;color:var(--tinta)">0</span>
+            <span style="font-size:12px;font-weight:700;color:var(--zinc-500);margin-left:4px">und</span></p>
+          <p class="muted" id="aceVarDet" style="margin-top:6px">—</p>
+        </div>
+      </div>
+
+      <div class="grid g-stats">
+        <div class="stat"><p class="k">Piezas cortadas</p><p class="v"><span id="acePiezas">0</span><span class="u">und</span></p></div>
+        <div class="stat"><p class="k">Longitud total</p><p class="v"><span id="aceMl">0.00</span><span class="u">m</span></p></div>
+        <div class="stat"><p class="k">Peso neto</p><p class="v"><span id="acePeso">0.00</span><span class="u">kg</span></p></div>
+        <div class="stat"><p class="k">Diámetros</p><p class="v"><span id="aceDias">0</span><span class="u">ref</span></p></div>
+      </div>
+
+      <div>
+        <p class="label" style="margin-bottom:6px">Acero por diámetro</p>
+        <div class="lista" id="listaDia"></div>
+      </div>
+
+      <div class="note">
+        <b>Verificar contra los planos.</b> Las longitudes se suman <i>cara a cara</i>, sin descontar el
+        desarrollo del doblez: es la práctica corriente de despiece y queda del lado de la seguridad.
+        Las masas por metro son las nominales de la <b>NTC 2289</b> y los ganchos siguen la
+        <b>NSR-10 C.7.1</b> (90° = 12 db; 180° = 4 db ≥ 6,5 cm; estribos a 135° = 6 db ≥ 7,5 cm).
+        El cálculo <b>no</b> resuelve traslapos, ni longitudes de desarrollo, ni el alambre de amarre:
+        si una pieza no sale de una varilla, la app te avisa pero el traslapo lo defines tú según la
+        NSR-10 C.12. Las varillas se cuentan por corte real —cuántas piezas salen de cada varilla—
+        sin combinar barras de filas distintas.
+      </div>
+    </div>
+  </section>
+
+</div><!-- /#vistaAcero -->
+
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.2.2 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.3.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -1138,7 +1318,8 @@ $('btnLimpiar').addEventListener('click', () => {
 });
 
 $('btnCopiar').addEventListener('click', async () => {
-  const txt = capActivo === 'columnas' ? resumenTextoCol() : resumenTexto();
+  const txt = capActivo === 'acero' ? resumenTextoAce()
+            : capActivo === 'columnas' ? resumenTextoCol() : resumenTexto();
   try {
     await navigator.clipboard.writeText(txt);
     toast('Resumen copiado');
@@ -1151,7 +1332,9 @@ $('btnCopiar').addEventListener('click', async () => {
 });
 
 $('btnCsv').addEventListener('click', () => {
-  if (capActivo === 'columnas') exportarCsvCol(); else exportarCsv();
+  if (capActivo === 'acero') exportarXlsxAce();
+  else if (capActivo === 'columnas') exportarCsvCol();
+  else exportarCsv();
 });
 
 /* ============================================================
@@ -1673,7 +1856,10 @@ function cargarCol(){
   if (!Array.isArray(estadoCol.filas) || !estadoCol.filas.length) estadoCol.filas = [nuevaCol()];
   // Las filas guardadas por la versión anterior no traen fc ni ref
   estadoCol.filas = estadoCol.filas.map(f => Object.assign(nuevaCol(), f));
-  try { capActivo = localStorage.getItem(CLAVE_CAP) === 'columnas' ? 'columnas' : 'mamposteria'; } catch(e){}
+  try {
+    const cap = localStorage.getItem(CLAVE_CAP);
+    capActivo = ['columnas','acero'].includes(cap) ? cap : 'mamposteria';
+  } catch(e){}
 }
 
 /* ── Exportación del capítulo ───────────────────────────── */
@@ -1816,10 +2002,1009 @@ $('btnLimpiarCol').addEventListener('click', () => {
   toast('Lista vacía');
 });
 
+/* ============================================================
+   CAPÍTULO ACERO — DESPIECE
+   ------------------------------------------------------------
+   Longitud de corte de una barra (práctica de despiece):
+
+     L = Σ tramos medidos cara a cara  +  ganchos
+
+   No se descuenta el desarrollo del doblez (el eje de la barra
+   recorre algo menos que la suma de los tramos exteriores):
+   el error queda del lado de la seguridad y es como se despieza
+   en obra. Los ganchos salen de la NSR-10 C.7.1:
+
+     90°  -> extensión recta de 12 db
+     180° -> extensión recta de 4 db, mínimo 65 mm
+     135° (estribos) -> 6 db, mínimo 75 mm, dos por estribo
+
+   Peso = longitud total x masa nominal (NTC 2289).
+   ============================================================ */
+
+/* Masas nominales NTC 2289 (barra corrugada) + el 6 mm liso, que es
+   lo que se usa para estribos en obra pequeña. Agregar referencias
+   AQUÍ, no en la UI. */
+const ACEROS = [
+  { id:'6L', nombre:'6 mm liso',     corta:'6 mm',   mm:6.0,  kgm:0.222 },
+  { id:'2',  nombre:'N.º 2 · 1/4"',  corta:'#2',     mm:6.4,  kgm:0.250 },
+  { id:'3',  nombre:'N.º 3 · 3/8"',  corta:'#3',     mm:9.5,  kgm:0.560 },
+  { id:'4',  nombre:'N.º 4 · 1/2"',  corta:'#4',     mm:12.7, kgm:0.994 },
+  { id:'5',  nombre:'N.º 5 · 5/8"',  corta:'#5',     mm:15.9, kgm:1.552 },
+  { id:'6',  nombre:'N.º 6 · 3/4"',  corta:'#6',     mm:19.1, kgm:2.235 },
+  { id:'7',  nombre:'N.º 7 · 7/8"',  corta:'#7',     mm:22.2, kgm:3.042 },
+  { id:'8',  nombre:'N.º 8 · 1"',    corta:'#8',     mm:25.4, kgm:3.973 },
+  { id:'9',  nombre:'N.º 9 · 1 1/8"',corta:'#9',     mm:28.7, kgm:5.060 },
+  { id:'10', nombre:'N.º 10 · 1 1/4"',corta:'#10',   mm:32.3, kgm:6.404 },
+  { id:'11', nombre:'N.º 11 · 1 3/8"',corta:'#11',   mm:35.8, kgm:7.907 },
+];
+
+/* Los dibujos son el selector: las letras del dibujo son las de los campos. */
+const SVG_FIG = {
+  recta: `<svg viewBox="0 0 136 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M18 36 H118" stroke-width="5"/>
+      <path d="M18 46 V52 M118 46 V52 M18 49 H118" stroke-width="1.1" opacity=".5"/>
+      <text x="68" y="26" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">A</text>
+    </svg>`,
+  esc1: `<svg viewBox="0 0 136 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M24 24 H104 V54" stroke-width="5"/>
+      <text x="64" y="16" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">A</text>
+      <text x="119" y="44" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">B</text>
+    </svg>`,
+  esc2: `<svg viewBox="0 0 136 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M28 54 V24 H108 V54" stroke-width="5"/>
+      <text x="68" y="16" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">A</text>
+      <text x="14" y="44" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">B</text>
+      <text x="122" y="44" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">C</text>
+    </svg>`,
+  /* El estribo se dibuja abierto en la esquina superior izquierda, con los dos
+     ganchos de 135° saliendo hacia adentro: es como se ve armado en obra. */
+  estribo: `<svg viewBox="0 0 136 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M48 12 H104 V42 H32 V12 H38" stroke-width="4.5"/>
+      <path d="M48 12 l12 12 M38 12 l12 12" stroke-width="4"/>
+      <text x="68" y="60" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">B</text>
+      <text x="119" y="32" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">H</text>
+    </svg>`,
+};
+
+const FIGURAS = [
+  { id:'recta',   nombre:'Recta',             titulo:'Recta',
+    campos:[{ k:'a', et:'A — largo (m)', ph:'4.20' }] },
+  { id:'esc1',    nombre:'Escuadra sencilla', titulo:'Escuadra sencilla',
+    campos:[{ k:'a', et:'A — tramo recto (m)', ph:'4.20' },
+            { k:'b', et:'B — escuadra (m)',    ph:'0.30' }] },
+  { id:'esc2',    nombre:'Doble escuadra',    titulo:'Doble escuadra',
+    campos:[{ k:'b', et:'B — escuadra izq. (m)', ph:'0.30' },
+            { k:'a', et:'A — tramo recto (m)',   ph:'4.20' },
+            { k:'c', et:'C — escuadra der. (m)', ph:'0.30' }] },
+  { id:'estribo', nombre:'Estribo',           titulo:'Estribo cerrado',
+    campos:[{ k:'sb', et:'B — sección (cm)',    ph:'30' },
+            { k:'sh', et:'H — sección (cm)',    ph:'45' },
+            { k:'le', et:'Largo del elemento (m)', ph:'4.20' },
+            { k:'sep', et:'Separación S (cm)',  ph:'15' }] },
+];
+
+const CLAVE_ACE = 'stick-quantity-acero-v1';
+
+let estadoAce = {
+  titulo: '',
+  varilla: '6',
+  desperdicio: 5,
+  recub: 4,
+  gancho: 'no',
+  filas: [],
+};
+
+let animarTodoAce = true, animarIdAce = null;
+
+function nuevaAce(){
+  return { id:uid(), elem:'', det:'', fig:'recta', dia:'4',
+           a:'', b:'', c:'', sb:'', sh:'', le:'', sep:'',
+           ganchos:'0', cant:'1' };
+}
+
+const aceroDe = id => ACEROS.find(x => x.id === id) || ACEROS[3];
+const figDe   = id => FIGURAS.find(x => x.id === id) || FIGURAS[0];
+
+/* ── Cálculo por fila ───────────────────────────────────── */
+function calcAce(f){
+  const ac = aceroDe(f.dia), db = ac.mm / 1000;      // db en metros
+  const Lc = num(estadoAce.varilla) || 6;
+  let lu = 0, det = '', aviso = '', auto = 0;
+
+  if (f.fig === 'estribo'){
+    const r  = num(estadoAce.recub);
+    const bx = num(f.sb) - 2 * r, hx = num(f.sh) - 2 * r;   // medida exterior del estribo, cm
+    const g  = Math.max(6 * db, 0.075);                     // gancho 135°, NSR-10 C.7.1.3
+    lu = Math.max(0, 2 * (bx + hx) / 100) + 2 * g;
+    det = `2 × (${nf(Math.max(0,bx),1)} + ${nf(Math.max(0,hx),1)}) cm + 2 ganchos de ${nf(g*100,1)} cm`;
+    const sep = num(f.sep) / 100, le = num(f.le);
+    auto = (sep > 0 && le > 0) ? Math.floor(le / sep + 1e-9) + 1 : 0;
+    if (num(f.sb) > 0 && bx <= 0) aviso = 'El recubrimiento se come la sección';
+  } else {
+    const campos = figDe(f.fig).campos.map(c => c.k);
+    const vals = campos.map(k => Math.max(0, num(f[k])));
+    lu = vals.reduce((s, x) => s + x, 0);
+    const partes = vals.map(v => nf(v, 2));
+    const ng = Math.max(0, Math.round(num(f.ganchos)));
+    if (ng > 0 && estadoAce.gancho !== 'no'){
+      const ext = estadoAce.gancho === '90' ? 12 * db : Math.max(4 * db, 0.065);
+      lu += ng * ext;
+      partes.push(`${ng} × ${nf(ext*100,1)} cm de gancho`);
+    }
+    // Con un solo tramo la suma sobra: «4,20 = 4,20 m» no dice nada
+    det = partes.length > 1 ? partes.join(' + ') : '';
+    auto = 1;
+  }
+
+  const cant   = f.cant === '' ? auto : Math.max(0, Math.round(num(f.cant)));
+  const lTot   = lu * cant;
+  const peso   = lTot * ac.kgm;
+  const porVar = lu > 0 ? Math.floor(Lc / lu + 1e-9) : 0;
+  const varillas = porVar > 0 ? Math.ceil(cant / porVar) : 0;
+  if (lu > Lc) aviso = `La pieza mide ${nf(lu,2)} m y la varilla ${nf(Lc,2)} m: hay que traslapar`;
+
+  return { ac, lu, cant, auto, lTot, peso, porVar, varillas, det, aviso, Lc };
+}
+
+function totalesAce(){
+  const t = { lTot:0, peso:0, cant:0, varillas:0, porDia:new Map(), avisos:0 };
+  estadoAce.filas.forEach(f => {
+    const c = calcAce(f);
+    t.lTot += c.lTot; t.peso += c.peso; t.cant += c.cant; t.varillas += c.varillas;
+    if (c.aviso) t.avisos++;
+    const g = t.porDia.get(f.dia) || { ml:0, kg:0, cant:0, varillas:0 };
+    g.ml += c.lTot; g.kg += c.peso; g.cant += c.cant; g.varillas += c.varillas;
+    t.porDia.set(f.dia, g);
+  });
+  t.k = 1 + num(estadoAce.desperdicio) / 100;
+  t.pesoPedir = t.peso * t.k;
+  return t;
+}
+
+/* ── Pintado ────────────────────────────────────────────── */
+function nombreAce(f, i){ return f.elem || `E-${i + 1}`; }
+
+function pieAce(f, c){
+  const geo = (c.det ? `${c.det} = ` : '') + `<b>${nf(c.lu,2)} m</b>` +
+    (c.cant ? ` · ${ni(c.cant)} pieza${c.cant === 1 ? '' : 's'} = ${nf(c.lTot,2)} m` : '') +
+    (c.aviso ? ` <span class="aviso">· ${escapeHtml(c.aviso)}</span>` : '');
+  const res = `${nf(c.peso,2)} <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">kg</span>`;
+  return [geo, res];
+}
+
+/* ── Croquis acotado de la barra ─────────────────────────────
+   El dibujo de la fila NO es el ícono del selector: se traza A ESCALA
+   con las medidas escritas, con sus líneas de cota y sus ganchos. Es la
+   figura que un despiece lleva al lado de cada marca, y es lo que el
+   Excel de referencia no puede dar: allí la forma vive en la cabeza de
+   quien llenó la hoja. Mientras la fila esté vacía se dibuja el ejemplo
+   (los placeholders de los campos) atenuado, para que la figura nunca
+   aparezca degenerada.                                                   */
+const geomAce = f => {
+  const fg = figDe(f.fig);
+  let real = true;
+  /* Valor del campo, o el del placeholder si aún no se ha escrito */
+  const V = k => {
+    const x = num(f[k]);
+    if (x > 0) return x;
+    real = false;
+    const cp = fg.campos.find(c => c.k === k);
+    return Math.max(0.01, num(cp ? cp.ph : 1));
+  };
+
+  const db = aceroDe(f.dia).mm / 1000;
+  let pts, cotas, u, nota = '', ganchos = [];
+
+  if (f.fig === 'estribo'){
+    const r  = num(estadoAce.recub);
+    const bx = Math.max(1, V('sb') - 2 * r), hx = Math.max(1, V('sh') - 2 * r);
+    const gh = Math.max(6 * db, 0.075) * 100;           // gancho 135° en cm
+    pts   = [[0,0],[bx,0],[bx,hx],[0,hx],[0,0]];
+    cotas = [{ i:2, l:'B', v:bx }, { i:1, l:'H', v:hx }];
+    u = 'cm';
+    ganchos = { tipo:'135', L:gh, esq:[[0,0],[bx * 0.22, 0]] };
+    nota = `Exterior = sección − 2 × ${dim(r)} cm de recubrimiento · ` +
+           `2 ganchos de 135° de ${nf(gh,1)} cm`;
+  } else {
+    if (f.fig === 'recta'){
+      const A = V('a');
+      pts = [[0,0],[A,0]];
+      cotas = [{ i:0, l:'A', v:A }];
+    } else if (f.fig === 'esc1'){
+      const A = V('a'), B = V('b');
+      pts = [[0,0],[A,0],[A,B]];
+      cotas = [{ i:0, l:'A', v:A }, { i:1, l:'B', v:B }];
+    } else {
+      const A = V('a'), B = V('b'), C = V('c');
+      pts = [[0,B],[0,0],[A,0],[A,C]];
+      cotas = [{ i:0, l:'B', v:B }, { i:1, l:'A', v:A }, { i:2, l:'C', v:C }];
+    }
+    u = 'm';
+    const ng = Math.max(0, Math.round(num(f.ganchos)));
+    if (ng > 0 && estadoAce.gancho !== 'no'){
+      const ext = estadoAce.gancho === '90' ? 12 * db : Math.max(4 * db, 0.065);
+      ganchos = { tipo:estadoAce.gancho, L:ext, extremos:ng >= 2 ? [0, pts.length - 1] : [0] };
+      nota = `${ng} gancho${ng === 1 ? '' : 's'} de ${estadoAce.gancho}° · ` +
+             `${nf(ext*100,1)} cm cada uno, ya sumados a la longitud`;
+    }
+  }
+  return { pts, cotas, u, nota, ganchos, real };
+};
+
+function croquisAce(f){
+  const g = geomAce(f);
+  const W = 560, ML = 74, MR = 84, MT = 34, MB = 40;
+  const uW = W - ML - MR;
+
+  const xs = g.pts.map(p => p[0]), ys = g.pts.map(p => p[1]);
+  const x0 = Math.min(...xs), y0 = Math.min(...ys);
+  const w0 = Math.max(...xs) - x0, h0 = Math.max(...ys) - y0;
+  if (w0 <= 0 && h0 <= 0) return '';
+
+  /* El alto del lienzo lo fija la figura, no una caja fija: una barra recta
+     no tiene por qué ocupar el mismo alto que un estribo. Se estira a lo ancho
+     y solo si eso desborda el tope se vuelve a escalar por el alto. */
+  const scW = w0 > 0 ? uW / w0 : Infinity;
+  const H   = Math.min(196, Math.max(106, Math.round(MT + MB + h0 * scW)));
+  const uH  = H - MT - MB;
+  // Una sola escala para los dos ejes: si no, el croquis mentiría sobre la forma
+  const sc = Math.min(scW, h0 > 0 ? uH / h0 : Infinity);
+  if (!Number.isFinite(sc)) return '';
+
+  const dx = ML + (uW - w0 * sc) / 2 - x0 * sc;
+  const dy = MT + (uH - h0 * sc) / 2 - y0 * sc;
+  const P  = g.pts.map(p => [p[0] * sc + dx, p[1] * sc + dy]);
+  const cx = (x0 + w0 / 2) * sc + dx, cy = (y0 + h0 / 2) * sc + dy;
+  const R  = n => Math.round(n * 10) / 10;
+
+  /* Normal del segmento que apunta hacia AFUERA de la figura. Con la barra
+     recta el centro cae sobre la propia línea y las dos normales empatan:
+     ahí se acota por debajo, que es la convención de un plano. */
+  const normal = (p, q) => {
+    const vx = q[0] - p[0], vy = q[1] - p[1], m = Math.hypot(vx, vy) || 1;
+    let nx = -vy / m, ny = vx / m;
+    const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+    const d = nx * (mx - cx) + ny * (my - cy);
+    if (d < -0.001) return [-nx, -ny];
+    if (d <= 0.001) return Math.abs(vx) >= Math.abs(vy) ? [0, 1] : [1, 0];
+    return [nx, ny];
+  };
+
+  const trazo = 'M ' + P.map(p => `${R(p[0])} ${R(p[1])}`).join(' L ');
+  let piezas = `<path d="${trazo}" fill="none" stroke="currentColor" stroke-width="5.5" ` +
+               `stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  /* ── Ganchos ─────────────────────────────────────────── */
+  const G = g.ganchos;
+  if (G && G.tipo === '135'){
+    const L = G.L * sc;
+    const k = L / Math.SQRT2;
+    G.esq.forEach(pt => {
+      const px = pt[0] * sc + dx, py = pt[1] * sc + dy;
+      piezas += `<path d="M ${R(px)} ${R(py)} l ${R(k)} ${R(k)}" fill="none" stroke="currentColor" ` +
+                `stroke-width="5" stroke-linecap="round"/>`;
+    });
+  } else if (G && G.extremos){
+    G.extremos.forEach(e => {
+      const p   = P[e], adj = P[e === 0 ? 1 : e - 1];
+      const vx  = p[0] - adj[0], vy = p[1] - adj[1], m = Math.hypot(vx, vy) || 1;
+      const d   = [vx / m, vy / m];
+      let n = [-d[1], d[0]];
+      const dot = n[0] * (cx - p[0]) + n[1] * (cy - p[1]);
+      if (dot < -0.001) n = [-n[0], -n[1]];
+      else if (dot <= 0.001) n = Math.abs(d[0]) >= Math.abs(d[1]) ? [0, 1] : [1, 0];
+      const L = Math.max(8, G.L * sc);
+      if (G.tipo === '90'){
+        piezas += `<path d="M ${R(p[0])} ${R(p[1])} l ${R(n[0]*L)} ${R(n[1]*L)}" fill="none" ` +
+                  `stroke="currentColor" stroke-width="5" stroke-linecap="round"/>`;
+      } else {
+        // 180°: media vuelta y regreso paralelo a la barra
+        const rad = 6, c2 = [p[0] + n[0]*rad, p[1] + n[1]*rad];
+        const fin = [c2[0] + n[0]*rad, c2[1] + n[1]*rad];
+        const sw  = (d[0]*n[1] - d[1]*n[0]) > 0 ? 0 : 1;
+        piezas += `<path d="M ${R(p[0])} ${R(p[1])} A ${rad} ${rad} 0 0 ${sw} ${R(fin[0])} ${R(fin[1])} ` +
+                  `l ${R(-d[0]*L)} ${R(-d[1]*L)}" fill="none" stroke="currentColor" ` +
+                  `stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+      }
+    });
+  }
+
+  /* ── Cotas: línea desplazada, líneas de referencia y texto ── */
+  const OFF = 17;
+  g.cotas.forEach(ct => {
+    const p = P[ct.i], q = P[ct.i + 1];
+    const n = normal(p, q);
+    const a = [p[0] + n[0]*OFF, p[1] + n[1]*OFF], b = [q[0] + n[0]*OFF, q[1] + n[1]*OFF];
+    const t = [-n[1], n[0]];                        // dirección de las marcas
+    const marca = pt => `M ${R(pt[0] - t[0]*4)} ${R(pt[1] - t[1]*4)} ` +
+                        `l ${R(t[0]*8)} ${R(t[1]*8)}`;
+    piezas +=
+      `<path d="M ${R(p[0]+n[0]*5)} ${R(p[1]+n[1]*5)} L ${R(a[0]+n[0]*4)} ${R(a[1]+n[1]*4)} ` +
+      `M ${R(q[0]+n[0]*5)} ${R(q[1]+n[1]*5)} L ${R(b[0]+n[0]*4)} ${R(b[1]+n[1]*4)}" ` +
+      `fill="none" stroke="var(--zinc-600)" stroke-width="1"/>` +
+      `<path d="M ${R(a[0])} ${R(a[1])} L ${R(b[0])} ${R(b[1])} ${marca(a)} ${marca(b)}" ` +
+      `fill="none" stroke="var(--zinc-500)" stroke-width="1.2"/>`;
+
+    const mx = (a[0] + b[0]) / 2 + n[0]*9, my = (a[1] + b[1]) / 2 + n[1]*9;
+    const vert = Math.abs(n[0]) > Math.abs(n[1]);
+    const anc  = vert ? (n[0] > 0 ? 'start' : 'end') : 'middle';
+    const ty   = vert ? my + 4 : (n[1] > 0 ? my + 9 : my - 1);
+    piezas += `<text x="${R(mx)}" y="${R(ty)}" text-anchor="${anc}" fill="var(--zinc-300)" ` +
+      `font-size="12" font-weight="700" letter-spacing="-.01em">${ct.l} = ` +
+      `${g.u === 'cm' ? dim(ct.v) : nf(ct.v, 2)} ${g.u}</text>`;
+  });
+
+  const cuerpo = g.real ? piezas : `<g opacity=".38">${piezas}</g>`;
+  const izq = g.nota;
+  const der = g.real ? 'Dibujo a escala' : 'Medidas de ejemplo — escribe las tuyas';
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Croquis acotado de la barra">${cuerpo}</svg>` +
+         `<div class="pie"><span>${escapeHtml(izq)}</span><span>${der}</span></div>`;
+}
+
+function pintarFilasAce(){
+  const cont = $('filasAce');
+  cont.innerHTML = '';
+  $('vacioAce').style.display = estadoAce.filas.length ? 'none' : 'block';
+
+  estadoAce.filas.forEach((f, i) => {
+    const c = calcAce(f);
+    const fig = figDe(f.fig);
+    const div = document.createElement('div');
+    div.className = 'row';
+    if (animarTodoAce){ div.classList.add('animate-item'); div.style.animationDelay = (i * 55) + 'ms'; }
+    else if (f.id === animarIdAce){ div.classList.add('animate-item'); }
+
+    const campos = fig.campos.map(cp => `
+        <div class="field"><label>${cp.et}</label>
+          <input data-k="${cp.k}" type="text" inputmode="decimal" placeholder="${cp.ph}" value="${escapeHtml(f[cp.k])}"></div>`).join('');
+
+    const campoGancho = (f.fig !== 'estribo' && estadoAce.gancho !== 'no') ? `
+        <div class="field"><label>Ganchos</label>
+          <select data-k="ganchos">
+            <option value="0"${f.ganchos === '0' ? ' selected' : ''}>Ninguno</option>
+            <option value="1"${f.ganchos === '1' ? ' selected' : ''}>1 gancho</option>
+            <option value="2"${f.ganchos === '2' ? ' selected' : ''}>2 ganchos</option>
+          </select></div>` : '';
+
+    const etCant = f.fig === 'estribo' ? 'Cantidad (auto)' : 'Cantidad';
+    const [pieGeo, pieRes] = pieAce(f, c);
+
+    div.innerHTML = `
+      <div class="row-head">
+        <div class="row-idx">${i + 1}</div>
+        <input class="row-name" data-k="elem" placeholder="V-101 — nombre de la viga" value="${escapeHtml(f.elem)}">
+        <button class="btn-icon" data-dup="1" title="Duplicar barra">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </button>
+        <button class="btn-icon danger" data-del="1" title="Eliminar barra">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="figuras">
+        ${FIGURAS.map(g => `<button class="fig${g.id === f.fig ? ' on' : ''}" data-fig="${g.id}" title="${g.titulo}">
+            ${SVG_FIG[g.id]}<b>${g.nombre}</b></button>`).join('')}
+      </div>
+      <div class="row-grid">
+        <div class="field ancho-2"><label>Detalle / posición</label>
+          <input data-k="det" type="text" placeholder="Refuerzo superior" value="${escapeHtml(f.det)}"></div>
+        <div class="field ancho-2"><label>Diámetro</label>
+          <select data-k="dia">
+            ${ACEROS.map(a => `<option value="${a.id}"${f.dia === a.id ? ' selected' : ''}>${a.nombre} — ${nf(a.kgm,3)} kg/m</option>`).join('')}
+          </select></div>
+        ${campos}
+        <div class="field"><label>${etCant}</label>
+          <input data-k="cant" type="text" inputmode="numeric" placeholder="${c.auto}" value="${escapeHtml(f.cant)}"></div>
+        ${campoGancho}
+      </div>
+      <div class="croquis">${croquisAce(f)}</div>
+      <div class="row-foot">
+        <p class="desglose">${pieGeo}</p>
+        <p class="num" style="font-size:13px;font-weight:800;color:var(--tinta)">${pieRes}</p>
+      </div>`;
+
+    // Cambio de figura: cambia los campos, así que se re-pinta la fila entera
+    div.querySelectorAll('[data-fig]').forEach(b => {
+      b.addEventListener('click', () => {
+        if (f.fig === b.dataset.fig) return;
+        f.fig = b.dataset.fig;
+        // Al pasar a estribo la cantidad la calcula la app; al salir vuelve a 1
+        f.cant = f.fig === 'estribo' ? '' : (f.cant || '1');
+        guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      });
+    });
+    // Duplicar: es el «copiar y pegar la fila» del Excel, y con 30 vigas
+    // parecidas es lo que hace que valga la pena dejar la hoja de cálculo
+    div.querySelector('[data-dup]').addEventListener('click', () => {
+      const copia = Object.assign({}, f, { id:uid() });
+      estadoAce.filas.splice(i + 1, 0, copia);
+      animarIdAce = copia.id;
+      guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      toast('Barra duplicada');
+    });
+    div.querySelector('[data-del]').addEventListener('click', () => {
+      estadoAce.filas = estadoAce.filas.filter(x => x.id !== f.id);
+      guardarAce(); pintarFilasAce(); pintarTotalesAce();
+    });
+    // Campos: se recalcula el pie sin re-pintar la fila, para no perder el foco
+    div.querySelectorAll('[data-k]').forEach(inp => {
+      const evt = inp.tagName === 'SELECT' ? 'change' : 'input';
+      inp.addEventListener(evt, () => {
+        // type=text + filtro: input[type=number] descarta la coma decimal (2,5)
+        if (!['elem','det'].includes(inp.dataset.k) && inp.tagName !== 'SELECT'){
+          const limpio = inp.value.replace(/[^0-9.,]/g, '');
+          if (limpio !== inp.value) inp.value = limpio;
+        }
+        f[inp.dataset.k] = inp.value;
+        const cc = calcAce(f);
+        const [g, r] = pieAce(f, cc);
+        const foot = div.querySelector('.row-foot');
+        foot.children[0].innerHTML = g;
+        foot.children[1].innerHTML = r;
+        // El croquis se redibuja entero: es un string, no toca los campos
+        div.querySelector('.croquis').innerHTML = croquisAce(f);
+        const inpCant = div.querySelector('[data-k="cant"]');
+        if (inpCant && inp.dataset.k !== 'cant') inpCant.placeholder = cc.auto;
+        guardarAce(); pintarTotalesAce();
+      });
+    });
+
+    cont.appendChild(div);
+  });
+  animarTodoAce = false; animarIdAce = null;
+}
+
+function pintarTotalesAce(){
+  const t = totalesAce();
+  $('aceFinal').textContent   = nf(t.pesoPedir, 2);
+  $('aceVarTot').textContent  = ni(t.varillas);
+  $('acePiezas').textContent  = ni(t.cant);
+  $('aceMl').textContent      = nf(t.lTot, 2);
+  $('acePeso').textContent    = nf(t.peso, 2);
+  $('aceDias').textContent    = [...t.porDia.values()].filter(g => g.kg > 0).length;
+  $('aceDetalle').textContent =
+    `${nf(t.peso, 2)} kg netos + ${nf(num(estadoAce.desperdicio), 1)} % de desperdicio · ` +
+    `${ni(t.cant)} pieza${t.cant === 1 ? '' : 's'} · ${nf(t.lTot, 2)} m de barra`;
+  $('aceVarDet').textContent  = t.varillas
+    ? `Varillas de ${nf(num(estadoAce.varilla), 2)} m, contadas por corte real`
+    : 'Registra una barra para contarlas';
+
+  const ld = $('listaDia');
+  ld.innerHTML = '';
+  const dias = [...t.porDia.entries()].filter(([, g]) => g.kg > 0)
+    .sort((x, y) => aceroDe(x[0]).mm - aceroDe(y[0]).mm);
+  if (!dias.length){
+    ld.innerHTML = '<div class="li"><span>Sin acero todavía</span><b>—</b></div>';
+  } else {
+    dias.forEach(([id, g]) => {
+      const a = aceroDe(id);
+      ld.insertAdjacentHTML('beforeend',
+        `<div class="li"><span>${a.nombre} · ${nf(g.ml,2)} m · ${ni(g.varillas)} varilla${g.varillas === 1 ? '' : 's'}</span>` +
+        `<b>${nf(g.kg * t.k, 2)} kg</b></div>`);
+    });
+    if (t.avisos){
+      ld.insertAdjacentHTML('beforeend',
+        '<div class="li"><span class="aviso">Alguna pieza no sale de una varilla — revisa el detalle de la fila</span><b></b></div>');
+    }
+  }
+}
+
+function pintarTodoAce(){ pintarFilasAce(); pintarTotalesAce(); }
+
+/* ── Persistencia ───────────────────────────────────────── */
+function guardarAce(){
+  try { localStorage.setItem(CLAVE_ACE, JSON.stringify(estadoAce)); } catch(e){}
+}
+function cargarAce(){
+  try {
+    const raw = localStorage.getItem(CLAVE_ACE);
+    if (raw) estadoAce = Object.assign(estadoAce, JSON.parse(raw));
+  } catch(e){}
+  if (!Array.isArray(estadoAce.filas) || !estadoAce.filas.length) estadoAce.filas = [nuevaAce()];
+  estadoAce.filas = estadoAce.filas.map(f => Object.assign(nuevaAce(), f));
+}
+
+/* ── Resumen en texto ───────────────────────────────────── */
+function resumenTextoAce(){
+  const t = totalesAce();
+  const L = [];
+  L.push(`STICK QUANTITY — Despiece de acero${estadoAce.titulo ? ' · ' + estadoAce.titulo : ''}`);
+  L.push(`Varilla de ${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} % · ` +
+         `Recubrimiento ${nf(num(estadoAce.recub),1)} cm`);
+  L.push('');
+  estadoAce.filas.forEach((f, i) => {
+    const c = calcAce(f);
+    L.push(`${i + 1}. ${nombreAce(f, i)}${f.det ? ' · ' + f.det : ''} — ${figDe(f.fig).nombre} · ${c.ac.nombre}`);
+    L.push(`   ${c.det} = ${nf(c.lu,2)} m × ${ni(c.cant)} = ${nf(c.lTot,2)} m · ${nf(c.peso,2)} kg`);
+  });
+  L.push('');
+  L.push('ACERO POR DIÁMETRO (con desperdicio)');
+  [...t.porDia.entries()].filter(([, g]) => g.kg > 0)
+    .sort((x, y) => aceroDe(x[0]).mm - aceroDe(y[0]).mm)
+    .forEach(([id, g]) => L.push(`  ${aceroDe(id).nombre}: ${nf(g.kg * t.k,2)} kg · ${nf(g.ml,2)} m · ${ni(g.varillas)} varillas`));
+  L.push('');
+  L.push(`TOTAL: ${nf(t.pesoPedir,2)} kg · ${ni(t.varillas)} varillas de ${nf(num(estadoAce.varilla),2)} m`);
+  return L.join('\n');
+}
+
+/* ============================================================
+   ESCRITOR DE .XLSX — ZIP sin comprimir, sin dependencias
+   ------------------------------------------------------------
+   Un .xlsx es un ZIP con XML adentro. Se escribe con método
+   «store» (sin compresión): Excel lo acepta igual y evita tener
+   que implementar deflate. El único binario es el logo (PNG),
+   que ya viene comprimido.
+   ============================================================ */
+const CRC_TABLA = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++){
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8){
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < u8.length; i++) c = CRC_TABLA[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+const bytesUtf8 = s => new TextEncoder().encode(s);
+function bytesB64(b64){
+  const bin = atob(b64), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+
+function zipStore(archivos){
+  const partes = [], central = [];
+  let offset = 0;
+  archivos.forEach(a => {
+    const nom = bytesUtf8(a.nombre), crc = crc32(a.datos), n = a.datos.length;
+    const lh = new Uint8Array(30 + nom.length), dl = new DataView(lh.buffer);
+    dl.setUint32(0, 0x04034b50, true);
+    dl.setUint16(4, 20, true);          // versión mínima
+    dl.setUint16(6, 0x0800, true);      // nombres en UTF-8
+    dl.setUint16(8, 0, true);           // método 0 = store
+    dl.setUint16(10, 0, true);          // hora
+    dl.setUint16(12, 0x2821, true);     // fecha fija 2000-01-01
+    dl.setUint32(14, crc, true);
+    dl.setUint32(18, n, true);
+    dl.setUint32(22, n, true);
+    dl.setUint16(26, nom.length, true);
+    dl.setUint16(28, 0, true);
+    lh.set(nom, 30);
+    partes.push(lh, a.datos);
+
+    const cd = new Uint8Array(46 + nom.length), dc = new DataView(cd.buffer);
+    dc.setUint32(0, 0x02014b50, true);
+    dc.setUint16(4, 20, true); dc.setUint16(6, 20, true);
+    dc.setUint16(8, 0x0800, true); dc.setUint16(10, 0, true);
+    dc.setUint16(12, 0, true); dc.setUint16(14, 0x2821, true);
+    dc.setUint32(16, crc, true); dc.setUint32(20, n, true); dc.setUint32(24, n, true);
+    dc.setUint16(28, nom.length, true);
+    dc.setUint32(42, offset, true);
+    cd.set(nom, 46);
+    central.push(cd);
+    offset += lh.length + n;
+  });
+
+  const tamCentral = central.reduce((s, c) => s + c.length, 0);
+  const fin = new Uint8Array(22), df = new DataView(fin.buffer);
+  df.setUint32(0, 0x06054b50, true);
+  df.setUint16(8, archivos.length, true);
+  df.setUint16(10, archivos.length, true);
+  df.setUint32(12, tamCentral, true);
+  df.setUint32(16, offset, true);
+  return new Blob([...partes, ...central, fin], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+/* Logo de 96 px remuestreado de LOGO.png. Va incrustado para que el
+   .xlsx salga con la marca sin depender de archivos externos. */
+const LOGO_B64 =
+'iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAZtSURBVHhe7ZxNTFRXFMdVEqXIhwgIMg5vwIq1ampVgkmtQP2oJJggJrioq7IrgotCgZ1btzVhYzARNhjCvtaaaIKKieLKQIDwpTUaxY0uQAin+d8wZOby3vBmmHnnjj0n+UW49w3z3v29d7+fG/yWNWEFAh/8liV4yHKZT2wosqxPgeJisgIBwUNQ5kWW9XHDsg38InjIcpnPigAmRAAzIoAZEcCMCGBGBDAjApgRAcyIAGZEADMigBkRwIwIYEYEMCMCmBEBzIgAZkQAMyKAGRHAjAhgRgQwIwKYSSoBObm5lJ6RQZlZWZS9ffuqfOAvKqKdhYWr0k0laQRsy86mmnPnqKuri/r7++nP69fJt2uXKvDQ40p276b9Bw5Q3o4dwYszmqQQkJWdTQ0NDbS0tETBePnyJRX6fLTL7185Dj9jq9/g4CDV1NRQbl7eqr9lGsYLwF2Of2dmZlYKH/HixQtbAah+3r9/TwMDA0qc/oSYhvECduTnU/mxY7S4uOhKANKmpqbo7du35PP7w/JNxHgBKFBUK/++fu1KAJ6Ad+/e0eCTJ6rdkCcgDmRt20a/NTaGCZienrYVAFlDz59TXV2d6jXpf8s0kkIAwN1cX19Pvb299Pfdu6o3pPeC8DN6Qd8fPiy9oFhAgUYC/f+0rVspIzNTCdE/DyABha9/NtiYmwa7AHxnQWGhKlwUXnFJyZqgmll+s8QW5OmfQTqqsoKdO416MtgF5BcU0Nd79qgqZWxsTNXtbvjn3j11V+ttANKQpx8/Pj5OPT099M2+fapnxXGtdrAKQIFBwIMHD8IaWDeBArVrhJGGPKd4+vQp+Xw+Y6okVgHbc3Ko9vx5vYxchVM3FGnIixS/XLrk2IZ4DasA1Pu/NjTo5eMq1iOg+coV1ZDr58MBqwBUP0eOHqXPnz/rZbRmrEfAD8ePq56Sfj4csAoA6Jngjpybm9PLKWK8evXKUQDy7GJhYYE6OjrUd+rnwQW7AID6+ERFBf3R1kZXr151RVNzsypwfSCGNOTpx7e3t9NPJ08aU/cHMUIAQJWAehkLLqFs3rKFNm7atAqk250v0pw+81VampqeiAacV+hTFm+MEWAHqgosrvx89ixVV1eHUVVVZTvRhjTk6cfHSmVVlZrgw9pCIsrHWAGoKlpbW9W0sl2MjIw4tgHIi1dgEejx48dUVlaWkAUeIwVgfFB34YJeFmExPDzsKAB58Y6hoSE1jRHv6shIAVvT06m7u1svg7BYTzc01jh95kzcnwJjBdy6dUu//rAQAQkEVdD5ujr9+sPC6yro2bNn/58qCKARbmltpTdv3uhlocIrAViLHnj4UI3YEzF6NlYAQDf02/376dSpU+rxDwUDN6duKPL042PlxxMn1J2fqBU2FgH4HvStMRmnD7x0Nqem0saUlFWDqi2pqbYFgjTk6cc7sSklRa2yoW7XycnL+/IGYvgOjDD3lJZSY2PjqikDt0Q7FeFEW3s7VVRWss0PeS4Ad1R5ebla/VpPxDIZ5xTz8/PU1NTEIsFTAbhDsakWS4brjXh3QyHh8JEjaopcP+9E4qkAFE7p3r00OzurX3/UEW8BCCwOZXr8FHgqILiIPjk5qV971JEIAbW1tWoMop93IvFUAEDPp62tTb/2qCPWRXmnuH//vtotkcgejx2eC0A7gLvs95YWNcE1ZbPlxA3RbktxYnR0lLpu3lRbY7yu/4HnAgAk4EnAAEffQOUGNxuzQtE/H0rouXh1/aGwCAgSvGPd4mZrIkAejlErbJmZKythTt+nf95LWAVEg9qce/Ei9d6+HXFzLtKQh2PAX3fuUGdnJx0tK1NVn2nXmBQCMEBqvHw5rNFE/e3UCM9MT4cdi8CkHiSgodX/PifGC0CBRvOCRqRuKBZ5ML+kfwcnxguI5RUlJwGPHj1SI3G7WVQujBcQbCTdvqQXSQDaBnkCYgBvO2KawM1rqkhDnh54ce+7Q4dY+vqRSAoBIPii9o0bNxxf1A72gpCHY0BfXx9du3aNDhw8qLqipl1j0ggAKMC1/qsCgDwcA4K77bgGWmuRVAK+REQAMyKAGRHAjAhgRgQwIwKYEQHMiABmRAAzIoAZEcCMCGBGBDAjApgRAcyIAGZEADMigBkRwIwIYEYEMCMCmBEBzKwIKLKsT9iFjATBO5bf9PmIJ2DCCgQ+4EkQvGO5zCf+A0Pe0ejYNqKkAAAAAElFTkSuQmCC';
+
+/* ── Armado de la hoja ──────────────────────────────────── */
+const xmlEsc = s => String(s ?? '').replace(/[&<>"']/g, m =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;' }[m]));
+const colXlsx = i => {
+  let s = '', n = i + 1;
+  while (n > 0){ const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+};
+/* Atajos de celda. t = texto, n = número, s = índice de estilo (ver ESTILOS_XLSX) */
+const T = (t, s = 0) => ({ t, s });
+const N = (v, s = 7) => ({ n:v, s });
+
+/* Índices de cellXfs escritos en styles.xml:
+   0 normal · 1 normal centrado · 2 negrita · 3 negrita centrada
+   4/5/6 título (izq/medio/der, borde medio) · 7 número 0.00 · 8 número 0.00 negrita
+   9 entero · 10 entero negrita · 11 encabezado de columna · 12 pie gris · 13 negrita derecha
+   14 número 0.000 (masa por metro: 0,560 kg/m se pierde con dos decimales) */
+function estilosXlsx(){
+  const fuente = () => `<name val="Century Gothic"/>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+  `<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">` +
+  `<numFmts count="1"><numFmt numFmtId="164" formatCode="0.000"/></numFmts>` +
+  `<fonts count="4">` +
+    `<font><sz val="11"/><color rgb="FF15161B"/>${fuente()}</font>` +
+    `<font><b/><sz val="11"/><color rgb="FF15161B"/>${fuente()}</font>` +
+    `<font><b/><sz val="16"/><color rgb="FF15161B"/>${fuente()}</font>` +
+    `<font><sz val="9"/><color rgb="FF8C8C8C"/>${fuente()}</font>` +
+  `</fonts>` +
+  `<fills count="2"><fill><patternFill patternType="none"/></fill>` +
+    `<fill><patternFill patternType="gray125"/></fill></fills>` +
+  `<borders count="5">` +
+    `<border><left/><right/><top/><bottom/><diagonal/></border>` +
+    `<border><left style="medium"><color rgb="FF000000"/></left><right/>` +
+      `<top style="medium"><color rgb="FF000000"/></top><bottom style="medium"><color rgb="FF000000"/></bottom><diagonal/></border>` +
+    `<border><left/><right/><top style="medium"><color rgb="FF000000"/></top>` +
+      `<bottom style="medium"><color rgb="FF000000"/></bottom><diagonal/></border>` +
+    `<border><left/><right style="medium"><color rgb="FF000000"/></right>` +
+      `<top style="medium"><color rgb="FF000000"/></top><bottom style="medium"><color rgb="FF000000"/></bottom><diagonal/></border>` +
+    `<border><left/><right/><top/><bottom style="thin"><color rgb="FF9A9A9A"/></bottom><diagonal/></border>` +
+  `</borders>` +
+  `<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>` +
+  /* Todo va centrado en vertical: la fila de datos mide 38 pt para que quepa el
+     croquis, y con la alineación de fábrica —abajo— el texto quedaba medio
+     renglón por debajo de su propia figura. Verificado abriendo la hoja. */
+  `<cellXfs count="15">` +
+    `<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="2" fillId="0" borderId="2" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="2" fillId="0" borderId="3" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="2" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="1" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="1" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="1" fillId="0" borderId="4" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>` +
+    `<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>` +
+    `<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+  `</cellXfs>` +
+  `<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>` +
+  `</styleSheet>`;
+}
+
+/* Columnas de la hoja, en el mismo orden que el Excel de referencia:
+   A queda libre para marcar con «x» lo que ya se cortó.
+   Las medidas van en UNA columna de texto y no en tres numéricas: un
+   estribo se mide en cm y con separación, una barra recta en m, así que
+   una cabecera fija «A (m) / B (m) / C (m)» mentía en las filas de estribo.
+   La columna E lleva el CROQUIS: figura vectorial, no imagen, así que se
+   puede ampliar sin pixelarse y el archivo no engorda.                     */
+const ANCHOS_ACE = [4.5, 5.5, 22, 19, 26, 15, 30, 11.5, 8, 12, 11];
+const LBL_ACE = ['FIGURA', 'CROQUIS', 'Ø', 'MEDIDAS', 'L. UNIT (m)', 'CANT', 'L. TOTAL (m)', 'PESO (kg)'];
+
+/* Geometría del croquis en el .xlsx. Medidas del hueco donde cabe la figura,
+   en EMU (1 pt = 12700 EMU): ancho de la columna E menos un margen, alto de
+   la fila de datos menos otro. */
+const COL_CROQ = 4;                       // índice 0 de la columna E
+const CROQ_ALTO_FILA = 38;                // alto de la fila de datos, en puntos
+const CROQ_CX = 1666875, CROQ_CY = 406400, CROQ_OFFX = 57150, CROQ_OFFY = 38100;
+
+/* Polilíneas de la figura en unidades reales, ganchos incluidos. Es lo que se
+   dibuja dentro del .xlsx: allí no hay cotas ni texto —las medidas ya están en
+   su columna—, solo la silueta. El arco del gancho de 180° se aproxima con dos
+   tramos rectos: a 2 cm de alto en la hoja, la curva no se distingue. */
+function trazosAce(f){
+  const g = geomAce(f);
+  if (!g.real) return null;                // fila a medio llenar: no se inventa
+  const T = [g.pts.map(p => p.slice())];
+  const xs = g.pts.map(p => p[0]), ys = g.pts.map(p => p[1]);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const G = g.ganchos;
+  if (G && G.tipo === '135'){
+    const k = G.L / Math.SQRT2;
+    G.esq.forEach(pt => T.push([[pt[0], pt[1]], [pt[0] + k, pt[1] + k]]));
+  } else if (G && G.extremos){
+    G.extremos.forEach(e => {
+      const p = g.pts[e], adj = g.pts[e === 0 ? 1 : e - 1];
+      const vx = p[0] - adj[0], vy = p[1] - adj[1], m = Math.hypot(vx, vy) || 1;
+      const d = [vx / m, vy / m];
+      let n = [-d[1], d[0]];
+      const dot = n[0] * (cx - p[0]) + n[1] * (cy - p[1]);
+      if (dot < -1e-9) n = [-n[0], -n[1]];
+      else if (Math.abs(dot) <= 1e-9) n = Math.abs(d[0]) >= Math.abs(d[1]) ? [0, 1] : [1, 0];
+      const L = G.L;
+      if (G.tipo === '90'){
+        T.push([[p[0], p[1]], [p[0] + n[0]*L, p[1] + n[1]*L]]);
+      } else {
+        const q = [p[0] + n[0]*L*0.6, p[1] + n[1]*L*0.6];
+        T.push([[p[0], p[1]], q, [q[0] - d[0]*L, q[1] - d[1]*L]]);
+      }
+    });
+  }
+  return T;
+}
+
+/* Un <xdr:sp> con geometría propia: la silueta de la barra anclada en su fila. */
+function figuraXlsx(f, id, fila){
+  const T = trazosAce(f);
+  if (!T) return '';
+  const todos = T.flat();
+  const xs = todos.map(p => p[0]), ys = todos.map(p => p[1]);
+  const x0 = Math.min(...xs), y0 = Math.min(...ys);
+  const w0 = Math.max(...xs) - x0, h0 = Math.max(...ys) - y0;
+  const pad = 22000;
+  const sc = Math.min(w0 > 0 ? (CROQ_CX - 2*pad) / w0 : Infinity,
+                      h0 > 0 ? (CROQ_CY - 2*pad) / h0 : Infinity);
+  if (!Number.isFinite(sc) || sc <= 0) return '';
+  const ox = (CROQ_CX - w0*sc) / 2 - x0*sc, oy = (CROQ_CY - h0*sc) / 2 - y0*sc;
+  const pt = p => `<a:pt x="${Math.round(p[0]*sc + ox)}" y="${Math.round(p[1]*sc + oy)}"/>`;
+  const paths = T.map(pl =>
+    `<a:path w="${CROQ_CX}" h="${CROQ_CY}">` +
+    `<a:moveTo>${pt(pl[0])}</a:moveTo>` +
+    pl.slice(1).map(p => `<a:lnTo>${pt(p)}</a:lnTo>`).join('') +
+    `</a:path>`).join('');
+
+  return `<xdr:oneCellAnchor>` +
+    `<xdr:from><xdr:col>${COL_CROQ}</xdr:col><xdr:colOff>${CROQ_OFFX}</xdr:colOff>` +
+    `<xdr:row>${fila - 1}</xdr:row><xdr:rowOff>${CROQ_OFFY}</xdr:rowOff></xdr:from>` +
+    `<xdr:ext cx="${CROQ_CX}" cy="${CROQ_CY}"/>` +
+    `<xdr:sp macro="" textlink=""><xdr:nvSpPr>` +
+    `<xdr:cNvPr id="${id}" name="Croquis ${id}" descr="${xmlEsc(figDe(f.fig).titulo)}"/>` +
+    `<xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr>` +
+    `<a:xfrm><a:off x="0" y="0"/><a:ext cx="${CROQ_CX}" cy="${CROQ_CY}"/></a:xfrm>` +
+    `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/>` +
+    `<a:rect l="0" t="0" r="r" b="b"/><a:pathLst>${paths}</a:pathLst></a:custGeom>` +
+    `<a:noFill/><a:ln w="25400" cap="rnd"><a:solidFill><a:srgbClr val="15161B"/></a:solidFill>` +
+    `<a:round/></a:ln></xdr:spPr>` +
+    `<xdr:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="es-CO"/></a:p></xdr:txBody>` +
+    `</xdr:sp><xdr:clientData/></xdr:oneCellAnchor>`;
+}
+
+/* Las medidas tal como se escribieron, con su unidad. */
+function medidasAce(f){
+  if (f.fig === 'estribo'){
+    return `${dim(num(f.sb))} × ${dim(num(f.sh))} cm · S = ${dim(num(f.sep))} cm · ` +
+           `L = ${nf(num(f.le), 2)} m`;
+  }
+  let s = figDe(f.fig).campos.map(c => nf(num(f[c.k]), 2)).join(' + ') + ' m';
+  const ng = Math.max(0, Math.round(num(f.ganchos)));
+  if (ng > 0 && estadoAce.gancho !== 'no'){
+    s += ` + ${ng} gancho${ng === 1 ? '' : 's'} de ${estadoAce.gancho}°`;
+  }
+  return s;
+}
+
+function hojaAceroXml(){
+  const t = totalesAce();
+  const filas = [], merges = [], dibujos = [];
+  let r = 0, idForma = 3;                  // el 2 se lo lleva el logo
+
+  const emitir = (celdas, alto) => {
+    r++;
+    const cs = celdas.map((c, i) => {
+      if (c === null || c === undefined || c === '') return '';
+      const ref = colXlsx(i) + r;
+      if (typeof c === 'object' && c.n !== undefined){
+        const v = Number.isFinite(c.n) ? c.n : 0;
+        return `<c r="${ref}" s="${c.s}"><v>${Math.round(v * 1e6) / 1e6}</v></c>`;
+      }
+      const o = typeof c === 'object' ? c : { t:c, s:0 };
+      if (o.t === '') return `<c r="${ref}" s="${o.s}"/>`;
+      return `<c r="${ref}" s="${o.s}" t="inlineStr"><is><t>${xmlEsc(o.t)}</t></is></c>`;
+    }).join('');
+    filas.push(`<row r="${r}"${alto ? ` ht="${alto}" customHeight="1"` : ''}>${cs}</row>`);
+    return r;
+  };
+  const vacia = (n = 1) => { r += n; };
+  const unir  = (c1, c2, f) => merges.push(`${c1}${f}:${c2}${f}`);
+
+  // Fila 1 libre: ahí flota el logo, sobre la columna A
+  emitir([], 20);
+
+  // Título en caja de borde medio, igual que el Excel de referencia
+  const tit = (estadoAce.titulo || 'DESPIECE DE ACERO').toUpperCase();
+  const filaTit = emitir([null, T(tit, 4), T('', 5), T('', 5), T('', 5), T('', 5), T('', 5),
+                          T('', 5), T('', 5), T('', 5), T('', 6)], 30);
+  unir('B', 'K', filaTit);
+
+  const sub = `Varilla comercial ${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} % · ` +
+              `Recubrimiento ${nf(num(estadoAce.recub),1)} cm · ` +
+              `Gancho ${estadoAce.gancho === 'no' ? 'no aplicado' : estadoAce.gancho + '°'}`;
+  const filaSub = emitir([null, T(sub, 12)]);
+  unir('B', 'K', filaSub);
+  vacia();
+
+  // ── Bloques por elemento, en el orden en que se registraron ──
+  const grupos = [];
+  estadoAce.filas.forEach((f, i) => {
+    const nom = nombreAce(f, i);
+    let g = grupos.find(x => x.nom === nom);
+    if (!g){ g = { nom, filas:[] }; grupos.push(g); }
+    g.filas.push(f);
+  });
+
+  grupos.forEach(g => {
+    const fh = emitir([null, T(g.nom, 3), T('', 11), ...LBL_ACE.map(l => T(l, 11))], 28);
+    unir('B', 'C', fh);
+    let mlG = 0, kgG = 0;
+    g.filas.forEach((f, j) => {
+      const c = calcAce(f);
+      mlG += c.lTot; kgG += c.peso;
+      const fd = emitir([
+        null,
+        N(j + 1, 9),
+        T(f.det || '—'),
+        T(figDe(f.fig).nombre, 1),
+        T('', 1),                            // hueco del croquis: lo ocupa la figura
+        T(c.ac.nombre, 1),
+        T(medidasAce(f)),
+        N(c.lu), N(c.cant, 9), N(c.lTot), N(c.peso),
+      ], CROQ_ALTO_FILA);
+      const sp = figuraXlsx(f, idForma, fd);
+      if (sp){ dibujos.push(sp); idForma++; }
+    });
+    emitir([null, null, null, null, null, null, null,
+            T('Subtotal', 13), null, N(mlG, 8), N(kgG, 8)]);
+    vacia();
+  });
+
+  // ── Resumen por diámetro ──
+  /* Las tres últimas columnas del resumen caen justo debajo de CANT, L. TOTAL y
+     PESO del detalle: así la hoja se lee de arriba abajo sin cambiar de carril. */
+  const fr = emitir([null, T('RESUMEN POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11),
+                     T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11),
+                     T('PIEZAS', 11), T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
+  unir('B', 'E', fr);
+  const dias = [...t.porDia.entries()].filter(([, g]) => g.kg > 0)
+    .sort((x, y) => aceroDe(x[0]).mm - aceroDe(y[0]).mm);
+  dias.forEach(([id, g]) => {
+    const fd = emitir([null, T(aceroDe(id).nombre, 2), null, null, null,
+                       N(aceroDe(id).kgm, 14), N(g.varillas, 9), N(g.kg),
+                       N(g.cant, 9), N(g.ml), N(g.kg * t.k)]);
+    unir('B', 'E', fd);
+  });
+  const ft = emitir([null, T('TOTAL', 2), null, null, null, null,
+                     N(t.varillas, 10), N(t.peso, 8),
+                     N(t.cant, 10), N(t.lTot, 8), N(t.pesoPedir, 8)]);
+  unir('B', 'E', ft);
+  vacia();
+
+  const hoy = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
+  emitir([null, T(`Generado con STICK QUANTITY · ${hoy} · Longitudes cara a cara sin descuento por doblez ` +
+                  `(NSR-10 C.7.1 · NTC 2289). Verificar contra los planos estructurales.`, 12)]);
+  emitir([null, T('La columna A queda libre para marcar con «x» lo que ya se cortó o se armó.', 12)]);
+
+  const cols = ANCHOS_ACE.map((w, i) =>
+    `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ` +
+    `xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">` +
+    `<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>` +
+    `<sheetFormatPr defaultRowHeight="15"/>` +
+    `<cols>${cols}</cols>` +
+    `<sheetData>${filas.join('')}</sheetData>` +
+    (merges.length ? `<mergeCells count="${merges.length}">` +
+      merges.map(m => `<mergeCell ref="${m}"/>`).join('') + `</mergeCells>` : '') +
+    `<pageMargins left="0.5" right="0.5" top="0.75" bottom="0.75" header="0" footer="0"/>` +
+    `<pageSetup orientation="landscape" fitToWidth="1"/>` +
+    `<drawing r:id="rId1"/>` +
+    `</worksheet>`;
+
+  return { xml, dibujos };
+}
+
+function libroAceroXlsx(){
+  const cab = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  const rels = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const hoja = hojaAceroXml();
+  const archivos = [
+    { nombre:'[Content_Types].xml', datos: bytesUtf8(cab +
+      `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+      `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
+      `<Default Extension="xml" ContentType="application/xml"/>` +
+      `<Default Extension="png" ContentType="image/png"/>` +
+      `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>` +
+      `<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>` +
+      `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>` +
+      `<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>` +
+      `</Types>`) },
+    { nombre:'_rels/.rels', datos: bytesUtf8(cab +
+      `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+      `<Relationship Id="rId1" Type="${rels}/officeDocument" Target="xl/workbook.xml"/>` +
+      `</Relationships>`) },
+    { nombre:'xl/workbook.xml', datos: bytesUtf8(cab +
+      `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${rels}">` +
+      `<sheets><sheet name="DESPIECE" sheetId="1" r:id="rId1"/></sheets></workbook>`) },
+    { nombre:'xl/_rels/workbook.xml.rels', datos: bytesUtf8(cab +
+      `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+      `<Relationship Id="rId1" Type="${rels}/worksheet" Target="worksheets/sheet1.xml"/>` +
+      `<Relationship Id="rId2" Type="${rels}/styles" Target="styles.xml"/>` +
+      `</Relationships>`) },
+    { nombre:'xl/styles.xml', datos: bytesUtf8(estilosXlsx()) },
+    { nombre:'xl/worksheets/sheet1.xml', datos: bytesUtf8(hoja.xml) },
+    { nombre:'xl/worksheets/_rels/sheet1.xml.rels', datos: bytesUtf8(cab +
+      `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+      `<Relationship Id="rId1" Type="${rels}/drawing" Target="../drawings/drawing1.xml"/>` +
+      `</Relationships>`) },
+    { nombre:'xl/drawings/drawing1.xml', datos: bytesUtf8(cab +
+      `<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ` +
+      `xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">` +
+      `<xdr:oneCellAnchor>` +
+      `<xdr:from><xdr:col>0</xdr:col><xdr:colOff>28575</xdr:colOff><xdr:row>1</xdr:row><xdr:rowOff>38100</xdr:rowOff></xdr:from>` +
+      `<xdr:ext cx="238125" cy="238125"/>` +
+      `<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="STICK QUANTITY" descr="Marca STICK QUANTITY"/>` +
+      `<xdr:cNvPicPr preferRelativeResize="0"/></xdr:nvPicPr>` +
+      `<xdr:blipFill><a:blip xmlns:r="${rels}" r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>` +
+      `<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="238125" cy="238125"/></a:xfrm>` +
+      `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic>` +
+      `<xdr:clientData/></xdr:oneCellAnchor>` +
+      hoja.dibujos.join('') +
+      `</xdr:wsDr>`) },
+    { nombre:'xl/drawings/_rels/drawing1.xml.rels', datos: bytesUtf8(cab +
+      `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+      `<Relationship Id="rId1" Type="${rels}/image" Target="../media/logo.png"/>` +
+      `</Relationships>`) },
+    { nombre:'xl/media/logo.png', datos: bytesB64(LOGO_B64) },
+  ];
+  return zipStore(archivos);
+}
+
+function exportarXlsxAce(){
+  /* ̀-ͯ = marcas diacríticas: «PRIMERA TANDA Ñ» -> primera-tanda-n */
+  const base = (estadoAce.titulo || 'despiece-acero')
+    .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'despiece-acero';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(libroAceroXlsx());
+  a.download = `${base}-stick-quantity.xlsx`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Excel exportado');
+}
+
+/* ── Eventos del capítulo ───────────────────────────────── */
+['aceDesp','aceRecub'].forEach(id => {
+  $(id).addEventListener('input', e => {
+    const limpio = e.target.value.replace(/[^0-9.,]/g, '');
+    if (limpio !== e.target.value) e.target.value = limpio;
+  });
+});
+$('aceTitulo').addEventListener('input', e => { estadoAce.titulo = e.target.value; guardarAce(); });
+$('aceVarilla').addEventListener('change', e => { estadoAce.varilla = e.target.value; guardarAce(); pintarTodoAce(); });
+$('aceDesp').addEventListener('input',  e => { estadoAce.desperdicio = e.target.value; guardarAce(); pintarTotalesAce(); });
+$('aceRecub').addEventListener('input', e => { estadoAce.recub = e.target.value; guardarAce(); pintarTodoAce(); });
+$('aceGancho').addEventListener('change', e => { estadoAce.gancho = e.target.value; guardarAce(); pintarTodoAce(); });
+
+$('btnAgregarAce').addEventListener('click', () => {
+  const f = nuevaAce();
+  const ultima = estadoAce.filas[estadoAce.filas.length - 1];
+  if (ultima){ f.elem = ultima.elem; f.dia = ultima.dia; f.fig = ultima.fig;
+               f.cant = ultima.fig === 'estribo' ? '' : '1'; }
+  estadoAce.filas.push(f);
+  animarIdAce = f.id;
+  guardarAce(); pintarFilasAce(); pintarTotalesAce();
+  const ultimo = $('filasAce').lastElementChild;
+  if (ultimo) ultimo.querySelector('.row-name').focus();
+});
+
+$('btnLimpiarAce').addEventListener('click', () => {
+  if (!confirm('¿Borrar todo el despiece?')) return;
+  estadoAce.filas = [nuevaAce()];
+  guardarAce(); pintarFilasAce(); pintarTotalesAce();
+  toast('Lista vacía');
+});
+
+$('btnXlsxAce').addEventListener('click', exportarXlsxAce);
+
 /* ── Cambio de capítulo ─────────────────────────────────── */
 function pintarCapitulo(){
   $('vistaMamposteria').style.display = capActivo === 'mamposteria' ? 'flex' : 'none';
   $('vistaColumnas').style.display    = capActivo === 'columnas'    ? 'flex' : 'none';
+  $('vistaAcero').style.display       = capActivo === 'acero'       ? 'flex' : 'none';
+  // En acero el botón de la topbar entrega el .xlsx, no un CSV
+  $('btnCsv').title = capActivo === 'acero' ? 'Exportar a Excel' : 'Exportar CSV';
   document.querySelectorAll('#capitulos [data-cap]').forEach(b =>
     b.classList.toggle('on', b.dataset.cap === capActivo));
 }
@@ -1848,6 +3033,15 @@ pintarTodo();
 cargarCol();
 $('inpDespCon').value = estadoCol.desperdicio;
 pintarTodoCol();
+
+cargarAce();
+$('aceTitulo').value  = estadoAce.titulo;
+$('aceVarilla').value = estadoAce.varilla;
+$('aceDesp').value    = estadoAce.desperdicio;
+$('aceRecub').value   = estadoAce.recub;
+$('aceGancho').value  = estadoAce.gancho;
+pintarTodoAce();
+
 pintarCapitulo();
 
 /* Modo claro (STICK_UI_SYSTEM.md §10). La clase ya la pone el script anti-destello
