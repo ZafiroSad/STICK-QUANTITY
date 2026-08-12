@@ -402,6 +402,16 @@ html.light .fig{background:rgba(255,255,255,.62)}
 html.light .fig.on{background:#fff}
 .fig.on svg{color:var(--tinta)}
 .fig.on b{color:var(--tinta)}
+/* ── Tandas del despiece ──
+   El Excel del Señor Stick tiene una hoja por tanda de fundida; aquí son
+   pestañas, y al exportar cada una vuelve a ser su propia hoja. */
+.tandas{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;align-items:center}
+.tandas .chip{white-space:nowrap}
+.tandas .chip.nueva{border-style:dashed;color:var(--zinc-400)}
+.tandas .chip .x{margin-left:2px;opacity:.55;font-weight:800;font-size:13px;line-height:1;
+  padding:0 1px;border-radius:999px}
+.tandas .chip .x:hover{opacity:1;color:var(--rojo, #f87171)}
+.tandas .chip .n{font-size:9px;font-weight:700;opacity:.55;letter-spacing:.06em}
 /* Croquis acotado: el dibujo a escala de ESTA barra, con sus medidas.
    No es el ícono del selector — se redibuja con lo que se escribe. */
 .croquis{margin-top:12px;border:1px solid var(--v-borde);border-radius:18px;
@@ -777,19 +787,22 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 <!-- ═══════════════ CAPÍTULO: ACERO — DESPIECE ═══════════════ -->
 <div id="vistaAcero" style="display:none;flex-direction:column;gap:22px">
 
+  <!-- Tandas: cada una es una hoja propia del Excel, como en la hoja de obra -->
+  <div class="tandas no-sb" id="tandas"></div>
+
   <!-- Parámetros del despiece -->
   <section class="animate-rise">
     <div class="section-head">
       <div>
         <h2 class="h2">Parámetros del despiece</h2>
-        <p class="sub">Se fijan una vez y valen para toda la lista. Lo demás se escribe fila por fila.</p>
+        <p class="sub">Se fijan una vez y valen para todas las tandas. Lo demás se escribe fila por fila.</p>
       </div>
     </div>
 
     <div class="card pad">
       <div class="grid g-ace">
         <div class="field">
-          <label for="aceTitulo">Nombre del despiece</label>
+          <label for="aceTitulo">Nombre de la tanda</label>
           <input id="aceTitulo" type="text" placeholder="PRIMERA TANDA" maxlength="60">
         </div>
         <div class="field">
@@ -831,7 +844,8 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
     <div class="section-head">
       <div>
         <h2 class="h2">Despiece</h2>
-        <p class="sub">Una fila por marca de barra: elemento, figura, diámetro y medidas.</p>
+        <p class="sub">Una fila por marca de barra: elemento, figura, diámetro y medidas. El croquis se
+          dibuja solo, a escala, con lo que escribas.</p>
       </div>
       <button class="btn-primary" id="btnAgregarAce">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
@@ -854,7 +868,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
     <div class="section-head">
       <div>
         <h2 class="h2">Resumen</h2>
-        <p class="sub">Peso a pedir y varillas a comprar, contadas por diámetro.</p>
+        <p class="sub">De la tanda activa. El Excel sale con una hoja por tanda y un consolidado al final.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn-secondary" id="btnXlsxAce">
@@ -863,7 +877,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
           </svg>
           Exportar a Excel
         </button>
-        <button class="btn-danger" id="btnLimpiarAce">Limpiar todo</button>
+        <button class="btn-danger" id="btnLimpiarAce">Vaciar tanda</button>
       </div>
     </div>
 
@@ -903,7 +917,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
         El cálculo <b>no</b> resuelve traslapos, ni longitudes de desarrollo, ni el alambre de amarre:
         si una pieza no sale de una varilla, la app te avisa pero el traslapo lo defines tú según la
         NSR-10 C.12. Las varillas se cuentan por corte real —cuántas piezas salen de cada varilla—
-        sin combinar barras de filas distintas.
+        sin combinar barras de filas distintas, ni de tandas distintas.
       </div>
     </div>
   </section>
@@ -912,7 +926,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.3.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.4.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -2085,14 +2099,21 @@ const FIGURAS = [
 
 const CLAVE_ACE = 'stick-quantity-acero-v1';
 
+/* Los parámetros (varilla, desperdicio, recubrimiento, gancho) son de la obra
+   y valen para todas las tandas; las barras y el nombre son de cada tanda.
+   Una tanda es una fundida: el Excel del Señor Stick las lleva en hojas
+   distintas —«PRIMERA TANDA», «SEGUNDA TANDA»— y al exportar vuelven a serlo. */
 let estadoAce = {
-  titulo: '',
   varilla: '6',
   desperdicio: 5,
   recub: 4,
   gancho: 'no',
-  filas: [],
+  tandas: [],
+  activa: 0,
 };
+
+const nuevaTanda = (titulo = '') => ({ id:uid(), titulo, filas:[nuevaAce()] });
+const tandaAct = () => estadoAce.tandas[estadoAce.activa] || estadoAce.tandas[0];
 
 let animarTodoAce = true, animarIdAce = null;
 
@@ -2146,9 +2167,9 @@ function calcAce(f){
   return { ac, lu, cant, auto, lTot, peso, porVar, varillas, det, aviso, Lc };
 }
 
-function totalesAce(){
+function totalesAce(filas){
   const t = { lTot:0, peso:0, cant:0, varillas:0, porDia:new Map(), avisos:0 };
-  estadoAce.filas.forEach(f => {
+  (filas || tandaAct().filas).forEach(f => {
     const c = calcAce(f);
     t.lTot += c.lTot; t.peso += c.peso; t.cant += c.cant; t.varillas += c.varillas;
     if (c.aviso) t.avisos++;
@@ -2343,10 +2364,11 @@ function croquisAce(f){
 
 function pintarFilasAce(){
   const cont = $('filasAce');
+  const tanda = tandaAct();
   cont.innerHTML = '';
-  $('vacioAce').style.display = estadoAce.filas.length ? 'none' : 'block';
+  $('vacioAce').style.display = tanda.filas.length ? 'none' : 'block';
 
-  estadoAce.filas.forEach((f, i) => {
+  tanda.filas.forEach((f, i) => {
     const c = calcAce(f);
     const fig = figDe(f.fig);
     const div = document.createElement('div');
@@ -2420,14 +2442,14 @@ function pintarFilasAce(){
     // parecidas es lo que hace que valga la pena dejar la hoja de cálculo
     div.querySelector('[data-dup]').addEventListener('click', () => {
       const copia = Object.assign({}, f, { id:uid() });
-      estadoAce.filas.splice(i + 1, 0, copia);
+      tanda.filas.splice(i + 1, 0, copia);
       animarIdAce = copia.id;
-      guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      guardarAce(); pintarTodoAce();
       toast('Barra duplicada');
     });
     div.querySelector('[data-del]').addEventListener('click', () => {
-      estadoAce.filas = estadoAce.filas.filter(x => x.id !== f.id);
-      guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      tanda.filas = tanda.filas.filter(x => x.id !== f.id);
+      guardarAce(); pintarTodoAce();
     });
     // Campos: se recalcula el pie sin re-pintar la fila, para no perder el foco
     div.querySelectorAll('[data-k]').forEach(inp => {
@@ -2492,7 +2514,7 @@ function pintarTotalesAce(){
   }
 }
 
-function pintarTodoAce(){ pintarFilasAce(); pintarTotalesAce(); }
+function pintarTodoAce(){ pintarTandas(); pintarFilasAce(); pintarTotalesAce(); }
 
 /* ── Persistencia ───────────────────────────────────────── */
 function guardarAce(){
@@ -2503,19 +2525,78 @@ function cargarAce(){
     const raw = localStorage.getItem(CLAVE_ACE);
     if (raw) estadoAce = Object.assign(estadoAce, JSON.parse(raw));
   } catch(e){}
-  if (!Array.isArray(estadoAce.filas) || !estadoAce.filas.length) estadoAce.filas = [nuevaAce()];
-  estadoAce.filas = estadoAce.filas.map(f => Object.assign(nuevaAce(), f));
+  /* Guardado con la forma vieja (una sola lista suelta): se envuelve en una
+     tanda para no perder lo que el Señor Stick ya tenga escrito. */
+  if (!Array.isArray(estadoAce.tandas) || !estadoAce.tandas.length){
+    const viejas = Array.isArray(estadoAce.filas) && estadoAce.filas.length
+      ? estadoAce.filas : [nuevaAce()];
+    estadoAce.tandas = [{ id:uid(), titulo:estadoAce.titulo || '', filas:viejas }];
+  }
+  delete estadoAce.filas; delete estadoAce.titulo;
+  estadoAce.tandas = estadoAce.tandas.map(t => ({
+    id: t.id || uid(),
+    titulo: t.titulo || '',
+    filas: (Array.isArray(t.filas) && t.filas.length ? t.filas : [nuevaAce()])
+             .map(f => Object.assign(nuevaAce(), f)),
+  }));
+  estadoAce.activa = Math.min(Math.max(0, num(estadoAce.activa)), estadoAce.tandas.length - 1);
+  guardarAce();   // deja el guardado ya migrado, sin esperar a la primera edición
+}
+
+/* Nombre visible de una tanda: el escrito, o «Tanda N» si aún no tiene */
+const nombreTanda = (t, i) => t.titulo.trim() || `Tanda ${i + 1}`;
+
+function pintarTandas(){
+  const cont = $('tandas');
+  cont.innerHTML = '';
+  estadoAce.tandas.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (i === estadoAce.activa ? ' on' : '');
+    b.innerHTML = `${escapeHtml(nombreTanda(t, i))} <span class="n">${t.filas.length}</span>` +
+      (estadoAce.tandas.length > 1 && i === estadoAce.activa ? ' <span class="x" data-x="1">×</span>' : '');
+    b.addEventListener('click', e => {
+      if (e.target.dataset.x){
+        if (!confirm(`¿Eliminar la tanda «${nombreTanda(t, i)}» y sus ${t.filas.length} barras?`)) return;
+        estadoAce.tandas.splice(i, 1);
+        estadoAce.activa = Math.max(0, Math.min(estadoAce.activa, estadoAce.tandas.length - 1));
+        guardarAce(); sincronizarTanda(); toast('Tanda eliminada');
+        return;
+      }
+      if (i === estadoAce.activa) return;
+      estadoAce.activa = i;
+      animarTodoAce = true;
+      guardarAce(); sincronizarTanda();
+    });
+    cont.appendChild(b);
+  });
+  const nueva = document.createElement('button');
+  nueva.className = 'chip nueva';
+  nueva.textContent = '+ Nueva tanda';
+  nueva.addEventListener('click', () => {
+    estadoAce.tandas.push(nuevaTanda(`TANDA ${estadoAce.tandas.length + 1}`));
+    estadoAce.activa = estadoAce.tandas.length - 1;
+    animarTodoAce = true;
+    guardarAce(); sincronizarTanda();
+    $('aceTitulo').focus(); $('aceTitulo').select();
+  });
+  cont.appendChild(nueva);
+}
+
+/* Cambiar de tanda repinta todo lo que depende de ella */
+function sincronizarTanda(){
+  $('aceTitulo').value = tandaAct().titulo;
+  pintarTodoAce();
 }
 
 /* ── Resumen en texto ───────────────────────────────────── */
 function resumenTextoAce(){
   const t = totalesAce();
   const L = [];
-  L.push(`STICK QUANTITY — Despiece de acero${estadoAce.titulo ? ' · ' + estadoAce.titulo : ''}`);
+  L.push(`STICK QUANTITY — Despiece de acero · ${nombreTanda(tandaAct(), estadoAce.activa)}`);
   L.push(`Varilla de ${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} % · ` +
          `Recubrimiento ${nf(num(estadoAce.recub),1)} cm`);
   L.push('');
-  estadoAce.filas.forEach((f, i) => {
+  tandaAct().filas.forEach((f, i) => {
     const c = calcAce(f);
     L.push(`${i + 1}. ${nombreAce(f, i)}${f.det ? ' · ' + f.det : ''} — ${figDe(f.fig).nombre} · ${c.ac.nombre}`);
     L.push(`   ${c.det} = ${nf(c.lu,2)} m × ${ni(c.cant)} = ${nf(c.lTot,2)} m · ${nf(c.peso,2)} kg`);
@@ -2775,8 +2856,8 @@ function medidasAce(f){
   return s;
 }
 
-function hojaAceroXml(){
-  const t = totalesAce();
+function hojaAceroXml(tanda, indice){
+  const t = totalesAce(tanda.filas);
   const filas = [], merges = [], dibujos = [];
   let r = 0, idForma = 3;                  // el 2 se lo lleva el logo
 
@@ -2803,7 +2884,7 @@ function hojaAceroXml(){
   emitir([], 20);
 
   // Título en caja de borde medio, igual que el Excel de referencia
-  const tit = (estadoAce.titulo || 'DESPIECE DE ACERO').toUpperCase();
+  const tit = nombreTanda(tanda, indice).toUpperCase();
   const filaTit = emitir([null, T(tit, 4), T('', 5), T('', 5), T('', 5), T('', 5), T('', 5),
                           T('', 5), T('', 5), T('', 5), T('', 6)], 30);
   unir('B', 'K', filaTit);
@@ -2817,7 +2898,7 @@ function hojaAceroXml(){
 
   // ── Bloques por elemento, en el orden en que se registraron ──
   const grupos = [];
-  estadoAce.filas.forEach((f, i) => {
+  tanda.filas.forEach((f, i) => {
     const nom = nombreAce(f, i);
     let g = grupos.find(x => x.nom === nom);
     if (!g){ g = { nom, filas:[] }; grupos.push(g); }
@@ -2875,10 +2956,14 @@ function hojaAceroXml(){
                   `(NSR-10 C.7.1 · NTC 2289). Verificar contra los planos estructurales.`, 12)]);
   emitir([null, T('La columna A queda libre para marcar con «x» lo que ya se cortó o se armó.', 12)]);
 
+  return { xml: envolverHoja(filas, merges), dibujos };
+}
+
+/* Envoltura común de una hoja: mismas columnas, sin rejilla y con su dibujo. */
+function envolverHoja(filas, merges){
   const cols = ANCHOS_ACE.map((w, i) =>
     `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('');
-
-  const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
     `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ` +
     `xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">` +
     `<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>` +
@@ -2891,14 +2976,124 @@ function hojaAceroXml(){
     `<pageSetup orientation="landscape" fitToWidth="1"/>` +
     `<drawing r:id="rId1"/>` +
     `</worksheet>`;
+}
 
-  return { xml, dibujos };
+/* Hoja de cierre: cuánto acero sale de TODAS las tandas juntas. Es lo que se
+   lleva a la ferretería; el Excel de referencia no la tiene porque sumar dos
+   hojas a mano es justo el trabajo que esta app quita. */
+function hojaConsolidadoXml(){
+  const filas = [], merges = [];
+  let r = 0;
+  const emitir = (celdas, alto) => {
+    r++;
+    const cs = celdas.map((c, i) => {
+      if (c === null || c === undefined || c === '') return '';
+      const ref = colXlsx(i) + r;
+      if (typeof c === 'object' && c.n !== undefined)
+        return `<c r="${ref}" s="${c.s}"><v>${Math.round((Number.isFinite(c.n) ? c.n : 0) * 1e6) / 1e6}</v></c>`;
+      const o = typeof c === 'object' ? c : { t:c, s:0 };
+      return o.t === '' ? `<c r="${ref}" s="${o.s}"/>`
+        : `<c r="${ref}" s="${o.s}" t="inlineStr"><is><t>${xmlEsc(o.t)}</t></is></c>`;
+    }).join('');
+    filas.push(`<row r="${r}"${alto ? ` ht="${alto}" customHeight="1"` : ''}>${cs}</row>`);
+    return r;
+  };
+  const unir = (c1, c2, f) => merges.push(`${c1}${f}:${c2}${f}`);
+
+  emitir([], 20);
+  const fT = emitir([null, T('CONSOLIDADO DE TODAS LAS TANDAS', 4), T('', 5), T('', 5), T('', 5),
+                     T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
+  unir('B', 'K', fT);
+  const fS = emitir([null, T(`${estadoAce.tandas.length} tandas · Varilla comercial ` +
+    `${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} %`, 12)]);
+  unir('B', 'K', fS);
+  r++;
+
+  const fh = emitir([null, T('POR TANDA', 3), T('', 11), T('', 11), T('', 11), T('', 11),
+                     T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('PIEZAS', 11),
+                     T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
+  unir('B', 'F', fh);
+
+  const global = new Map();
+  let gLt = 0, gPeso = 0, gCant = 0, gVar = 0;
+  estadoAce.tandas.forEach((ta, i) => {
+    const t = totalesAce(ta.filas);
+    gLt += t.lTot; gPeso += t.peso; gCant += t.cant; gVar += t.varillas;
+    t.porDia.forEach((v, k) => {
+      const g = global.get(k) || { ml:0, kg:0, cant:0, varillas:0 };
+      g.ml += v.ml; g.kg += v.kg; g.cant += v.cant; g.varillas += v.varillas;
+      global.set(k, g);
+    });
+    const fd = emitir([null, T(nombreTanda(ta, i), 2), null, null, null, null,
+                       N(t.varillas, 9), N(t.peso), N(t.cant, 9), N(t.lTot), N(t.pesoPedir)]);
+    unir('B', 'F', fd);
+  });
+  const k = 1 + num(estadoAce.desperdicio) / 100;
+  const fTot = emitir([null, T('TOTAL', 2), null, null, null, null,
+                       N(gVar, 10), N(gPeso, 8), N(gCant, 10), N(gLt, 8), N(gPeso * k, 8)]);
+  unir('B', 'F', fTot);
+  r++;
+
+  const fd2 = emitir([null, T('POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11),
+                      T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11),
+                      T('PIEZAS', 11), T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
+  unir('B', 'E', fd2);
+  [...global.entries()].filter(([, g]) => g.kg > 0)
+    .sort((x, y) => aceroDe(x[0]).mm - aceroDe(y[0]).mm)
+    .forEach(([id, g]) => {
+      const f = emitir([null, T(aceroDe(id).nombre, 2), null, null, null,
+                        N(aceroDe(id).kgm, 14), N(g.varillas, 9), N(g.kg),
+                        N(g.cant, 9), N(g.ml), N(g.kg * k)]);
+      unir('B', 'E', f);
+    });
+  r++;
+
+  const hoy = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
+  emitir([null, T(`Generado con STICK QUANTITY · ${hoy} · Las varillas se cuentan por corte real ` +
+                  `dentro de cada tanda: no se combinan barras de tandas distintas.`, 12)]);
+  return envolverHoja(filas, merges);
+}
+
+/* Nombre de hoja válido: Excel prohíbe : \ / ? * [ ] y corta en 31 caracteres.
+   Además no admite dos hojas con el mismo nombre. */
+function nombreHojaXlsx(bruto, usados){
+  let s = String(bruto).replace(/[:\\\/\?\*\[\]]/g, ' ').trim().slice(0, 31) || 'HOJA';
+  let base = s, n = 2;
+  while (usados.has(s.toLowerCase())){ const suf = ` (${n++})`; s = base.slice(0, 31 - suf.length) + suf; }
+  usados.add(s.toLowerCase());
+  return s;
 }
 
 function libroAceroXlsx(){
   const cab = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
   const rels = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
-  const hoja = hojaAceroXml();
+  const usados = new Set();
+
+  /* Una hoja por tanda —igual que el Excel de referencia— y, si hay más de
+     una, una hoja de cierre con la suma de todas. */
+  const hojas = estadoAce.tandas.map((ta, i) => {
+    const h = hojaAceroXml(ta, i);
+    return { nombre: nombreHojaXlsx(nombreTanda(ta, i).toUpperCase(), usados),
+             xml: h.xml, dibujos: h.dibujos };
+  });
+  if (estadoAce.tandas.length > 1){
+    hojas.push({ nombre: nombreHojaXlsx('CONSOLIDADO', usados),
+                 xml: hojaConsolidadoXml(), dibujos: [] });
+  }
+
+  const marcaXml = dibujos => cab +
+    `<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ` +
+    `xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">` +
+    `<xdr:oneCellAnchor>` +
+    `<xdr:from><xdr:col>0</xdr:col><xdr:colOff>28575</xdr:colOff><xdr:row>1</xdr:row><xdr:rowOff>38100</xdr:rowOff></xdr:from>` +
+    `<xdr:ext cx="238125" cy="238125"/>` +
+    `<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="STICK QUANTITY" descr="Marca STICK QUANTITY"/>` +
+    `<xdr:cNvPicPr preferRelativeResize="0"/></xdr:nvPicPr>` +
+    `<xdr:blipFill><a:blip xmlns:r="${rels}" r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>` +
+    `<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="238125" cy="238125"/></a:xfrm>` +
+    `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic>` +
+    `<xdr:clientData/></xdr:oneCellAnchor>` + dibujos.join('') + `</xdr:wsDr>`;
+
   const archivos = [
     { nombre:'[Content_Types].xml', datos: bytesUtf8(cab +
       `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
@@ -2906,54 +3101,52 @@ function libroAceroXlsx(){
       `<Default Extension="xml" ContentType="application/xml"/>` +
       `<Default Extension="png" ContentType="image/png"/>` +
       `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>` +
-      `<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>` +
+      hojas.map((h, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ` +
+        `ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('') +
+      hojas.map((h, i) => `<Override PartName="/xl/drawings/drawing${i + 1}.xml" ` +
+        `ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`).join('') +
       `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>` +
-      `<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>` +
       `</Types>`) },
     { nombre:'_rels/.rels', datos: bytesUtf8(cab +
       `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
       `<Relationship Id="rId1" Type="${rels}/officeDocument" Target="xl/workbook.xml"/>` +
       `</Relationships>`) },
     { nombre:'xl/workbook.xml', datos: bytesUtf8(cab +
-      `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${rels}">` +
-      `<sheets><sheet name="DESPIECE" sheetId="1" r:id="rId1"/></sheets></workbook>`) },
+      `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${rels}"><sheets>` +
+      hojas.map((h, i) => `<sheet name="${xmlEsc(h.nombre)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('') +
+      `</sheets></workbook>`) },
     { nombre:'xl/_rels/workbook.xml.rels', datos: bytesUtf8(cab +
       `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-      `<Relationship Id="rId1" Type="${rels}/worksheet" Target="worksheets/sheet1.xml"/>` +
-      `<Relationship Id="rId2" Type="${rels}/styles" Target="styles.xml"/>` +
+      hojas.map((h, i) => `<Relationship Id="rId${i + 1}" Type="${rels}/worksheet" ` +
+        `Target="worksheets/sheet${i + 1}.xml"/>`).join('') +
+      `<Relationship Id="rId${hojas.length + 1}" Type="${rels}/styles" Target="styles.xml"/>` +
       `</Relationships>`) },
     { nombre:'xl/styles.xml', datos: bytesUtf8(estilosXlsx()) },
-    { nombre:'xl/worksheets/sheet1.xml', datos: bytesUtf8(hoja.xml) },
-    { nombre:'xl/worksheets/_rels/sheet1.xml.rels', datos: bytesUtf8(cab +
-      `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-      `<Relationship Id="rId1" Type="${rels}/drawing" Target="../drawings/drawing1.xml"/>` +
-      `</Relationships>`) },
-    { nombre:'xl/drawings/drawing1.xml', datos: bytesUtf8(cab +
-      `<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ` +
-      `xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">` +
-      `<xdr:oneCellAnchor>` +
-      `<xdr:from><xdr:col>0</xdr:col><xdr:colOff>28575</xdr:colOff><xdr:row>1</xdr:row><xdr:rowOff>38100</xdr:rowOff></xdr:from>` +
-      `<xdr:ext cx="238125" cy="238125"/>` +
-      `<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="2" name="STICK QUANTITY" descr="Marca STICK QUANTITY"/>` +
-      `<xdr:cNvPicPr preferRelativeResize="0"/></xdr:nvPicPr>` +
-      `<xdr:blipFill><a:blip xmlns:r="${rels}" r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>` +
-      `<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="238125" cy="238125"/></a:xfrm>` +
-      `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic>` +
-      `<xdr:clientData/></xdr:oneCellAnchor>` +
-      hoja.dibujos.join('') +
-      `</xdr:wsDr>`) },
-    { nombre:'xl/drawings/_rels/drawing1.xml.rels', datos: bytesUtf8(cab +
-      `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-      `<Relationship Id="rId1" Type="${rels}/image" Target="../media/logo.png"/>` +
-      `</Relationships>`) },
     { nombre:'xl/media/logo.png', datos: bytesB64(LOGO_B64) },
   ];
+  hojas.forEach((h, i) => {
+    archivos.push(
+      { nombre:`xl/worksheets/sheet${i + 1}.xml`, datos: bytesUtf8(h.xml) },
+      { nombre:`xl/worksheets/_rels/sheet${i + 1}.xml.rels`, datos: bytesUtf8(cab +
+        `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+        `<Relationship Id="rId1" Type="${rels}/drawing" Target="../drawings/drawing${i + 1}.xml"/>` +
+        `</Relationships>`) },
+      { nombre:`xl/drawings/drawing${i + 1}.xml`, datos: bytesUtf8(marcaXml(h.dibujos)) },
+      { nombre:`xl/drawings/_rels/drawing${i + 1}.xml.rels`, datos: bytesUtf8(cab +
+        `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+        `<Relationship Id="rId1" Type="${rels}/image" Target="../media/logo.png"/>` +
+        `</Relationships>`) },
+    );
+  });
   return zipStore(archivos);
 }
 
 function exportarXlsxAce(){
-  /* ̀-ͯ = marcas diacríticas: «PRIMERA TANDA Ñ» -> primera-tanda-n */
-  const base = (estadoAce.titulo || 'despiece-acero')
+  /* Con varias tandas el archivo es el despiece completo, no el de una sola.
+     ̀-ͯ = marcas diacríticas: «PRIMERA TANDA Ñ» -> primera-tanda-n */
+  const crudo = estadoAce.tandas.length > 1
+    ? 'despiece-acero' : nombreTanda(tandaAct(), estadoAce.activa);
+  const base = crudo
     .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'despiece-acero';
   const a = document.createElement('a');
@@ -2971,29 +3164,32 @@ function exportarXlsxAce(){
     if (limpio !== e.target.value) e.target.value = limpio;
   });
 });
-$('aceTitulo').addEventListener('input', e => { estadoAce.titulo = e.target.value; guardarAce(); });
+// Renombrar la tanda activa: la pestaña se actualiza en vivo, sin repintar filas
+$('aceTitulo').addEventListener('input', e => {
+  tandaAct().titulo = e.target.value; guardarAce(); pintarTandas();
+});
 $('aceVarilla').addEventListener('change', e => { estadoAce.varilla = e.target.value; guardarAce(); pintarTodoAce(); });
 $('aceDesp').addEventListener('input',  e => { estadoAce.desperdicio = e.target.value; guardarAce(); pintarTotalesAce(); });
 $('aceRecub').addEventListener('input', e => { estadoAce.recub = e.target.value; guardarAce(); pintarTodoAce(); });
 $('aceGancho').addEventListener('change', e => { estadoAce.gancho = e.target.value; guardarAce(); pintarTodoAce(); });
 
 $('btnAgregarAce').addEventListener('click', () => {
-  const f = nuevaAce();
-  const ultima = estadoAce.filas[estadoAce.filas.length - 1];
+  const f = nuevaAce(), tanda = tandaAct();
+  const ultima = tanda.filas[tanda.filas.length - 1];
   if (ultima){ f.elem = ultima.elem; f.dia = ultima.dia; f.fig = ultima.fig;
                f.cant = ultima.fig === 'estribo' ? '' : '1'; }
-  estadoAce.filas.push(f);
+  tanda.filas.push(f);
   animarIdAce = f.id;
-  guardarAce(); pintarFilasAce(); pintarTotalesAce();
+  guardarAce(); pintarTodoAce();
   const ultimo = $('filasAce').lastElementChild;
   if (ultimo) ultimo.querySelector('.row-name').focus();
 });
 
 $('btnLimpiarAce').addEventListener('click', () => {
-  if (!confirm('¿Borrar todo el despiece?')) return;
-  estadoAce.filas = [nuevaAce()];
-  guardarAce(); pintarFilasAce(); pintarTotalesAce();
-  toast('Lista vacía');
+  if (!confirm(`¿Borrar las barras de «${nombreTanda(tandaAct(), estadoAce.activa)}»?`)) return;
+  tandaAct().filas = [nuevaAce()];
+  guardarAce(); pintarTodoAce();
+  toast('Tanda vacía');
 });
 
 $('btnXlsxAce').addEventListener('click', exportarXlsxAce);
@@ -3035,12 +3231,11 @@ $('inpDespCon').value = estadoCol.desperdicio;
 pintarTodoCol();
 
 cargarAce();
-$('aceTitulo').value  = estadoAce.titulo;
 $('aceVarilla').value = estadoAce.varilla;
 $('aceDesp').value    = estadoAce.desperdicio;
 $('aceRecub').value   = estadoAce.recub;
 $('aceGancho').value  = estadoAce.gancho;
-pintarTodoAce();
+sincronizarTanda();
 
 pintarCapitulo();
 

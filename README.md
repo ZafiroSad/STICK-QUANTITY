@@ -13,8 +13,8 @@ servidor: se abre en el navegador y funciona también sin conexión una vez carg
 |---|---|
 | Mampostería — ladrillos, junta y mortero de pega | Disponible |
 | Concreto — columnas y formaleta | Disponible |
+| Acero — despiece, peso y varillas | Disponible |
 | Concreto — vigas y losas | Pendiente |
-| Acero de refuerzo | Pendiente |
 | Pañete / revoque | Pendiente |
 | Pisos y enchapes | Pendiente |
 
@@ -124,6 +124,50 @@ alto, las alturas de columna que no sean múltiplo de 1,20 no cierran exactas. E
 concreto — no incluye acero de refuerzo, alambre, separadores, dados de cimentación ni los
 accesorios de la formaleta (grapas, pines, alineadores, puntales). Las secciones circular y libre
 solo entregan volumen, porque el panel recto no las encofra.
+
+---
+
+## Acero — despiece
+
+Una fila por marca de barra. La **figura se escoge tocando su dibujo** —recta, escuadra sencilla,
+doble escuadra o estribo—; las letras `A`, `B` y `C` del dibujo son las mismas de los campos, y
+debajo de la fila se traza el **croquis acotado de esa barra, a escala**, con las medidas escritas
+y sus ganchos.
+
+El trabajo se organiza en **tandas** (una fundida cada una). Cada tanda tiene su nombre y su lista;
+la varilla comercial, el desperdicio, el recubrimiento y el gancho estándar valen para todas.
+
+### Fórmulas
+
+Longitud de corte, como se despieza en obra — **suma de tramos cara a cara**, sin descontar el
+desarrollo del doblez (queda del lado de la seguridad):
+
+```
+L = Σ tramos + ganchos
+
+Gancho 90°   →  12 db                     (NSR-10 C.7.1)
+Gancho 180°  →  4 db, mínimo 6,5 cm
+Estribo      →  2 × (b−2r + h−2r) + 2 ganchos de 135° (6 db, mínimo 7,5 cm)
+Estribos por elemento  =  ⌊L/S⌋ + 1
+Peso  =  L total × masa nominal           (NTC 2289)
+```
+
+Las varillas se cuentan por **corte real**: cuántas piezas enteras salen de una varilla comercial,
+sin combinar barras de filas ni de tandas distintas.
+
+### Exportación a Excel
+
+El botón **Exportar a Excel** entrega un `.xlsx` de verdad, escrito a mano por la app (sin
+librerías): **una hoja por tanda** y una hoja **CONSOLIDADO** cuando hay más de una. Cada hoja lleva
+el croquis de cada barra como **figura vectorial**, la columna `A` libre para marcar con «x» lo ya
+cortado, y la marca de STICK QUANTITY en la esquina.
+
+### Advertencia técnica
+
+El despiece **no** resuelve traslapos, longitudes de desarrollo ni alambre de amarre: si una pieza
+no sale de una varilla, la app avisa, pero el traslapo se define según la **NSR-10 C.12**. Las
+masas son las nominales de la **NTC 2289**; el acero real varía dentro de la tolerancia de fábrica.
+Verificar siempre contra los planos estructurales.
 
 ---
 

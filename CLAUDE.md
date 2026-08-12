@@ -14,7 +14,35 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.2.0 (Mampostería + Concreto de columnas)
+## Estado actual — v1.4.0 (Mampostería + Concreto de columnas + Acero)
+
+### Capítulo Acero — despiece (2026-08-12)
+Tercer capítulo, nacido de replicar «pero mejor» el Excel de obra
+`LOTE 23 VILLAS DE CANTABRIA\FORMALETA COLUMNAS.xlsx` (dos hojas, «PRIMERA TANDA» y
+«SEGUNDA TANDA»; columna A libre para marcar con «x»; Century Gothic; sin rejilla).
+
+- **La figura se escoge tocando el dibujo**, no un desplegable: cuatro botones con la silueta
+  de Recta / Escuadra sencilla / Doble escuadra / Estribo. Las letras A/B/C del dibujo son las
+  mismas de los campos de la fila.
+- **Croquis acotado por fila** (`geomAce` / `croquisAce`): además del selector, cada fila dibuja
+  **su** barra **a escala** con las medidas escritas, líneas de cota con marcas y los ganchos que
+  le sumen longitud. Mientras la fila está vacía se dibuja el ejemplo (los placeholders) atenuado.
+- **Tandas**: pestañas dentro del capítulo. Cada tanda tiene su nombre y sus barras; los parámetros
+  (varilla, desperdicio, recubrimiento, gancho) son de la obra y valen para todas.
+- **Exportación a .xlsx sin dependencias** (`zipStore`, ZIP «store» a mano): **una hoja por tanda**
+  más una hoja **CONSOLIDADO** cuando hay más de una. Lleva el croquis dentro como **figura
+  vectorial** (`custGeom`, no imagen) anclada en la columna CROQUIS, y el logo en A1 de cada hoja.
+- Masas nominales NTC 2289; ganchos NSR-10 C.7.1 (90° = 12 db; 180° = 4 db ≥ 6,5 cm;
+  estribos 135° = 6 db ≥ 7,5 cm, dos por estribo). Las longitudes se suman **cara a cara**.
+- Persistencia propia en `localStorage` bajo `stick-quantity-acero-v1`, con migración automática
+  del formato anterior (lista suelta `filas`/`titulo`) al de tandas.
+
+**Verificado en vivo (2026-08-12)**, no supuesto: app servida por HTTP y manejada por CDP en
+Chrome headless (tres capítulos, ambos temas, 1280 y 390 px, sin errores de consola ni desborde
+horizontal), y el `.xlsx` **abierto en Excel real por COM** —3 hojas, 6 formas en la primera, sin
+reparación— y exportado a PDF para mirarlo.
+
+## Estado anterior — v1.2.0 (Mampostería + Concreto de columnas)
 
 ### Capítulo Concreto — columnas (2026-08-10)
 Segundo capítulo. La barra de capítulos deja de ser decorativa: `Mampostería` y
@@ -92,7 +120,20 @@ Capítulo de columnas (mismo archivo, funciones con sufijo `Col`):
   hilada a lo ancho. `PENA_ANCHO` castiga la hilada que no cierra exacta.
 - `formaletaCol()` / `calcCol()` / `totalesCol()` — piezas por columna, volumen por fila y el
   agregado (concreto por resistencia + piezas por medida).
-- `pintarCapitulo()` — alterna las dos vistas y el estado `on` de los chips.
+- `pintarCapitulo()` — alterna las tres vistas y el estado `on` de los chips.
+
+Capítulo de acero (mismo archivo, sufijo `Ace`):
+- `ACEROS` — masas nominales por diámetro. `FIGURAS` — figuras y sus campos, con `ph` (placeholder)
+  que además alimenta el croquis de ejemplo. `SVG_FIG` — los íconos del selector.
+  **Agregar referencias aquí, no en la UI.**
+- `calcAce()` / `totalesAce(filas)` — longitud de corte, piezas, peso y varillas por corte real.
+- `geomAce()` — **única fuente de la geometría**: puntos de la figura en unidades reales (m para
+  barras, cm para estribos) más los ganchos. La consumen el croquis de pantalla y el del Excel.
+- `croquisAce()` — SVG acotado, alto adaptativo según la forma. `trazosAce()` / `figuraXlsx()` —
+  la misma silueta como polilíneas y como `<xdr:sp>` con `custGeom` para la hoja.
+- `hojaAceroXml(tanda, i)` / `hojaConsolidadoXml()` / `envolverHoja()` — las hojas.
+  `libroAceroXlsx()` arma el ZIP con una hoja, un dibujo y sus rels por tanda.
+- `zipStore()` / `crc32()` — escritor de ZIP sin compresión. Excel acepta el método «store».
 
 ## Migración al UI SYSTEM v2 «Campo y Vidrio» (2026-08-09)
 
@@ -122,6 +163,28 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **La figura de la barra se escoge tocando su dibujo (2026-08-12).** Lo pidió el Señor Stick:
+  «en vez de escoger si es doble escuadra o escuadra sencilla, que se vea un boceto de la forma
+  de la barra». En obra la figura se reconoce de un vistazo; un desplegable con nombres obliga a
+  traducir.
+- **El croquis de la fila es a escala y con las medidas escritas, no un ícono (2026-08-12).** Un
+  ícono ya lo da el selector. Lo que un despiece necesita al lado de cada marca es la figura
+  acotada, y dibujarla con los números reales convierte un error de digitación (una escuadra de
+  3 m en vez de 0,30 m) en algo que se ve sin leer.
+- **Una sola escala para los dos ejes del croquis (2026-08-12).** Estirar cada eje por separado
+  llenaría la caja, pero el dibujo mentiría sobre la forma: una barra de 4,20 con escuadra de
+  0,30 se vería como una U cuadrada.
+- **Las medidas van en UNA columna de texto en el Excel, no en tres numéricas (2026-08-12).** Un
+  estribo se mide en cm y con separación; una barra recta, en m. Una cabecera fija «A / B / C»
+  mentiría en las filas de estribo.
+- **El croquis del Excel es vector, no imagen (2026-08-12).** `custGeom` con la polilínea de la
+  figura: se amplía sin pixelarse, el archivo no engorda y no hay que generar un PNG por fila.
+  Verificado abriendo el libro en Excel real: las formas sobreviven, no hay reparación.
+- **Una hoja por tanda, más un consolidado (2026-08-12).** Es la estructura del Excel del Señor
+  Stick —«PRIMERA TANDA» y «SEGUNDA TANDA» en hojas distintas—. El consolidado es lo que él sí
+  tenía que sumar a mano, y es justo el trabajo que la app quita.
+- **Las varillas no se combinan entre tandas ni entre filas (2026-08-12).** Cada corte sale de su
+  varilla; combinar sobrantes de dos fundidas distintas sería contabilidad, no obra.
 - **La formaleta se entrega en piezas, no en m² (2026-08-10, tras revisión).** El Señor Stick no
   compra metros cuadrados: pide formaletas de una medida. El resumen lista «30 × 120 cm → 12 und».
 - **El conteo multiplica por la cantidad de columnas de la fila (2026-08-10, cuarta pasada).**
@@ -206,6 +269,15 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
   `ceil` sobre el neto y no cuadraba con la suma visible de las filas.
 
 ## Pendientes y problemas conocidos
+- **El despiece no resuelve traslapos ni longitudes de desarrollo.** Cuando una pieza no sale de
+  una varilla la app avisa, pero el traslapo lo define el Señor Stick según la NSR-10 C.12.
+- **No hay figura para barras dobladas en más de dos puntos** (zunchos en espiral, ganchos de
+  columna en «pata de elefante», barras en Z con tramos inclinados). Hoy se resuelven con varias
+  filas rectas.
+- **El croquis del Excel no lleva cotas**, solo la silueta; las medidas viven en su columna. Poner
+  texto dentro de la figura obligaría a un `txBody` por tramo y ensuciaría la hoja.
+- Falta decidir si el consolidado debería contar las varillas combinando sobrantes entre tandas
+  (hoy no lo hace, a propósito).
 - Verificar las medidas del catálogo contra fichas técnicas reales (Ladrillera Santafé, Ocaña,
   Alfa). Hoy son valores de mercado comunes; el estructural 33×23 y el tolete 25×6.5×12.5 son
   los de mayor incertidumbre.
