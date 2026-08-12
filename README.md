@@ -129,13 +129,19 @@ solo entregan volumen, porque el panel recto no las encofra.
 
 ## Acero — despiece
 
-Una fila por marca de barra. La **figura se escoge tocando su dibujo** —recta, escuadra sencilla,
-doble escuadra o estribo—; las letras `A`, `B` y `C` del dibujo son las mismas de los campos, y
-debajo de la fila se traza el **croquis acotado de esa barra, a escala**, con las medidas escritas
-y sus ganchos.
+Una **tarjeta por longitud de corte**. Arriba, la figura —que se escoge **tocando su dibujo**:
+recta, escuadra sencilla, doble escuadra o estribo— y sus medidas; las letras `A`, `B` y `C` del
+dibujo son las mismas de los campos. En medio, el **croquis acotado de esa barra, a escala**, con
+las medidas escritas y sus ganchos. Abajo, las **posiciones** que comparten esa longitud —arriba,
+abajo, estribos—, cada una con su cantidad y su diámetro. Así una viga entera cabe en una tarjeta.
+
+La **cantidad admite sumas**: `11+7+11` son once estribos en un extremo, siete al centro y once en
+el otro. Se guarda tal cual y el Excel se lleva las dos cosas, el reparto y su total.
+
+En la doble escuadra, el botón **B = C** hace que la escuadra derecha copie a la izquierda.
 
 El trabajo se organiza en **tandas** (una fundida cada una). Cada tanda tiene su nombre y su lista;
-la varilla comercial, el desperdicio, el recubrimiento y el gancho estándar valen para todas.
+la varilla comercial, el desperdicio y el gancho estándar valen para todas.
 
 ### Fórmulas
 
@@ -147,8 +153,7 @@ L = Σ tramos + ganchos
 
 Gancho 90°   →  12 db                     (NSR-10 C.7.1)
 Gancho 180°  →  4 db, mínimo 6,5 cm
-Estribo      →  2 × (b−2r + h−2r) + 2 ganchos de 135° (6 db, mínimo 7,5 cm)
-Estribos por elemento  =  ⌊L/S⌋ + 1
+Estribo      →  2·B + 2·H + 2·gancho      (los tres se escriben a mano, en m)
 Peso  =  L total × masa nominal           (NTC 2289)
 ```
 
@@ -162,9 +167,14 @@ librerías): **una hoja por tanda** y una hoja **CONSOLIDADO** cuando hay más d
 el croquis de cada barra como **figura vectorial**, la columna `A` libre para marcar con «x» lo ya
 cortado, y la marca de STICK QUANTITY en la esquina.
 
+Cada tarjeta es un bloque: las celdas de figura, croquis, medidas y longitud unitaria van
+**combinadas a lo alto** de sus posiciones, y cada posición es una fila. El reparto de estribos
+aparece dos veces a propósito — en `REPARTO` como texto (`11 + 7 + 11`) y en `CANT` como la
+fórmula `=11+7+11`, que muestra `29`.
+
 La hoja sale **viva**: los metrajes, los pesos, los subtotales, el resumen por diámetro y el
-consolidado son fórmulas. Corregir una cantidad dentro de Excel recalcula todo lo demás, incluida
-la hoja de consolidado, sin volver a la app.
+consolidado son fórmulas. Corregir una cantidad dentro de Excel —o el propio reparto— recalcula
+todo lo demás, incluida la hoja de consolidado, sin volver a la app.
 
 ### Advertencia técnica
 

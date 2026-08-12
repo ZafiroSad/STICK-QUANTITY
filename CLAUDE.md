@@ -14,7 +14,30 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.4.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.5.0 (Mampostería + Concreto de columnas + Acero)
+
+### Segunda pasada del capítulo Acero tras revisión del Señor Stick (2026-08-12)
+
+La primera versión ponía **una tarjeta por marca de barra** y la lista se estiraba a decenas de
+tarjetas. Él pidió que la tarjeta fuera «básicamente una fila del Excel»: escogió que la tarjeta
+agrupe **una longitud de corte** y que adentro se listen las posiciones que la comparten.
+
+- **Tarjeta = una longitud.** Figura + medidas + croquis arriba; abajo, N líneas
+  `posición · cantidad · diámetro`. En el Excel cada línea es una fila y las celdas de la tarjeta
+  —figura, croquis, medidas, L. unit— van **combinadas a lo alto** del bloque.
+- **La cantidad admite sumas.** «11+7+11» se guarda tal cual —el reparto es dato de obra— y el
+  Excel se lleva las dos cosas: la columna `REPARTO` con el texto `11 + 7 + 11` y la columna `CANT`
+  con la **fórmula** `=11+7+11`, que muestra 29 y sigue viva.
+- **El estribo se escribe entero, a mano.** Fuera la separación y el conteo automático; fuera el
+  recubrimiento. Sus campos son `B`, `H` y `Gancho`, los tres en metros, y la longitud es
+  `2·B + 2·H + 2·gancho` — el desglose sale literal: `0,20 + 0,40 + 0,20 + 0,40 + 0,10 + 0,10`.
+- **Botón «B = C» en la doble escuadra**: mientras esté puesto, la escuadra derecha copia a la
+  izquierda y su campo queda inhabilitado.
+- Los parámetros del despiece quedan en cuatro: nombre de la tanda, varilla comercial, desperdicio
+  y gancho estándar. **El recubrimiento se retiró**: solo alimentaba el estribo, que ya no lo usa.
+- Migración automática del guardado anterior: la posición suelta pasa a `lineas`, el estribo se
+  convierte de sección en cm a medidas en m (sección − 2 recubrimientos) y **se rescata la cantidad
+  que la app calculaba con la separación**, para no perder la cuenta ya hecha.
 
 ### Capítulo Acero — despiece (2026-08-12)
 Tercer capítulo, nacido de replicar «pero mejor» el Excel de obra
@@ -167,6 +190,18 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **La tarjeta agrupa UNA longitud de corte, no un elemento (2026-08-12, elegido por el Señor
+  Stick).** Se le ofrecieron las dos formas con maqueta: tarjeta por longitud (con las posiciones
+  adentro) o tarjeta por elemento (con varias figuras adentro). Escogió la primera. Una viga con
+  refuerzo arriba, abajo y al centro cabe en una tarjeta con tres líneas en vez de tres tarjetas.
+- **El estribo no se calcula solo (2026-08-12).** Ni la cantidad por separación ni la medida por
+  recubrimiento: «que el usuario ponga el total de estribos». La app suma lo que él escribe, y esa
+  es toda la magia. Con eso el recubrimiento se quedó sin uso y se retiró del capítulo.
+- **La cantidad se guarda como se escribió, no como su total (2026-08-12).** «11+7+11» son once
+  estribos en un extremo, siete al centro y once en el otro: el reparto es información de obra que
+  se pierde al guardar solo el 29. Por eso el Excel lleva las dos columnas y la fórmula viva.
+- **El botón «B = C» en vez de un campo que se copie solo (2026-08-12).** El bastón simétrico es la
+  regla; obligar a escribir dos veces la misma medida es pedir un error de digitación.
 - **La figura de la barra se escoge tocando su dibujo (2026-08-12).** Lo pidió el Señor Stick:
   «en vez de escoger si es doble escuadra o escuadra sencilla, que se vea un boceto de la forma
   de la barra». En obra la figura se reconoce de un vistazo; un desplegable con nombres obliga a

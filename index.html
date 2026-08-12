@@ -423,6 +423,60 @@ html.light .croquis{background:rgba(255,255,255,.55)}
   color:var(--tinta);font-family:inherit;overflow:visible}
 .croquis .pie{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
   font-size:10px;font-weight:600;color:var(--zinc-600);letter-spacing:.02em;margin-top:2px}
+/* ── Posiciones dentro de la tarjeta ──
+   Una tarjeta es UNA longitud de corte; aquí se listan las posiciones que la
+   comparten: «arriba 4 de #5, abajo 3 de #4». Cada línea es una fila del Excel. */
+.lineas{margin-top:12px;border:1px solid var(--v-borde);border-radius:18px;
+  background:rgba(255,255,255,.025);padding:10px 12px 8px}
+html.light .lineas{background:rgba(255,255,255,.55)}
+.lineas-cab,.linea{display:grid;gap:8px;align-items:center;
+  grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.1fr) 30px}
+.lineas-cab{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--zinc-600);padding:0 2px 6px}
+.linea{margin-bottom:7px}
+.linea input,.linea select{
+  width:100%;background:var(--v-fondo);border:1px solid var(--v-borde);border-radius:999px;
+  padding:9px 13px;color:var(--tinta);font-family:inherit;font-size:12.5px;font-weight:600;
+  outline:none;transition:border-color .2s var(--suave)}
+.linea input:focus,.linea select:focus{border-color:var(--linea-fuerte)}
+.linea input::placeholder{color:var(--zinc-600)}
+.linea .li-cant{font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.linea .li-res{font-size:11px;font-weight:700;color:var(--zinc-500);text-align:right;
+  font-variant-numeric:tabular-nums;padding-right:2px}
+.linea .li-res b{color:var(--tinta);font-weight:800}
+.linea .li-x{justify-self:end}
+.linea .li-x:disabled{opacity:.25;cursor:default}
+.btn-linea{
+  width:100%;margin-top:3px;background:transparent;border:1px dashed var(--linea);
+  border-radius:999px;padding:8px;color:var(--zinc-500);font-family:inherit;
+  font-size:11px;font-weight:700;cursor:pointer;transition:color .2s var(--suave),border-color .2s var(--suave)}
+.btn-linea:hover{color:var(--tinta);border-color:var(--linea-fuerte)}
+/* En móvil la línea se parte en tres renglones. Con áreas explícitas, no con
+   `grid-column`: dejar que el navegador acomode lo que sobra metía la cantidad
+   en la columna de 30 px de la X. Se vio en captura a 390 px. */
+@media (max-width:620px){
+  .lineas-cab{display:none}
+  .linea{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) 30px;
+    grid-template-areas:"det det x" "cant dia dia" "res res res";
+    row-gap:7px;
+  }
+  .linea + .linea{border-top:1px solid var(--v-borde);padding-top:11px;margin-top:4px}
+  .linea .li-det{grid-area:det}
+  .linea .li-cant{grid-area:cant}
+  .linea .li-dia{grid-area:dia}
+  .linea .li-res{grid-area:res;text-align:left}
+  .linea .li-x{grid-area:x;align-self:center}
+}
+/* Botón de escuadras iguales: vive en la rejilla de campos, con su misma altura */
+.btn-espejo{
+  display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  background:var(--v-fondo);border:1px solid var(--v-borde);border-radius:999px;
+  padding:11px 13px;color:var(--zinc-400);font-family:inherit;font-size:12.5px;
+  font-weight:700;cursor:pointer;transition:all .22s var(--suave)}
+.btn-espejo.on{background:var(--tinta);color:var(--contratinta);border-color:transparent}
+.btn-espejo:hover{border-color:var(--linea-fuerte)}
+.btn-espejo.on:hover{color:var(--contratinta)}
 /* Desglose de la longitud: 0,30 + 4,20 + 0,30 = 4,80 m */
 .desglose{font-size:11px;color:var(--zinc-500);line-height:1.5;font-variant-numeric:tabular-nums}
 .desglose b{color:var(--zinc-300);font-weight:800}
@@ -818,10 +872,6 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
           <input id="aceDesp" type="text" inputmode="decimal" value="5">
         </div>
         <div class="field">
-          <label for="aceRecub">Recubrimiento (cm)</label>
-          <input id="aceRecub" type="text" inputmode="decimal" value="4">
-        </div>
-        <div class="field">
           <label for="aceGancho">Gancho estándar</label>
           <select id="aceGancho">
             <option value="no">Sin gancho extra</option>
@@ -831,10 +881,11 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
         </div>
       </div>
       <p class="muted" style="margin-top:14px;font-size:11px">
-        El recubrimiento solo se usa para los estribos: la app le resta <b style="color:var(--zinc-400)">2 ×</b>
-        recubrimiento a la sección para sacar la medida exterior del estribo. El gancho estándar se le suma
-        a las barras longitudinales que tú marques con 1 o 2 ganchos; los estribos siempre llevan sus dos
-        ganchos de 135° incluidos.
+        La <b style="color:var(--zinc-400)">varilla comercial</b> es la que se compra: con ella se cuenta
+        cuántas piezas enteras salen de cada una. El <b style="color:var(--zinc-400)">desperdicio</b> es el
+        colchón que se le suma al peso neto. El <b style="color:var(--zinc-400)">gancho estándar</b> se le
+        suma a las barras longitudinales que marques con 1 o 2 ganchos;
+        <b style="color:var(--zinc-400)">el estribo lleva su propia pata</b>, escrita en su tarjeta.
       </p>
     </div>
   </section>
@@ -844,8 +895,9 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
     <div class="section-head">
       <div>
         <h2 class="h2">Despiece</h2>
-        <p class="sub">Una fila por marca de barra: elemento, figura, diámetro y medidas. El croquis se
-          dibuja solo, a escala, con lo que escribas.</p>
+        <p class="sub">Una tarjeta por longitud de corte: la figura y sus medidas arriba, y abajo las
+          posiciones que la comparten —arriba, abajo, estribos—, cada una con su cantidad y su
+          diámetro. El croquis se dibuja solo, a escala, con lo que escribas.</p>
       </div>
       <button class="btn-primary" id="btnAgregarAce">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
@@ -926,7 +978,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.4.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.5.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -2090,23 +2142,25 @@ const FIGURAS = [
     campos:[{ k:'b', et:'B — escuadra izq. (m)', ph:'0.30' },
             { k:'a', et:'A — tramo recto (m)',   ph:'4.20' },
             { k:'c', et:'C — escuadra der. (m)', ph:'0.30' }] },
+  /* El estribo se escribe tal como se mide en la hoja de obra: los cuatro lados
+     y la pata del gancho, todo en metros y todo a mano. Nada de sección menos
+     recubrimiento ni de repartir por separación: la cuenta la pone quien mira
+     el plano. Longitud = 2·B + 2·H + 2·gancho. */
   { id:'estribo', nombre:'Estribo',           titulo:'Estribo cerrado',
-    campos:[{ k:'sb', et:'B — sección (cm)',    ph:'30' },
-            { k:'sh', et:'H — sección (cm)',    ph:'45' },
-            { k:'le', et:'Largo del elemento (m)', ph:'4.20' },
-            { k:'sep', et:'Separación S (cm)',  ph:'15' }] },
+    campos:[{ k:'sb', et:'B — ancho (m)',     ph:'0.20' },
+            { k:'sh', et:'H — alto (m)',      ph:'0.40' },
+            { k:'ge', et:'Gancho (m)',        ph:'0.10' }] },
 ];
 
 const CLAVE_ACE = 'stick-quantity-acero-v1';
 
-/* Los parámetros (varilla, desperdicio, recubrimiento, gancho) son de la obra
+/* Los parámetros (varilla, desperdicio, gancho) son de la obra
    y valen para todas las tandas; las barras y el nombre son de cada tanda.
    Una tanda es una fundida: el Excel del Señor Stick las lleva en hojas
    distintas —«PRIMERA TANDA», «SEGUNDA TANDA»— y al exportar vuelven a serlo. */
 let estadoAce = {
   varilla: '6',
   desperdicio: 5,
-  recub: 4,
   gancho: 'no',
   tandas: [],
   activa: 0,
@@ -2117,54 +2171,79 @@ const tandaAct = () => estadoAce.tandas[estadoAce.activa] || estadoAce.tandas[0]
 
 let animarTodoAce = true, animarIdAce = null;
 
-function nuevaAce(){
-  return { id:uid(), elem:'', det:'', fig:'recta', dia:'4',
-           a:'', b:'', c:'', sb:'', sh:'', le:'', sep:'',
-           ganchos:'0', cant:'1' };
+/* Una TARJETA es una longitud de corte: una figura con sus medidas y su croquis.
+   Adentro van las posiciones que comparten esa misma longitud —«arriba 4 de #5,
+   abajo 3 de #4»—, cada una con su cantidad y su diámetro. Así una viga entera
+   cabe en una tarjeta en vez de estirarse en cinco. */
+function nuevaLinea(det = '', dia = '4'){
+  return { id:uid(), det, cant:'1', dia };
 }
+function nuevaAce(){
+  return { id:uid(), elem:'', fig:'recta',
+           a:'', b:'', c:'', sb:'', sh:'', ge:'',
+           iguales:true, ganchos:'0', lineas:[nuevaLinea()] };
+}
+
+/* La cantidad admite sumas: «11+7+11» son los estribos de los dos extremos y
+   el centro. Se guarda tal cual se escribió —el reparto es información de obra,
+   no solo su total— y el Excel se lleva las dos cosas: el texto y la suma. */
+function sumaCant(txt){
+  const s = String(txt ?? '').replace(/[^0-9.,+]/g, '');
+  if (!s) return 0;
+  return s.split('+').reduce((t, p) => t + (p.trim() ? Math.max(0, num(p)) : 0), 0);
+}
+const esSuma = txt => String(txt ?? '').includes('+');
 
 const aceroDe = id => ACEROS.find(x => x.id === id) || ACEROS[3];
 const figDe   = id => FIGURAS.find(x => x.id === id) || FIGURAS[0];
 
-/* ── Cálculo por fila ───────────────────────────────────── */
+/* La escuadra derecha copia a la izquierda mientras el botón «iguales» esté
+   puesto: en obra el bastón simétrico es la regla, no la excepción. */
+const cDe = f => (f.iguales ? f.b : f.c);
+
+/* ── Cálculo por tarjeta ────────────────────────────────────
+   La tarjeta tiene UNA longitud de corte; las líneas de adentro solo cambian
+   cuántas piezas y de qué diámetro. Por eso la longitud se calcula una vez y
+   el peso se suma línea por línea, cada una con su masa por metro.          */
 function calcAce(f){
-  const ac = aceroDe(f.dia), db = ac.mm / 1000;      // db en metros
   const Lc = num(estadoAce.varilla) || 6;
-  let lu = 0, det = '', aviso = '', auto = 0;
+  let lu = 0, det = '', aviso = '';
 
   if (f.fig === 'estribo'){
-    const r  = num(estadoAce.recub);
-    const bx = num(f.sb) - 2 * r, hx = num(f.sh) - 2 * r;   // medida exterior del estribo, cm
-    const g  = Math.max(6 * db, 0.075);                     // gancho 135°, NSR-10 C.7.1.3
-    lu = Math.max(0, 2 * (bx + hx) / 100) + 2 * g;
-    det = `2 × (${nf(Math.max(0,bx),1)} + ${nf(Math.max(0,hx),1)}) cm + 2 ganchos de ${nf(g*100,1)} cm`;
-    const sep = num(f.sep) / 100, le = num(f.le);
-    auto = (sep > 0 && le > 0) ? Math.floor(le / sep + 1e-9) + 1 : 0;
-    if (num(f.sb) > 0 && bx <= 0) aviso = 'El recubrimiento se come la sección';
+    const b = Math.max(0, num(f.sb)), h = Math.max(0, num(f.sh)), g = Math.max(0, num(f.ge));
+    lu = 2 * b + 2 * h + 2 * g;
+    // El desglose se escribe como él lo suma en la hoja: 0,20+0,40+0,20+0,40+0,10+0,10
+    det = [b, h, b, h, g, g].map(v => nf(v, 2)).join(' + ');
   } else {
-    const campos = figDe(f.fig).campos.map(c => c.k);
-    const vals = campos.map(k => Math.max(0, num(f[k])));
+    const vals = figDe(f.fig).campos.map(c => Math.max(0, num(c.k === 'c' ? cDe(f) : f[c.k])));
     lu = vals.reduce((s, x) => s + x, 0);
     const partes = vals.map(v => nf(v, 2));
     const ng = Math.max(0, Math.round(num(f.ganchos)));
     if (ng > 0 && estadoAce.gancho !== 'no'){
+      // db del diámetro más grueso de la tarjeta: el gancho no puede quedarse corto
+      const db = Math.max(...f.lineas.map(l => aceroDe(l.dia).mm)) / 1000;
       const ext = estadoAce.gancho === '90' ? 12 * db : Math.max(4 * db, 0.065);
       lu += ng * ext;
-      partes.push(`${ng} × ${nf(ext*100,1)} cm de gancho`);
+      partes.push(...Array(ng).fill(nf(ext, 2)));
     }
     // Con un solo tramo la suma sobra: «4,20 = 4,20 m» no dice nada
     det = partes.length > 1 ? partes.join(' + ') : '';
-    auto = 1;
   }
 
-  const cant   = f.cant === '' ? auto : Math.max(0, Math.round(num(f.cant)));
-  const lTot   = lu * cant;
-  const peso   = lTot * ac.kgm;
   const porVar = lu > 0 ? Math.floor(Lc / lu + 1e-9) : 0;
-  const varillas = porVar > 0 ? Math.ceil(cant / porVar) : 0;
+  const lineas = f.lineas.map(l => {
+    const ac = aceroDe(l.dia);
+    const cant = Math.round(sumaCant(l.cant));
+    return { l, ac, cant, lTot: lu * cant, peso: lu * cant * ac.kgm,
+             varillas: porVar > 0 ? Math.ceil(cant / porVar) : 0 };
+  });
+  const cant = lineas.reduce((s, x) => s + x.cant, 0);
+  const lTot = lineas.reduce((s, x) => s + x.lTot, 0);
+  const peso = lineas.reduce((s, x) => s + x.peso, 0);
+  const varillas = lineas.reduce((s, x) => s + x.varillas, 0);
   if (lu > Lc) aviso = `La pieza mide ${nf(lu,2)} m y la varilla ${nf(Lc,2)} m: hay que traslapar`;
 
-  return { ac, lu, cant, auto, lTot, peso, porVar, varillas, det, aviso, Lc };
+  return { lu, cant, lTot, peso, porVar, varillas, det, aviso, Lc, lineas };
 }
 
 function totalesAce(filas){
@@ -2173,9 +2252,11 @@ function totalesAce(filas){
     const c = calcAce(f);
     t.lTot += c.lTot; t.peso += c.peso; t.cant += c.cant; t.varillas += c.varillas;
     if (c.aviso) t.avisos++;
-    const g = t.porDia.get(f.dia) || { ml:0, kg:0, cant:0, varillas:0 };
-    g.ml += c.lTot; g.kg += c.peso; g.cant += c.cant; g.varillas += c.varillas;
-    t.porDia.set(f.dia, g);
+    c.lineas.forEach(x => {
+      const g = t.porDia.get(x.l.dia) || { ml:0, kg:0, cant:0, varillas:0 };
+      g.ml += x.lTot; g.kg += x.peso; g.cant += x.cant; g.varillas += x.varillas;
+      t.porDia.set(x.l.dia, g);
+    });
   });
   t.k = 1 + num(estadoAce.desperdicio) / 100;
   t.pesoPedir = t.peso * t.k;
@@ -2187,7 +2268,8 @@ function nombreAce(f, i){ return f.elem || `E-${i + 1}`; }
 
 function pieAce(f, c){
   const geo = (c.det ? `${c.det} = ` : '') + `<b>${nf(c.lu,2)} m</b>` +
-    (c.cant ? ` · ${ni(c.cant)} pieza${c.cant === 1 ? '' : 's'} = ${nf(c.lTot,2)} m` : '') +
+    (c.cant ? ` · ${ni(c.cant)} pieza${c.cant === 1 ? '' : 's'} en ` +
+              `${c.lineas.length} posici${c.lineas.length === 1 ? 'ón' : 'ones'} = ${nf(c.lTot,2)} m` : '') +
     (c.aviso ? ` <span class="aviso">· ${escapeHtml(c.aviso)}</span>` : '');
   const res = `${nf(c.peso,2)} <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">kg</span>`;
   return [geo, res];
@@ -2213,19 +2295,17 @@ const geomAce = f => {
     return Math.max(0.01, num(cp ? cp.ph : 1));
   };
 
-  const db = aceroDe(f.dia).mm / 1000;
-  let pts, cotas, u, nota = '', ganchos = [];
+  const db = Math.max(...f.lineas.map(l => aceroDe(l.dia).mm)) / 1000;
+  const u = 'm';
+  let pts, cotas, nota = '', ganchos = [];
 
   if (f.fig === 'estribo'){
-    const r  = num(estadoAce.recub);
-    const bx = Math.max(1, V('sb') - 2 * r), hx = Math.max(1, V('sh') - 2 * r);
-    const gh = Math.max(6 * db, 0.075) * 100;           // gancho 135° en cm
+    const bx = V('sb'), hx = V('sh'), gh = V('ge');
     pts   = [[0,0],[bx,0],[bx,hx],[0,hx],[0,0]];
     cotas = [{ i:2, l:'B', v:bx }, { i:1, l:'H', v:hx }];
-    u = 'cm';
     ganchos = { tipo:'135', L:gh, esq:[[0,0],[bx * 0.22, 0]] };
-    nota = `Exterior = sección − 2 × ${dim(r)} cm de recubrimiento · ` +
-           `2 ganchos de 135° de ${nf(gh,1)} cm`;
+    nota = `Perímetro cerrado + 2 patas de ${nf(gh,2)} m · ` +
+           `L = 2 × ${nf(bx,2)} + 2 × ${nf(hx,2)} + 2 × ${nf(gh,2)}`;
   } else {
     if (f.fig === 'recta'){
       const A = V('a');
@@ -2236,17 +2316,18 @@ const geomAce = f => {
       pts = [[0,0],[A,0],[A,B]];
       cotas = [{ i:0, l:'A', v:A }, { i:1, l:'B', v:B }];
     } else {
-      const A = V('a'), B = V('b'), C = V('c');
+      const A = V('a'), B = V('b');
+      const C = f.iguales ? B : V('c');
       pts = [[0,B],[0,0],[A,0],[A,C]];
       cotas = [{ i:0, l:'B', v:B }, { i:1, l:'A', v:A }, { i:2, l:'C', v:C }];
+      if (f.iguales) nota = 'Escuadras iguales: C copia a B';
     }
-    u = 'm';
     const ng = Math.max(0, Math.round(num(f.ganchos)));
     if (ng > 0 && estadoAce.gancho !== 'no'){
       const ext = estadoAce.gancho === '90' ? 12 * db : Math.max(4 * db, 0.065);
       ganchos = { tipo:estadoAce.gancho, L:ext, extremos:ng >= 2 ? [0, pts.length - 1] : [0] };
       nota = `${ng} gancho${ng === 1 ? '' : 's'} de ${estadoAce.gancho}° · ` +
-             `${nf(ext*100,1)} cm cada uno, ya sumados a la longitud`;
+             `${nf(ext,2)} m cada uno, ya sumados a la longitud`;
     }
   }
   return { pts, cotas, u, nota, ganchos, real };
@@ -2376,9 +2457,23 @@ function pintarFilasAce(){
     if (animarTodoAce){ div.classList.add('animate-item'); div.style.animationDelay = (i * 55) + 'ms'; }
     else if (f.id === animarIdAce){ div.classList.add('animate-item'); }
 
-    const campos = fig.campos.map(cp => `
+    const campos = fig.campos.map(cp => {
+      // En doble escuadra con «iguales» puesto, C no se escribe: la copia de B
+      const espejo = cp.k === 'c' && f.iguales;
+      return `
         <div class="field"><label>${cp.et}</label>
-          <input data-k="${cp.k}" type="text" inputmode="decimal" placeholder="${cp.ph}" value="${escapeHtml(f[cp.k])}"></div>`).join('');
+          <input data-k="${cp.k}" type="text" inputmode="decimal" placeholder="${cp.ph}"
+            value="${escapeHtml(espejo ? f.b : f[cp.k])}"${espejo ? ' disabled' : ''}></div>`;
+    }).join('');
+
+    const botonIguales = f.fig === 'esc2' ? `
+        <div class="field"><label>Escuadras</label>
+          <button class="btn-espejo${f.iguales ? ' on' : ''}" data-iguales="1"
+            title="Las dos escuadras miden lo mismo">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round"><path d="M5 9h14M5 15h14"/></svg>
+            ${f.iguales ? 'B = C' : 'Distintas'}
+          </button></div>` : '';
 
     const campoGancho = (f.fig !== 'estribo' && estadoAce.gancho !== 'no') ? `
         <div class="field"><label>Ganchos</label>
@@ -2388,14 +2483,32 @@ function pintarFilasAce(){
             <option value="2"${f.ganchos === '2' ? ' selected' : ''}>2 ganchos</option>
           </select></div>` : '';
 
-    const etCant = f.fig === 'estribo' ? 'Cantidad (auto)' : 'Cantidad';
+    /* Las posiciones: cada una es una fila del Excel, todas con esta longitud */
+    const lineas = c.lineas.map((x, j) => `
+      <div class="linea" data-li="${j}">
+        <input class="li-det" data-lk="det" type="text" placeholder="arriba"
+          value="${escapeHtml(x.l.det)}">
+        <input class="li-cant" data-lk="cant" type="text" inputmode="text" placeholder="11+7+11"
+          value="${escapeHtml(x.l.cant)}">
+        <select class="li-dia" data-lk="dia">
+          ${ACEROS.map(a => `<option value="${a.id}"${x.l.dia === a.id ? ' selected' : ''}>${a.nombre}</option>`).join('')}
+        </select>
+        <span class="li-res">${esSuma(x.l.cant) ? `<b>${ni(x.cant)}</b> und · ` : ''}${nf(x.peso, 2)} kg</span>
+        <button class="btn-icon danger li-x" data-lx="1" title="Quitar posición"
+          ${c.lineas.length === 1 ? 'disabled' : ''}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>`).join('');
+
     const [pieGeo, pieRes] = pieAce(f, c);
 
     div.innerHTML = `
       <div class="row-head">
         <div class="row-idx">${i + 1}</div>
-        <input class="row-name" data-k="elem" placeholder="V-101 — nombre de la viga" value="${escapeHtml(f.elem)}">
-        <button class="btn-icon" data-dup="1" title="Duplicar barra">
+        <input class="row-name" data-k="elem" placeholder="V-101 — nombre del elemento" value="${escapeHtml(f.elem)}">
+        <button class="btn-icon" data-dup="1" title="Duplicar tarjeta">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
           </svg>
@@ -2411,67 +2524,116 @@ function pintarFilasAce(){
             ${SVG_FIG[g.id]}<b>${g.nombre}</b></button>`).join('')}
       </div>
       <div class="row-grid">
-        <div class="field ancho-2"><label>Detalle / posición</label>
-          <input data-k="det" type="text" placeholder="Refuerzo superior" value="${escapeHtml(f.det)}"></div>
-        <div class="field ancho-2"><label>Diámetro</label>
-          <select data-k="dia">
-            ${ACEROS.map(a => `<option value="${a.id}"${f.dia === a.id ? ' selected' : ''}>${a.nombre} — ${nf(a.kgm,3)} kg/m</option>`).join('')}
-          </select></div>
         ${campos}
-        <div class="field"><label>${etCant}</label>
-          <input data-k="cant" type="text" inputmode="numeric" placeholder="${c.auto}" value="${escapeHtml(f.cant)}"></div>
+        ${botonIguales}
         ${campoGancho}
       </div>
       <div class="croquis">${croquisAce(f)}</div>
+      <div class="lineas">
+        <div class="lineas-cab"><span>POSICIÓN</span><span>CANTIDAD</span><span>DIÁMETRO</span><span></span></div>
+        ${lineas}
+        <button class="btn-linea" data-add="1">+ Agregar posición</button>
+      </div>
       <div class="row-foot">
         <p class="desglose">${pieGeo}</p>
         <p class="num" style="font-size:13px;font-weight:800;color:var(--tinta)">${pieRes}</p>
       </div>`;
 
-    // Cambio de figura: cambia los campos, así que se re-pinta la fila entera
+    // Cambio de figura: cambia los campos, así que se re-pinta la tarjeta entera
     div.querySelectorAll('[data-fig]').forEach(b => {
       b.addEventListener('click', () => {
         if (f.fig === b.dataset.fig) return;
         f.fig = b.dataset.fig;
-        // Al pasar a estribo la cantidad la calcula la app; al salir vuelve a 1
-        f.cant = f.fig === 'estribo' ? '' : (f.cant || '1');
         guardarAce(); pintarFilasAce(); pintarTotalesAce();
       });
     });
     // Duplicar: es el «copiar y pegar la fila» del Excel, y con 30 vigas
     // parecidas es lo que hace que valga la pena dejar la hoja de cálculo
     div.querySelector('[data-dup]').addEventListener('click', () => {
-      const copia = Object.assign({}, f, { id:uid() });
+      const copia = JSON.parse(JSON.stringify(f));
+      copia.id = uid();
+      copia.lineas = copia.lineas.map(l => Object.assign({}, l, { id:uid() }));
       tanda.filas.splice(i + 1, 0, copia);
       animarIdAce = copia.id;
       guardarAce(); pintarTodoAce();
-      toast('Barra duplicada');
+      toast('Tarjeta duplicada');
     });
     div.querySelector('[data-del]').addEventListener('click', () => {
       tanda.filas = tanda.filas.filter(x => x.id !== f.id);
       guardarAce(); pintarTodoAce();
     });
-    // Campos: se recalcula el pie sin re-pintar la fila, para no perder el foco
+    const bIg = div.querySelector('[data-iguales]');
+    if (bIg) bIg.addEventListener('click', () => {
+      f.iguales = !f.iguales;
+      if (!f.iguales && !f.c) f.c = f.b;      // al separarlas, arranca del valor que tenía
+      guardarAce(); pintarFilasAce(); pintarTotalesAce();
+    });
+
+    /* Refresco ligero: recalcula pie, croquis y resultados de cada posición sin
+       re-pintar los campos, para no perder el foco mientras se escribe. */
+    const refrescar = () => {
+      const cc = calcAce(f);
+      const [g, r] = pieAce(f, cc);
+      const foot = div.querySelector('.row-foot');
+      foot.children[0].innerHTML = g;
+      foot.children[1].innerHTML = r;
+      div.querySelector('.croquis').innerHTML = croquisAce(f);
+      div.querySelectorAll('.linea').forEach((el, j) => {
+        const x = cc.lineas[j];
+        if (!x) return;
+        el.querySelector('.li-res').innerHTML =
+          (esSuma(x.l.cant) ? `<b>${ni(x.cant)}</b> und · ` : '') + `${nf(x.peso, 2)} kg`;
+      });
+      guardarAce(); pintarTotalesAce();
+    };
+
+    // Campos de la tarjeta (medidas, nombre, ganchos)
     div.querySelectorAll('[data-k]').forEach(inp => {
       const evt = inp.tagName === 'SELECT' ? 'change' : 'input';
       inp.addEventListener(evt, () => {
         // type=text + filtro: input[type=number] descarta la coma decimal (2,5)
-        if (!['elem','det'].includes(inp.dataset.k) && inp.tagName !== 'SELECT'){
+        if (inp.dataset.k !== 'elem' && inp.tagName !== 'SELECT'){
           const limpio = inp.value.replace(/[^0-9.,]/g, '');
           if (limpio !== inp.value) inp.value = limpio;
         }
         f[inp.dataset.k] = inp.value;
-        const cc = calcAce(f);
-        const [g, r] = pieAce(f, cc);
-        const foot = div.querySelector('.row-foot');
-        foot.children[0].innerHTML = g;
-        foot.children[1].innerHTML = r;
-        // El croquis se redibuja entero: es un string, no toca los campos
-        div.querySelector('.croquis').innerHTML = croquisAce(f);
-        const inpCant = div.querySelector('[data-k="cant"]');
-        if (inpCant && inp.dataset.k !== 'cant') inpCant.placeholder = cc.auto;
-        guardarAce(); pintarTotalesAce();
+        // Con las escuadras iguales, C sigue a B en pantalla y en el cálculo
+        if (inp.dataset.k === 'b' && f.iguales){
+          const cIn = div.querySelector('[data-k="c"]');
+          if (cIn) cIn.value = inp.value;
+        }
+        refrescar();
       });
+    });
+
+    // Posiciones: cantidad, diámetro y su nombre
+    div.querySelectorAll('.linea').forEach((el, j) => {
+      el.querySelectorAll('[data-lk]').forEach(inp => {
+        const evt = inp.tagName === 'SELECT' ? 'change' : 'input';
+        inp.addEventListener(evt, () => {
+          if (inp.dataset.lk === 'cant'){
+            // La cantidad admite el «+» de las sumas; nada más
+            const limpio = inp.value.replace(/[^0-9+]/g, '');
+            if (limpio !== inp.value) inp.value = limpio;
+          }
+          f.lineas[j][inp.dataset.lk] = inp.value;
+          refrescar();
+        });
+      });
+      el.querySelector('[data-lx]').addEventListener('click', () => {
+        if (f.lineas.length === 1) return;
+        f.lineas.splice(j, 1);
+        guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      });
+    });
+    div.querySelector('[data-add]').addEventListener('click', () => {
+      const ult = f.lineas[f.lineas.length - 1];
+      f.lineas.push(nuevaLinea('', ult ? ult.dia : '4'));
+      guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      // `div` quedó desprendido al repintar: hay que buscar la tarjeta nueva
+      const card = $('filasAce').children[i];
+      const nueva = card && [...card.querySelectorAll('.li-det')].pop();
+      if (nueva) nueva.focus();
     });
 
     cont.appendChild(div);
@@ -2520,6 +2682,38 @@ function pintarTodoAce(){ pintarTandas(); pintarFilasAce(); pintarTotalesAce(); 
 function guardarAce(){
   try { localStorage.setItem(CLAVE_ACE, JSON.stringify(estadoAce)); } catch(e){}
 }
+/* Una tarjeta guardada con la forma anterior traía UNA posición suelta
+   (det/dia/cant en la raíz) y el estribo en centímetros de sección, con el
+   recubrimiento y la separación puestos por la app. Se convierte: la posición
+   pasa a `lineas`, y el estribo a las medidas reales en metros —sección menos
+   dos recubrimientos— para que la longitud siga dando lo mismo. */
+function migrarFilaAce(f){
+  const n = Object.assign(nuevaAce(), f);
+  if (!Array.isArray(f.lineas) || !f.lineas.length){
+    /* El estribo viejo no traía cantidad: la repartía la app con la separación.
+       Se rescata ese número para no perder la cuenta que ya estaba hecha. */
+    let cant = String(f.cant ?? '');
+    if (!cant && f.fig === 'estribo'){
+      const sep = num(f.sep) / 100, le = num(f.le);
+      cant = (sep > 0 && le > 0) ? String(Math.floor(le / sep + 1e-9) + 1) : '1';
+    }
+    n.lineas = [{ id:uid(), det:f.det || '', cant:cant || '1', dia:f.dia || '4' }];
+  } else {
+    n.lineas = f.lineas.map(l => Object.assign(nuevaLinea(), l));
+  }
+  if (f.fig === 'estribo' && f.sb !== undefined && num(f.sb) > 3){
+    // sb > 3 solo puede ser centímetros: en metros un estribo no mide 3 m
+    const r = num(estadoAce.recub) || 4;   // aún no se ha borrado del estado
+    const db = aceroDe(n.lineas[0].dia).mm / 1000;
+    n.sb = nf(Math.max(0, (num(f.sb) - 2 * r) / 100), 2);
+    n.sh = nf(Math.max(0, (num(f.sh) - 2 * r) / 100), 2);
+    n.ge = nf(Math.max(6 * db, 0.075), 2);
+  }
+  if (f.iguales === undefined) n.iguales = !f.c || f.c === f.b;
+  delete n.det; delete n.dia; delete n.cant; delete n.le; delete n.sep;
+  return n;
+}
+
 function cargarAce(){
   try {
     const raw = localStorage.getItem(CLAVE_ACE);
@@ -2537,8 +2731,9 @@ function cargarAce(){
     id: t.id || uid(),
     titulo: t.titulo || '',
     filas: (Array.isArray(t.filas) && t.filas.length ? t.filas : [nuevaAce()])
-             .map(f => Object.assign(nuevaAce(), f)),
+             .map(migrarFilaAce),
   }));
+  delete estadoAce.recub;
   estadoAce.activa = Math.min(Math.max(0, num(estadoAce.activa)), estadoAce.tandas.length - 1);
   guardarAce();   // deja el guardado ya migrado, sin esperar a la primera edición
 }
@@ -2593,13 +2788,15 @@ function resumenTextoAce(){
   const t = totalesAce();
   const L = [];
   L.push(`STICK QUANTITY — Despiece de acero · ${nombreTanda(tandaAct(), estadoAce.activa)}`);
-  L.push(`Varilla de ${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} % · ` +
-         `Recubrimiento ${nf(num(estadoAce.recub),1)} cm`);
+  L.push(`Varilla de ${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} %`);
   L.push('');
   tandaAct().filas.forEach((f, i) => {
     const c = calcAce(f);
-    L.push(`${i + 1}. ${nombreAce(f, i)}${f.det ? ' · ' + f.det : ''} — ${figDe(f.fig).nombre} · ${c.ac.nombre}`);
-    L.push(`   ${c.det} = ${nf(c.lu,2)} m × ${ni(c.cant)} = ${nf(c.lTot,2)} m · ${nf(c.peso,2)} kg`);
+    L.push(`${i + 1}. ${nombreAce(f, i)} — ${figDe(f.fig).nombre}` +
+           `${c.det ? ' · ' + c.det : ''} = ${nf(c.lu,2)} m`);
+    c.lineas.forEach(x => L.push(
+      `   ${x.l.det || '—'}: ${x.l.cant}${esSuma(x.l.cant) ? ` = ${ni(x.cant)}` : ''} × ` +
+      `${x.ac.nombre} = ${nf(x.lTot,2)} m · ${nf(x.peso,2)} kg`));
   });
   L.push('');
   L.push('ACERO POR DIÁMETRO (con desperdicio)');
@@ -2786,15 +2983,25 @@ function estilosXlsx(){
    una cabecera fija «A (m) / B (m) / C (m)» mentía en las filas de estribo.
    La columna E lleva el CROQUIS: figura vectorial, no imagen, así que se
    puede ampliar sin pixelarse y el archivo no engorda.                     */
-const ANCHOS_ACE = [4.5, 5.5, 22, 19, 26, 15, 30, 11.5, 8, 12, 11];
-const LBL_ACE = ['FIGURA', 'CROQUIS', 'Ø', 'MEDIDAS', 'L. UNIT (m)', 'CANT', 'L. TOTAL (m)', 'PESO (kg)'];
+/* A libre · B nº · C posición · D figura · E croquis · F Ø · G medidas ·
+   H L. unit · I reparto · J cant · K L. total · L peso.
+   Figura, croquis, medidas y L. unit van COMBINADAS a lo alto de la tarjeta:
+   son de la tarjeta, no de cada posición, y así el bloque se lee como una sola
+   fila del Excel con sus posiciones adentro. */
+/* MEDIDAS va ancha a propósito: el estribo escribe sus seis sumandos
+   —«0,20 + 0,40 + 0,20 + 0,40 + 0,10 + 0,10 m»— y cortado no sirve de nada. */
+const ANCHOS_ACE = [4.5, 5, 15, 17, 24, 13, 38, 11, 12, 8, 12, 11];
+const LBL_ACE = ['FIGURA', 'CROQUIS', 'Ø', 'MEDIDAS', 'L. UNIT (m)',
+                 'REPARTO', 'CANT', 'L. TOTAL (m)', 'PESO (kg)'];
 
 /* Geometría del croquis en el .xlsx. Medidas del hueco donde cabe la figura,
    en EMU (1 pt = 12700 EMU): ancho de la columna E menos un margen, alto de
    la fila de datos menos otro. */
 const COL_CROQ = 4;                       // índice 0 de la columna E
 const CROQ_ALTO_FILA = 38;                // alto de la fila de datos, en puntos
-const CROQ_CX = 1666875, CROQ_CY = 406400, CROQ_OFFX = 57150, CROQ_OFFY = 38100;
+/* Ancho útil del hueco: la columna E (24) son 173 px = 1.647.825 EMU, menos
+   dos márgenes de 57.150. Si se cambia ANCHOS_ACE[4], hay que rehacer esto. */
+const CROQ_CX = 1533525, CROQ_OFFX = 57150;
 
 /* Polilíneas de la figura en unidades reales, ganchos incluidos. Es lo que se
    dibuja dentro del .xlsx: allí no hay cotas ni texto —las medidas ya están en
@@ -2832,34 +3039,38 @@ function trazosAce(f){
   return T;
 }
 
-/* Un <xdr:sp> con geometría propia: la silueta de la barra anclada en su fila. */
-function figuraXlsx(f, id, fila){
+/* Un <xdr:sp> con geometría propia: la silueta de la barra, centrada en el
+   alto que ocupa su tarjeta (la celda de CROQUIS va combinada a lo alto). */
+function figuraXlsx(f, id, fila, nLineas = 1){
   const T = trazosAce(f);
   if (!T) return '';
+  const alto = nLineas * CROQ_ALTO_FILA * 12700;             // alto del bloque, EMU
+  const cy   = Math.min(Math.max(alto - 101600, 152400), 914400);
+  const offY = Math.round((alto - cy) / 2);
   const todos = T.flat();
   const xs = todos.map(p => p[0]), ys = todos.map(p => p[1]);
   const x0 = Math.min(...xs), y0 = Math.min(...ys);
   const w0 = Math.max(...xs) - x0, h0 = Math.max(...ys) - y0;
   const pad = 22000;
   const sc = Math.min(w0 > 0 ? (CROQ_CX - 2*pad) / w0 : Infinity,
-                      h0 > 0 ? (CROQ_CY - 2*pad) / h0 : Infinity);
+                      h0 > 0 ? (cy - 2*pad) / h0 : Infinity);
   if (!Number.isFinite(sc) || sc <= 0) return '';
-  const ox = (CROQ_CX - w0*sc) / 2 - x0*sc, oy = (CROQ_CY - h0*sc) / 2 - y0*sc;
+  const ox = (CROQ_CX - w0*sc) / 2 - x0*sc, oy = (cy - h0*sc) / 2 - y0*sc;
   const pt = p => `<a:pt x="${Math.round(p[0]*sc + ox)}" y="${Math.round(p[1]*sc + oy)}"/>`;
   const paths = T.map(pl =>
-    `<a:path w="${CROQ_CX}" h="${CROQ_CY}">` +
+    `<a:path w="${CROQ_CX}" h="${cy}">` +
     `<a:moveTo>${pt(pl[0])}</a:moveTo>` +
     pl.slice(1).map(p => `<a:lnTo>${pt(p)}</a:lnTo>`).join('') +
     `</a:path>`).join('');
 
   return `<xdr:oneCellAnchor>` +
     `<xdr:from><xdr:col>${COL_CROQ}</xdr:col><xdr:colOff>${CROQ_OFFX}</xdr:colOff>` +
-    `<xdr:row>${fila - 1}</xdr:row><xdr:rowOff>${CROQ_OFFY}</xdr:rowOff></xdr:from>` +
-    `<xdr:ext cx="${CROQ_CX}" cy="${CROQ_CY}"/>` +
+    `<xdr:row>${fila - 1}</xdr:row><xdr:rowOff>${offY}</xdr:rowOff></xdr:from>` +
+    `<xdr:ext cx="${CROQ_CX}" cy="${cy}"/>` +
     `<xdr:sp macro="" textlink=""><xdr:nvSpPr>` +
     `<xdr:cNvPr id="${id}" name="Croquis ${id}" descr="${xmlEsc(figDe(f.fig).titulo)}"/>` +
     `<xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr>` +
-    `<a:xfrm><a:off x="0" y="0"/><a:ext cx="${CROQ_CX}" cy="${CROQ_CY}"/></a:xfrm>` +
+    `<a:xfrm><a:off x="0" y="0"/><a:ext cx="${CROQ_CX}" cy="${cy}"/></a:xfrm>` +
     `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/>` +
     `<a:rect l="0" t="0" r="r" b="b"/><a:pathLst>${paths}</a:pathLst></a:custGeom>` +
     `<a:noFill/><a:ln w="25400" cap="rnd"><a:solidFill><a:srgbClr val="15161B"/></a:solidFill>` +
@@ -2869,17 +3080,11 @@ function figuraXlsx(f, id, fila){
 }
 
 /* Las medidas tal como se escribieron, con su unidad. */
+/* El mismo desglose que se ve en la tarjeta, para que la hoja no diga una cosa
+   y la app otra: los sumandos escritos siempre dan la L. UNIT de al lado. */
 function medidasAce(f){
-  if (f.fig === 'estribo'){
-    return `${dim(num(f.sb))} × ${dim(num(f.sh))} cm · S = ${dim(num(f.sep))} cm · ` +
-           `L = ${nf(num(f.le), 2)} m`;
-  }
-  let s = figDe(f.fig).campos.map(c => nf(num(f[c.k]), 2)).join(' + ') + ' m';
-  const ng = Math.max(0, Math.round(num(f.ganchos)));
-  if (ng > 0 && estadoAce.gancho !== 'no'){
-    s += ` + ${ng} gancho${ng === 1 ? '' : 's'} de ${estadoAce.gancho}°`;
-  }
-  return s;
+  const c = calcAce(f);
+  return (c.det || nf(c.lu, 2)) + ' m';
 }
 
 function hojaAceroXml(tanda, indice){
@@ -2903,14 +3108,13 @@ function hojaAceroXml(tanda, indice){
   // Título en caja de borde medio, igual que el Excel de referencia
   const tit = nombreTanda(tanda, indice).toUpperCase();
   const filaTit = emitir([null, T(tit, 4), T('', 5), T('', 5), T('', 5), T('', 5), T('', 5),
-                          T('', 5), T('', 5), T('', 5), T('', 6)], 30);
-  unir('B', 'K', filaTit);
+                          T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
+  unir('B', 'L', filaTit);
 
   const sub = `Varilla comercial ${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} % · ` +
-              `Recubrimiento ${nf(num(estadoAce.recub),1)} cm · ` +
-              `Gancho ${estadoAce.gancho === 'no' ? 'no aplicado' : estadoAce.gancho + '°'}`;
+              `Gancho estándar ${estadoAce.gancho === 'no' ? 'no aplicado' : estadoAce.gancho + '°'}`;
   const filaSub = emitir([null, T(sub, 12)]);
-  unir('B', 'K', filaSub);
+  unir('B', 'L', filaSub);
   vacia();
 
   // ── Bloques por elemento, en el orden en que se registraron ──
@@ -2929,31 +3133,46 @@ function hojaAceroXml(tanda, indice){
     g.filas.forEach((f, j) => {
       const c = calcAce(f);
       mlG += c.lTot; kgG += c.peso;
-      const n = r + 1;                       // la fila que va a escribir `emitir`
-      const fd = emitir([
-        null,
-        N(j + 1, 9),
-        T(f.det || '—'),
-        T(figDe(f.fig).nombre, 1),
-        T('', 1),                            // hueco del croquis: lo ocupa la figura
-        T(c.ac.nombre, 1),
-        T(medidasAce(f)),
-        N(c.lu), N(c.cant, 9),
-        /* La hoja queda VIVA: cambiar la cantidad en Excel recalcula el metraje,
-           el peso, el subtotal y el resumen, igual que en el Excel de referencia. */
-        Fx(`H${n}*I${n}`, c.lTot),
-        Fx(`J${n}*${numFx(c.ac.kgm)}`, c.peso),
-      ], CROQ_ALTO_FILA);
-      if (!r1) r1 = fd;
-      r2 = fd;
-      if (!datIni) datIni = fd;
-      datFin = fd;
-      const sp = figuraXlsx(f, idForma, fd);
+      const t0 = r + 1;                      // primera fila de la tarjeta
+      c.lineas.forEach((x, q) => {
+        const n = r + 1;
+        /* Figura, croquis, medidas y L. unit solo se escriben en la primera
+           línea: abajo van combinadas, y las fórmulas apuntan a esa fila. */
+        const fd = emitir([
+          null,
+          q === 0 ? N(j + 1, 9) : null,
+          T(x.l.det || '—'),
+          q === 0 ? T(figDe(f.fig).nombre, 1) : null,
+          q === 0 ? T('', 1) : null,         // hueco del croquis: lo ocupa la figura
+          T(x.ac.nombre, 1),
+          q === 0 ? T(medidasAce(f)) : null,
+          q === 0 ? N(c.lu) : null,
+          T(esSuma(x.l.cant) ? x.l.cant.replace(/\+/g, ' + ') : '', 1),
+          /* La hoja queda VIVA: la cantidad conserva la suma escrita —«11+7+11»—
+             como fórmula, así que se ve el 29 y se puede corregir el reparto.
+             Sin suma se escribe el número pelado: un «=2» no aporta nada. */
+          esSuma(x.l.cant)
+            ? Fx(String(x.l.cant).split('+').map(v => numFx(Math.max(0, num(v)))).join('+'), x.cant, 9)
+            : N(x.cant, 9),
+          Fx(`H${t0}*J${n}`, x.lTot),
+          Fx(`K${n}*${numFx(x.ac.kgm)}`, x.peso),
+        ], CROQ_ALTO_FILA);
+        if (!r1) r1 = fd;
+        r2 = fd;
+        if (!datIni) datIni = fd;
+        datFin = fd;
+      });
+      // Las celdas de la tarjeta se combinan a lo alto de sus posiciones
+      if (c.lineas.length > 1){
+        ['B','D','E','G','H'].forEach(col =>
+          merges.push(`${col}${t0}:${col}${t0 + c.lineas.length - 1}`));
+      }
+      const sp = figuraXlsx(f, idForma, t0, c.lineas.length);
       if (sp){ dibujos.push(sp); idForma++; }
     });
-    emitir([null, null, null, null, null, null, null,
+    emitir([null, null, null, null, null, null, null, null,
             T('Subtotal', 13), null,
-            Fx(`SUM(J${r1}:J${r2})`, mlG, 8), Fx(`SUM(K${r1}:K${r2})`, kgG, 8)]);
+            Fx(`SUM(K${r1}:K${r2})`, mlG, 8), Fx(`SUM(L${r1}:L${r2})`, kgG, 8)]);
     vacia();
   });
 
@@ -2961,7 +3180,7 @@ function hojaAceroXml(tanda, indice){
   /* Las tres últimas columnas del resumen caen justo debajo de CANT, L. TOTAL y
      PESO del detalle: así la hoja se lee de arriba abajo sin cambiar de carril. */
   const fr = emitir([null, T('RESUMEN POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11),
-                     T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11),
+                     T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11),
                      T('PIEZAS', 11), T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
   unir('B', 'E', fr);
   const dias = [...t.porDia.entries()].filter(([, g]) => g.kg > 0)
@@ -2978,19 +3197,19 @@ function hojaAceroXml(tanda, indice){
     const n = r + 1;
     const fd = emitir([null, T(aceroDe(id).nombre, 2), null, null, null,
                        N(aceroDe(id).kgm, 14), N(g.varillas, 9),
-                       Fx(suma('K', n), g.kg),
-                       Fx(suma('I', n), g.cant, 9),
-                       Fx(suma('J', n), g.ml),
+                       Fx(suma('L', n), g.kg), null,
+                       Fx(suma('J', n), g.cant, 9),
+                       Fx(suma('K', n), g.ml),
                        Fx(`H${n}*${kFx}`, g.kg * t.k)]);
     unir('B', 'E', fd);
     filaDias.push(fd);
   });
-  const rd = filaDias.length ? `${filaDias[0]}:${filaDias[filaDias.length - 1]}` : '';
-  const tot = (col, v, s) => rd ? Fx(`SUM(${col}${rd.split(':')[0]}:${col}${rd.split(':')[1]})`, v, s) : N(v, s);
+  const rd = filaDias.length ? [filaDias[0], filaDias[filaDias.length - 1]] : null;
+  const tot = (col, v, s) => rd ? Fx(`SUM(${col}${rd[0]}:${col}${rd[1]})`, v, s) : N(v, s);
   const filaTot = emitir([null, T('TOTAL', 2), null, null, null, null,
-                          tot('G', t.varillas, 10), tot('H', t.peso, 8),
-                          tot('I', t.cant, 10), tot('J', t.lTot, 8),
-                          tot('K', t.pesoPedir, 8)]);
+                          tot('G', t.varillas, 10), tot('H', t.peso, 8), null,
+                          tot('J', t.cant, 10), tot('K', t.lTot, 8),
+                          tot('L', t.pesoPedir, 8)]);
   unir('B', 'E', filaTot);
   vacia();
 
@@ -3038,15 +3257,15 @@ function hojaConsolidadoXml(refs){
 
   emitir([], 20);
   const fT = emitir([null, T('CONSOLIDADO DE TODAS LAS TANDAS', 4), T('', 5), T('', 5), T('', 5),
-                     T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
-  unir('B', 'K', fT);
+                     T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
+  unir('B', 'L', fT);
   const fS = emitir([null, T(`${estadoAce.tandas.length} tandas · Varilla comercial ` +
     `${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} %`, 12)]);
-  unir('B', 'K', fS);
+  unir('B', 'L', fS);
   r++;
 
   const fh = emitir([null, T('POR TANDA', 3), T('', 11), T('', 11), T('', 11), T('', 11),
-                     T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('PIEZAS', 11),
+                     T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11), T('PIEZAS', 11),
                      T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
   unir('B', 'F', fh);
 
@@ -3065,9 +3284,9 @@ function hojaConsolidadoXml(refs){
       global.set(kk, g);
     });
     const fd = emitir([null, T(nombreTanda(ta, i), 2), null, null, null, null,
-      Fx(`${H}!G${rf.filaTot}`, t.varillas, 9), Fx(`${H}!H${rf.filaTot}`, t.peso),
-      Fx(`${H}!I${rf.filaTot}`, t.cant, 9),     Fx(`${H}!J${rf.filaTot}`, t.lTot),
-      Fx(`${H}!K${rf.filaTot}`, t.pesoPedir)]);
+      Fx(`${H}!G${rf.filaTot}`, t.varillas, 9), Fx(`${H}!H${rf.filaTot}`, t.peso), null,
+      Fx(`${H}!J${rf.filaTot}`, t.cant, 9),     Fx(`${H}!K${rf.filaTot}`, t.lTot),
+      Fx(`${H}!L${rf.filaTot}`, t.pesoPedir)]);
     unir('B', 'F', fd);
     filasTanda.push(fd);
   });
@@ -3075,13 +3294,13 @@ function hojaConsolidadoXml(refs){
   const r1 = filasTanda[0], r2 = filasTanda[filasTanda.length - 1];
   const sumaCol = (col, v, s) => Fx(`SUM(${col}${r1}:${col}${r2})`, v, s);
   const fTot = emitir([null, T('TOTAL', 2), null, null, null, null,
-    sumaCol('G', gVar, 10), sumaCol('H', gPeso, 8), sumaCol('I', gCant, 10),
-    sumaCol('J', gLt, 8), sumaCol('K', gPeso * k, 8)]);
+    sumaCol('G', gVar, 10), sumaCol('H', gPeso, 8), null, sumaCol('J', gCant, 10),
+    sumaCol('K', gLt, 8), sumaCol('L', gPeso * k, 8)]);
   unir('B', 'F', fTot);
   r++;
 
   const fd2 = emitir([null, T('POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11),
-                      T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11),
+                      T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11),
                       T('PIEZAS', 11), T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
   unir('B', 'E', fd2);
   /* Un SUMIF por hoja, sumados: no hay forma de barrer varias hojas de un golpe */
@@ -3096,9 +3315,9 @@ function hojaConsolidadoXml(refs){
       const n = r + 1;
       const f = emitir([null, T(aceroDe(id).nombre, 2), null, null, null,
                         N(aceroDe(id).kgm, 14), N(g.varillas, 9),
-                        Fx(sumaDia('K', n), g.kg),
-                        Fx(sumaDia('I', n), g.cant, 9),
-                        Fx(sumaDia('J', n), g.ml),
+                        Fx(sumaDia('L', n), g.kg), null,
+                        Fx(sumaDia('J', n), g.cant, 9),
+                        Fx(sumaDia('K', n), g.ml),
                         Fx(`H${n}*${numFx(k)}`, g.kg * k)]);
       unir('B', 'E', f);
     });
@@ -3216,7 +3435,7 @@ function exportarXlsxAce(){
 }
 
 /* ── Eventos del capítulo ───────────────────────────────── */
-['aceDesp','aceRecub'].forEach(id => {
+['aceDesp'].forEach(id => {
   $(id).addEventListener('input', e => {
     const limpio = e.target.value.replace(/[^0-9.,]/g, '');
     if (limpio !== e.target.value) e.target.value = limpio;
@@ -3228,7 +3447,6 @@ $('aceTitulo').addEventListener('input', e => {
 });
 $('aceVarilla').addEventListener('change', e => { estadoAce.varilla = e.target.value; guardarAce(); pintarTodoAce(); });
 $('aceDesp').addEventListener('input',  e => { estadoAce.desperdicio = e.target.value; guardarAce(); pintarTotalesAce(); });
-$('aceRecub').addEventListener('input', e => { estadoAce.recub = e.target.value; guardarAce(); pintarTodoAce(); });
 $('aceGancho').addEventListener('change', e => { estadoAce.gancho = e.target.value; guardarAce(); pintarTodoAce(); });
 
 $('btnAgregarAce').addEventListener('click', () => {
@@ -3291,7 +3509,6 @@ pintarTodoCol();
 cargarAce();
 $('aceVarilla').value = estadoAce.varilla;
 $('aceDesp').value    = estadoAce.desperdicio;
-$('aceRecub').value   = estadoAce.recub;
 $('aceGancho').value  = estadoAce.gancho;
 sincronizarTanda();
 
