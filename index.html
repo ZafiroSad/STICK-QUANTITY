@@ -395,6 +395,13 @@ html.light .stat{background:rgba(255,255,255,.62)}
    un vistazo y las letras A/B/C del dibujo son las mismas de los campos. */
 .figuras{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 @media (max-width:640px){.figuras{grid-template-columns:repeat(2,1fr)}}
+/* Segunda tira, solo para el estribo: cuadrado, forma C o forma S. Va sangrada
+   y más baja que la de figuras para que se lea como lo que es, un sub-selector. */
+.formas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:-4px 0 12px;
+  padding-left:14px;border-left:2px solid var(--v-borde)}
+.formas .fig{border-radius:15px;padding:6px 6px 5px}
+.formas .fig svg{max-width:104px}
+@media (max-width:520px){.formas{grid-template-columns:repeat(3,1fr);padding-left:9px}}
 .fig{
   background:rgba(255,255,255,.035);border:1px solid var(--v-borde);border-radius:18px;
   padding:9px 6px 7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
@@ -1007,7 +1014,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.7.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.8.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -2283,15 +2290,56 @@ const FIGURAS = [
     campos:[{ k:'b', et:'B — escuadra izq. (m)', ph:'0.30' },
             { k:'a', et:'A — tramo recto (m)',   ph:'4.20' },
             { k:'c', et:'C — escuadra der. (m)', ph:'0.30' }] },
-  /* El estribo se escribe tal como se mide en la hoja de obra: los cuatro lados
-     y la pata del gancho, todo en metros y todo a mano. Nada de sección menos
+  /* El estribo se escribe tal como se mide en la hoja de obra: los lados y la
+     pata del gancho, todo en metros y todo a mano. Nada de sección menos
      recubrimiento ni de repartir por separación: la cuenta la pone quien mira
-     el plano. Longitud = 2·B + 2·H + 2·gancho. */
-  { id:'estribo', nombre:'Estribo',           titulo:'Estribo cerrado',
-    campos:[{ k:'sb', et:'B — ancho (m)',     ph:'0.20' },
-            { k:'sh', et:'H — alto (m)',      ph:'0.40' },
-            { k:'ge', et:'Gancho (m)',        ph:'0.10' }] },
+     el plano. Los campos concretos los pone ESTRIBOS según la forma. */
+  { id:'estribo', nombre:'Estribo',           titulo:'Estribo y ganchos', sub:true },
 ];
+
+/* Formas del estribo, tomadas de la cartilla de hierros del Señor Stick
+   (CARTILLA HIERROS LOTE 23 / CASA 23). Sus propias longitudes las confirman:
+
+     ESTRIBO   «DE 0.27x0.27» + doble gancho 0,08  ->  1,24 = 2(0,27)+2(0,27)+2(0,08)
+     GANCHO C  «GANCHO C DE 0.37» + gancho 0,08    ->  0,53 = 0,37 + 2(0,08)
+     GANCHO S  «GANCHO S DE 0.42» + gancho 0,11    ->  0,64 = 0,42 + 2(0,11)
+
+   La C y la S miden lo mismo: cambia hacia dónde dobla cada pata —al mismo
+   lado en la C, a lados opuestos en la S—, y por eso se dibujan distinto. */
+const ESTRIBOS = [
+  { id:'cuad', nombre:'Cuadrado', figNom:'Estribo',  titulo:'Estribo cerrado',
+    campos:[{ k:'sb', et:'B — ancho (m)', ph:'0.22' },
+            { k:'sh', et:'H — alto (m)',  ph:'0.37' },
+            { k:'ge', et:'Gancho (m)',    ph:'0.08' }] },
+  { id:'c',    nombre:'Forma C',  figNom:'Gancho C', titulo:'Gancho en C — las dos patas al mismo lado',
+    campos:[{ k:'sb', et:'D — largo (m)', ph:'0.37' },
+            { k:'ge', et:'Gancho (m)',    ph:'0.08' }] },
+  { id:'s',    nombre:'Forma S',  figNom:'Gancho S', titulo:'Gancho en S — las patas a lados opuestos',
+    campos:[{ k:'sb', et:'D — largo (m)', ph:'0.42' },
+            { k:'ge', et:'Gancho (m)',    ph:'0.11' }] },
+];
+
+/* Íconos del sub-selector. La C abre hacia abajo y la S dobla a lados
+   opuestos: es lo único que las distingue, así que el dibujo tiene que decirlo. */
+const SVG_EST = {
+  cuad: `<svg viewBox="0 0 120 56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M40 10 H92 V46 H28 V10 H34" stroke-width="4"/>
+      <path d="M40 10 l10 10 M30 10 l10 10" stroke-width="3.6"/>
+    </svg>`,
+  c: `<svg viewBox="0 0 120 56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M22 22 H98" stroke-width="4.5"/>
+      <path d="M22 22 l11 11 M98 22 l-11 11" stroke-width="3.6"/>
+    </svg>`,
+  s: `<svg viewBox="0 0 120 56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M22 28 H98" stroke-width="4.5"/>
+      <path d="M22 28 l11 11 M98 28 l-11 -11" stroke-width="3.6"/>
+    </svg>`,
+};
+const estDe = id => ESTRIBOS.find(x => x.id === id) || ESTRIBOS[0];
+
+/* Campos y nombre de la tarjeta, ya resueltos según la forma del estribo */
+const camposDe  = f => f.fig === 'estribo' ? estDe(f.est).campos : figDe(f.fig).campos;
+const nombreFig = f => f.fig === 'estribo' ? estDe(f.est).figNom : figDe(f.fig).nombre;
 
 const CLAVE_ACE = 'stick-quantity-acero-v1';
 
@@ -2320,15 +2368,15 @@ let animarTodoAce = true, animarIdAce = null;
    de arriba y la segunda la de abajo; en una tarjeta de estribo, es un estribo.
    AUTO_DET son los nombres que puso la app: si el Señor Stick no los cambió, se
    pueden reemplazar al cambiar de figura; lo que él escriba no se toca. */
-const AUTO_DET = ['arriba', 'abajo', 'estribo', ''];
-const detAuto = (fig, i) => fig === 'estribo' ? 'estribo'
-                          : i === 0 ? 'arriba' : i === 1 ? 'abajo' : '';
+const AUTO_DET = ['arriba', 'abajo', 'estribo', 'gancho', ''];
+const detAuto = (fig, i, est) => fig === 'estribo' ? (est === 'cuad' || !est ? 'estribo' : 'gancho')
+                               : i === 0 ? 'arriba' : i === 1 ? 'abajo' : '';
 
 function nuevaLinea(det = '', dia = '4'){
   return { id:uid(), det, cant:'1', dia };
 }
 function nuevaAce(){
-  return { id:uid(), elem:'', fig:'recta',
+  return { id:uid(), elem:'', fig:'recta', est:'cuad',
            a:'', b:'', c:'', sb:'', sh:'', ge:'',
            iguales:true, ganchos:'0', lineas:[nuevaLinea(detAuto('recta', 0))] };
 }
@@ -2360,11 +2408,14 @@ function calcAce(f){
 
   if (f.fig === 'estribo'){
     const b = Math.max(0, num(f.sb)), h = Math.max(0, num(f.sh)), g = Math.max(0, num(f.ge));
-    lu = 2 * b + 2 * h + 2 * g;
-    // El desglose se escribe como él lo suma en la hoja: 0,20+0,40+0,20+0,40+0,10+0,10
-    det = [b, h, b, h, g, g].map(v => nf(v, 2)).join(' + ');
+    /* El estribo cerrado recorre los cuatro lados; la C y la S son una sola
+       pata con sus dos ganchos, y por eso miden lo mismo entre ellas. */
+    const tramos = f.est === 'c' || f.est === 's' ? [b, g, g] : [b, h, b, h, g, g];
+    lu = tramos.reduce((t, v) => t + v, 0);
+    // El desglose se escribe como él lo suma en la cartilla: 0,22+0,37+0,22+0,37+0,08+0,08
+    det = tramos.map(v => nf(v, 2)).join(' + ');
   } else {
-    const vals = figDe(f.fig).campos.map(c => Math.max(0, num(c.k === 'c' ? cDe(f) : f[c.k])));
+    const vals = camposDe(f).map(c => Math.max(0, num(c.k === 'c' ? cDe(f) : f[c.k])));
     lu = vals.reduce((s, x) => s + x, 0);
     const partes = vals.map(v => nf(v, 2));
     const ng = Math.max(0, Math.round(num(f.ganchos)));
@@ -2433,14 +2484,14 @@ function pieAce(f, c){
    (los placeholders de los campos) atenuado, para que la figura nunca
    aparezca degenerada.                                                   */
 const geomAce = f => {
-  const fg = figDe(f.fig);
+  const campos = camposDe(f);
   let real = true;
   /* Valor del campo, o el del placeholder si aún no se ha escrito */
   const V = k => {
     const x = num(f[k]);
     if (x > 0) return x;
     real = false;
-    const cp = fg.campos.find(c => c.k === k);
+    const cp = campos.find(c => c.k === k);
     return Math.max(0.01, num(cp ? cp.ph : 1));
   };
 
@@ -2448,7 +2499,18 @@ const geomAce = f => {
   const u = 'm';
   let pts, cotas, nota = '', ganchos = [];
 
-  if (f.fig === 'estribo'){
+  if (f.fig === 'estribo' && (f.est === 'c' || f.est === 's')){
+    /* Una pata recta con un gancho en cada punta. En la C las dos doblan al
+       mismo lado; en la S, a lados opuestos. Miden igual, se ven distinto. */
+    const D = V('sb'), gh = V('ge'), k = gh / Math.SQRT2;
+    pts   = [[0,0],[D,0]];
+    cotas = [{ i:0, l:'D', v:D }];
+    ganchos = { tipo:'cs', L:gh, seg: f.est === 'c'
+      ? [[[0,0],[k,k]],  [[D,0],[D-k,k]]]
+      : [[[0,0],[k,k]],  [[D,0],[D-k,-k]]] };
+    nota = `${f.est === 'c' ? 'Las dos patas al mismo lado' : 'Patas a lados opuestos'} · ` +
+           `L = ${nf(D,2)} + 2 × ${nf(gh,2)}`;
+  } else if (f.fig === 'estribo'){
     const bx = V('sb'), hx = V('sh'), gh = V('ge');
     pts   = [[0,0],[bx,0],[bx,hx],[0,hx],[0,0]];
     cotas = [{ i:2, l:'B', v:bx }, { i:1, l:'H', v:hx }];
@@ -2487,7 +2549,11 @@ function croquisAce(f){
   const W = 560, ML = 74, MR = 84, MT = 34, MB = 40;
   const uW = W - ML - MR;
 
-  const xs = g.pts.map(p => p[0]), ys = g.pts.map(p => p[1]);
+  /* La caja tiene que contar TAMBIÉN las patas: en un gancho C o S la barra es
+     una recta —caja de alto cero— y sin ellas el dibujo se salía del lienzo. */
+  const cs = !!(g.ganchos && g.ganchos.tipo === 'cs');
+  const puntos = cs ? g.pts.concat(g.ganchos.seg.flat()) : g.pts;
+  const xs = puntos.map(p => p[0]), ys = puntos.map(p => p[1]);
   const x0 = Math.min(...xs), y0 = Math.min(...ys);
   const w0 = Math.max(...xs) - x0, h0 = Math.max(...ys) - y0;
   if (w0 <= 0 && h0 <= 0) return '';
@@ -2527,7 +2593,13 @@ function croquisAce(f){
 
   /* ── Ganchos ─────────────────────────────────────────── */
   const G = g.ganchos;
-  if (G && G.tipo === '135'){
+  if (G && G.tipo === 'cs'){
+    G.seg.forEach(([p, q]) => {
+      const a = [p[0]*sc + dx, p[1]*sc + dy], b = [q[0]*sc + dx, q[1]*sc + dy];
+      piezas += `<path d="M ${R(a[0])} ${R(a[1])} L ${R(b[0])} ${R(b[1])}" fill="none" ` +
+                `stroke="currentColor" stroke-width="5" stroke-linecap="round"/>`;
+    });
+  } else if (G && G.tipo === '135'){
     const L = G.L * sc;
     const k = L / Math.SQRT2;
     G.esq.forEach(pt => {
@@ -2561,10 +2633,12 @@ function croquisAce(f){
   }
 
   /* ── Cotas: línea desplazada, líneas de referencia y texto ── */
-  const OFF = 17;
   g.cotas.forEach(ct => {
     const p = P[ct.i], q = P[ct.i + 1];
-    const n = normal(p, q);
+    /* En el gancho C y en el S la cota se sube por encima de todo el dibujo:
+       acotar pegado a la barra la hacía cruzar las patas. */
+    const n = cs ? [0, -1] : normal(p, q);
+    const OFF = cs ? Math.max(18, p[1] - MT + 18) : 17;
     const a = [p[0] + n[0]*OFF, p[1] + n[1]*OFF], b = [q[0] + n[0]*OFF, q[1] + n[1]*OFF];
     const t = [-n[1], n[0]];                        // dirección de las marcas
     const marca = pt => `M ${R(pt[0] - t[0]*4)} ${R(pt[1] - t[1]*4)} ` +
@@ -2607,7 +2681,8 @@ function pintarFilasAce(){
     else if (f.id === animarIdAce){ div.classList.add('animate-item'); }
 
     // `ui` reordena solo lo que se ve; el cálculo sigue usando `campos`
-    const enPantalla = fig.ui ? fig.ui.map(k => fig.campos.find(c => c.k === k)) : fig.campos;
+    const cps = camposDe(f);
+    const enPantalla = fig.ui ? fig.ui.map(k => cps.find(c => c.k === k)) : cps;
     const media = fig.ui ? ' mitad' : '';
     const campos = enPantalla.map(cp => {
       // En doble escuadra con «iguales» puesto, C no se escribe: la copia de B
@@ -2637,7 +2712,7 @@ function pintarFilasAce(){
     const lineas = c.lineas.map((x, j) => `
       <div class="linea" data-li="${j}">
         <input class="li-det" data-lk="det" type="text"
-          placeholder="${escapeHtml(detAuto(f.fig, j) || 'posición')}"
+          placeholder="${escapeHtml(detAuto(f.fig, j, f.est) || 'posición')}"
           value="${escapeHtml(x.l.det)}">
         <input class="li-cant" data-lk="cant" type="text" inputmode="text" placeholder="11+7+11"
           value="${escapeHtml(x.l.cant)}">
@@ -2674,6 +2749,10 @@ function pintarFilasAce(){
         ${FIGURAS.map(g => `<button class="fig${g.id === f.fig ? ' on' : ''}" data-fig="${g.id}" title="${g.titulo}">
             ${SVG_FIG[g.id]}<b>${g.nombre}</b></button>`).join('')}
       </div>
+      ${f.fig === 'estribo' ? `<div class="formas">
+        ${ESTRIBOS.map(e => `<button class="fig${e.id === f.est ? ' on' : ''}" data-est="${e.id}" title="${e.titulo}">
+            ${SVG_EST[e.id]}<b>${e.nombre}</b></button>`).join('')}
+      </div>` : ''}
       <div class="row-grid">
         ${campos}
         ${botonIguales}
@@ -2695,7 +2774,16 @@ function pintarFilasAce(){
       b.addEventListener('click', () => {
         if (f.fig === b.dataset.fig) return;
         f.fig = b.dataset.fig;
-        f.lineas.forEach((l, j) => { if (AUTO_DET.includes(l.det)) l.det = detAuto(f.fig, j); });
+        f.lineas.forEach((l, j) => { if (AUTO_DET.includes(l.det)) l.det = detAuto(f.fig, j, f.est); });
+        guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      });
+    });
+    // Forma del estribo: cuadrado, C o S. Cambian los campos, así que se repinta
+    div.querySelectorAll('[data-est]').forEach(b => {
+      b.addEventListener('click', () => {
+        if (f.est === b.dataset.est) return;
+        f.est = b.dataset.est;
+        f.lineas.forEach((l, j) => { if (AUTO_DET.includes(l.det)) l.det = detAuto(f.fig, j, f.est); });
         guardarAce(); pintarFilasAce(); pintarTotalesAce();
       });
     });
@@ -2780,7 +2868,7 @@ function pintarFilasAce(){
     });
     div.querySelector('[data-add]').addEventListener('click', () => {
       const ult = f.lineas[f.lineas.length - 1];
-      f.lineas.push(nuevaLinea(detAuto(f.fig, f.lineas.length), ult ? ult.dia : '4'));
+      f.lineas.push(nuevaLinea(detAuto(f.fig, f.lineas.length, f.est), ult ? ult.dia : '4'));
       guardarAce(); pintarFilasAce(); pintarTotalesAce();
       // `div` quedó desprendido al repintar: hay que buscar la tarjeta nueva
       const card = $('filasAce').children[i];
@@ -2862,6 +2950,7 @@ function migrarFilaAce(f){
     n.ge = nf(Math.max(6 * db, 0.075), 2);
   }
   if (f.iguales === undefined) n.iguales = !f.c || f.c === f.b;
+  if (!ESTRIBOS.some(e => e.id === n.est)) n.est = 'cuad';   // guardados sin forma
   delete n.det; delete n.dia; delete n.cant; delete n.le; delete n.sep;
   return n;
 }
@@ -2944,7 +3033,7 @@ function resumenTextoAce(){
   L.push('');
   tandaAct().filas.forEach((f, i) => {
     const c = calcAce(f);
-    L.push(`${i + 1}. ${nombreAce(f, i)} — ${figDe(f.fig).nombre}` +
+    L.push(`${i + 1}. ${nombreAce(f, i)} — ${nombreFig(f)}` +
            `${c.det ? ' · ' + c.det : ''} = ${nf(c.lu,2)} m`);
     c.lineas.forEach(x => L.push(
       `   ${x.l.det || '—'}: ${x.l.cant}${esSuma(x.l.cant) ? ` = ${ni(x.cant)}` : ''} × ` +
@@ -3167,7 +3256,9 @@ function trazosAce(f){
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
   const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
   const G = g.ganchos;
-  if (G && G.tipo === '135'){
+  if (G && G.tipo === 'cs'){
+    G.seg.forEach(sg => T.push([sg[0].slice(), sg[1].slice()]));
+  } else if (G && G.tipo === '135'){
     const k = G.L / Math.SQRT2;
     G.esq.forEach(pt => T.push([[pt[0], pt[1]], [pt[0] + k, pt[1] + k]]));
   } else if (G && G.extremos){
@@ -3220,7 +3311,7 @@ function figuraXlsx(f, id, fila, nLineas = 1){
     `<xdr:row>${fila - 1}</xdr:row><xdr:rowOff>${offY}</xdr:rowOff></xdr:from>` +
     `<xdr:ext cx="${CROQ_CX}" cy="${cy}"/>` +
     `<xdr:sp macro="" textlink=""><xdr:nvSpPr>` +
-    `<xdr:cNvPr id="${id}" name="Croquis ${id}" descr="${xmlEsc(figDe(f.fig).titulo)}"/>` +
+    `<xdr:cNvPr id="${id}" name="Croquis ${id}" descr="${xmlEsc(nombreFig(f))}"/>` +
     `<xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr>` +
     `<a:xfrm><a:off x="0" y="0"/><a:ext cx="${CROQ_CX}" cy="${cy}"/></a:xfrm>` +
     `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/>` +
@@ -3294,7 +3385,7 @@ function hojaAceroXml(tanda, indice){
           null,
           q === 0 ? N(j + 1, 9) : null,
           T(x.l.det || '—'),
-          q === 0 ? T(figDe(f.fig).nombre, 1) : null,
+          q === 0 ? T(nombreFig(f), 1) : null,
           q === 0 ? T('', 1) : null,         // hueco del croquis: lo ocupa la figura
           T(x.ac.nombre, 1),
           q === 0 ? T(medidasAce(f)) : null,
@@ -3607,11 +3698,11 @@ $('btnAgregarAce').addEventListener('click', () => {
   // Hereda elemento, figura y el diámetro de la última posición: con veinte
   // vigas parecidas es lo que evita volver a escoger lo mismo cada vez
   if (ultima){
-    f.elem = ultima.elem; f.fig = ultima.fig;
+    f.elem = ultima.elem; f.fig = ultima.fig; f.est = ultima.est;
     const ul = ultima.lineas[ultima.lineas.length - 1];
     if (ul) f.lineas[0].dia = ul.dia;
   }
-  f.lineas[0].det = detAuto(f.fig, 0);
+  f.lineas[0].det = detAuto(f.fig, 0, f.est);
   tanda.filas.push(f);
   animarIdAce = f.id;
   guardarAce(); pintarTodoAce();

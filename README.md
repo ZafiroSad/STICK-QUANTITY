@@ -151,6 +151,10 @@ el otro. Se guarda tal cual y el Excel se lleva las dos cosas, el reparto y su t
 
 En la doble escuadra, el botón **B = C** hace que la escuadra derecha copie a la izquierda.
 
+El **estribo** abre tres formas: **cuadrado** (el estribo cerrado), **forma C** y **forma S** —los
+ganchos o grapas que amarran el refuerzo intermedio—. La C y la S miden lo mismo, `D + 2·gancho`;
+cambia hacia dónde dobla cada pata, y por eso el croquis las distingue.
+
 El trabajo se organiza en **tandas** (una fundida cada una). Cada tanda tiene su nombre y su lista;
 la varilla comercial, el desperdicio y el gancho estándar valen para todas.
 
@@ -165,6 +169,7 @@ L = Σ tramos + ganchos
 Gancho 90°   →  12 db                     (NSR-10 C.7.1)
 Gancho 180°  →  4 db, mínimo 6,5 cm
 Estribo      →  2·B + 2·H + 2·gancho      (los tres se escriben a mano, en m)
+Gancho C / S →  D + 2·gancho               (miden igual; cambia hacia dónde dobla la pata)
 Peso  =  L total × masa nominal           (NTC 2289)
 ```
 

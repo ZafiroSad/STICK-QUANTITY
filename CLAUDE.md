@@ -14,7 +14,35 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.7.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.8.0 (Mampostería + Concreto de columnas + Acero)
+
+### Tres formas de estribo, tomadas de la cartilla de hierros (2026-08-12)
+
+Fuente: `Downloads\CARTILLA HIERROS LOTE 23.xlsx` y `... CASA 23.xlsx`, la cartilla real del Señor
+Stick. Sus columnas son ELEMENTO · LONG · ESCUADRA · FIGURACION · DIM · P/UNIT · CANT · LONG TOTAL
+· P/TOTAL, y el vocabulario de figuras que usa es `ESCUADRA SENCILLA`, `DOBLE ESCUADRA`,
+`DE 0.27x0.27`, `GANCHO C DE 0.37`, `GANCHO S DE 0.42`.
+
+El botón **Estribo** abre un sub-selector con tres formas (`ESTRIBOS`, campo `f.est`). Las
+longitudes se confirmaron contra las de su propia cartilla, no contra una fórmula supuesta:
+
+| Forma | Su fila | Longitud |
+|---|---|---|
+| `cuad` Estribo cerrado | `DE 0.27x0.27` + doble gancho 0,08 → **1,24** | `2B + 2H + 2g` |
+| `c` Gancho C | `GANCHO C DE 0.37` + gancho 0,08 → **0,53** | `D + 2g` |
+| `s` Gancho S | `GANCHO S DE 0.42` + gancho 0,11 → **0,64** | `D + 2g` |
+
+La C y la S **miden lo mismo**: cambia hacia dónde dobla cada pata —al mismo lado en la C, a lados
+opuestos en la S—, y por eso solo se distinguen en el dibujo. En la columna FIGURA del Excel salen
+como `Estribo`, `Gancho C` y `Gancho S`, igual que en su cartilla, y la posición se nombra sola
+`estribo` o `gancho` según la forma.
+
+**Defecto encontrado al verificar en captura** (no supuesto): el croquis medía su caja solo con
+`geomAce().pts`, y como la C y la S son una recta —caja de alto cero— las patas se salían del
+lienzo y la cota las cruzaba. Ahora la caja incluye las patas y en estas dos formas la cota se sube
+por encima de todo el dibujo.
+
+## Estado anterior — v1.7.0 (Mampostería + Concreto de columnas + Acero)
 
 ### Tercera pasada del capítulo Acero (2026-08-12)
 
