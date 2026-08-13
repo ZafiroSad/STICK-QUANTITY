@@ -1054,7 +1054,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.11.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.12.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -3411,6 +3411,7 @@ function hojaAceroXml(tanda, indice){
   const filas = [], merges = [], dibujos = [];
   let r = 0, idForma = 3;                  // el 2 se lo lleva el logo
   let datIni = 0, datFin = 0;              // primera y última fila de datos
+  let avisosHoja = 0;                      // piezas que no salen de una varilla
 
   const emitir = (celdas, alto) => {
     r++;
@@ -3452,6 +3453,7 @@ function hojaAceroXml(tanda, indice){
     const fh = emitir([null, T(g.nom, 2), T('', 11), ...LBL_ACE.map(l => T(l, 11))], 28);
     unir('B', 'C', fh);
     let mlG = 0, kgG = 0, r1 = 0, r2 = 0, nb = 0;
+    const traslapos = [];             // barras que no salen de una varilla entera
     g.filas.forEach(f => {
       const c = calcAce(f);
       mlG += c.lTot; kgG += c.peso;
@@ -3486,6 +3488,7 @@ function hojaAceroXml(tanda, indice){
         r2 = fd;
         if (!datIni) datIni = fd;
         datFin = fd;
+        if (x.aviso) traslapos.push(`${x.b.det || 'barra ' + nb} de ${nf(x.lu,2)} m`);
         const sp = figuraXlsx(x.b, idForma, fd);
         if (sp){ dibujos.push(sp); idForma++; }
       });
@@ -3493,6 +3496,17 @@ function hojaAceroXml(tanda, indice){
     emitir([null, null, null, null, null, null, null, null, null,
             T('Subtotal', 13), null,
             Fx(`SUM(L${r1}:L${r2})`, mlG, 8), Fx(`SUM(M${r1}:M${r2})`, kgG, 8)]);
+    /* El aviso de traslapo tiene que salir EN LA HOJA. En pantalla la app avisa,
+       pero la hoja es la que va a la obra y a la ferretería, y allí una pieza que
+       no sale de una varilla aparecía como cualquier otra —y con 0 varillas en el
+       resumen, que se lee como «no compres nada»—. Se vio auditando el .xlsx. */
+    if (traslapos.length){
+      const fa = emitir([null, T(`Hay que traslapar — no sale${traslapos.length === 1 ? '' : 'n'} ` +
+        `de una varilla de ${nf(num(estadoAce.varilla),2)} m: ${traslapos.join('; ')}. ` +
+        `Estas piezas NO están contadas en VARILLAS (NSR-10 C.12).`, 12)]);
+      unir('B', 'M', fa);
+      avisosHoja += traslapos.length;
+    }
     vacia();
   });
 
@@ -3532,6 +3546,13 @@ function hojaAceroXml(tanda, indice){
                           tot('M', t.pesoPedir, 8)]);
   unir('B', 'F', filaTot);
   vacia();
+
+  /* Si algo hay que traslapar, se dice ANTES del resto de notas: el conteo de
+     VARILLAS del resumen deja fuera esas piezas y un cero ahí se lee como
+     «no hay que comprar». */
+  if (avisosHoja) emitir([null, T(`ATENCIÓN — ${avisosHoja} pieza${avisosHoja === 1 ? '' : 's'} ` +
+    `más larga${avisosHoja === 1 ? '' : 's'} que la varilla comercial. Su peso SÍ está en el total, ` +
+    `pero sus varillas NO: el traslapo se define según la NSR-10 C.12 y cambia la cantidad a comprar.`, 12)]);
 
   const hoy = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
   emitir([null, T(`Generado con STICK QUANTITY · ${hoy} · Longitudes cara a cara sin descuento por doblez ` +

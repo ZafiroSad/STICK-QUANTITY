@@ -14,7 +14,26 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.11.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.12.0 (Mampostería + Concreto de columnas + Acero)
+
+### El aviso de traslapo sale EN la hoja (2026-08-12)
+
+Segunda pasada de la auditoría, sobre casos límite. Una barra de 12,50 m con varilla de 6 m salía
+en el `.xlsx` **igual que cualquier otra** —2 piezas, 25,00 m, 38,80 kg— y en el resumen su
+diámetro mostraba **VARILLAS = 0** junto a 40,74 kg a pedir. En pantalla la app sí avisa; la hoja,
+que es la que va a la obra y a la ferretería, no decía nada, y un cero ahí se lee como «no compres».
+
+- **Fila de aviso tras el subtotal del elemento**, solo cuando hace falta, nombrando cuáles:
+  «Hay que traslapar — no sale de una varilla de 6,00 m: *arriba* de 12,50 m. Estas piezas NO están
+  contadas en VARILLAS (NSR-10 C.12).»
+- **Nota ATENCIÓN al pie de la hoja** con el conteo, delante de las demás notas.
+- Comprobado que el libro sano **no** trae ninguna de las dos.
+
+**Casos límite verificados, todos abiertos en Excel real y sin reparación:** tanda recién estrenada
+(1 hoja, solo el logo); barra sin medidas (croquis omitido, no una figura degenerada); cantidad
+vacía, cero y suma coja «5+» (5, tolerante); nombre de tanda con `/ [ ] *` y dos tandas con el
+mismo nombre y uno de 58 caracteres (saneados a `LOSA 1 2  PISO 3   URGENTE`, `… (2)` y cortado a
+31); y **30 elementos con 90 barras** (8 páginas de alto, 91 formas, 84 ms de pintado).
 
 ### Auditoría del .xlsx contra la cartilla real (2026-08-12)
 
@@ -374,6 +393,10 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **Todo aviso que exista en pantalla tiene que existir en la hoja (2026-08-12).** La app la ve el
+  Señor Stick; la hoja la ven el maestro y el ferretero. Un dato incompleto y mudo en el `.xlsx`
+  —VARILLAS = 0 sin explicar por qué— es peor que no darlo. Regla para lo que venga: si la app
+  advierte algo, la exportación lo advierte también.
 - **El peso se calcula con la celda kg/m, no con el número incrustado (2026-08-12).** `=L·G` en vez
   de `=L*1.552`. Su cartilla lleva esa columna (`P/UNIT`) porque revisa el peso a mano; una fórmula
   con la masa escondida adentro no se puede auditar. Regla para columnas nuevas: **si un número

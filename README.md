@@ -199,6 +199,10 @@ longitud total y peso—, y cada hoja cabe en **una página horizontal** al impr
 El reparto de estribos aparece dos veces a propósito — en `REPARTO` como texto (`11 + 7 + 11`) y en
 `CANT` como la fórmula `=11+7+11`, que muestra `29`.
 
+Si alguna pieza **no sale de una varilla entera**, la hoja lo dice: una línea de aviso bajo el
+subtotal del elemento nombrando cuáles, y una nota al pie. Su peso está en el total, pero sus
+varillas no — el traslapo se define según la **NSR-10 C.12**.
+
 La hoja sale **viva**: los metrajes, los pesos, los subtotales, el resumen por diámetro y el
 consolidado son fórmulas. Corregir una cantidad dentro de Excel —o el propio reparto— recalcula
 todo lo demás, incluida la hoja de consolidado, sin volver a la app.
