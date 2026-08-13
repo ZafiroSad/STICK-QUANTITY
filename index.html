@@ -455,12 +455,33 @@ html.light .croquis{background:rgba(255,255,255,.55)}
   color:var(--tinta);font-family:inherit;overflow:visible}
 .croquis .pie{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
   font-size:10px;font-weight:600;color:var(--zinc-600);letter-spacing:.02em;margin-top:2px}
-/* ── Posiciones dentro de la tarjeta ──
-   Una tarjeta es UNA longitud de corte; aquí se listan las posiciones que la
-   comparten: «arriba 4 de #5, abajo 3 de #4». Cada línea es una fila del Excel. */
-.lineas{margin-top:12px;border:1px solid var(--v-borde);border-radius:18px;
-  background:rgba(255,255,255,.025);padding:10px 12px 8px}
-html.light .lineas{background:rgba(255,255,255,.55)}
+/* ── Barras dentro de la tarjeta ──
+   La tarjeta es el ELEMENTO —la viga V-101— y adentro van sus barras, cada
+   una con su figura y sus medidas. Cerrada, una barra es un renglón con su
+   diagrama pequeñito, su figura y su longitud; abierta, despliega el selector
+   de figura, los campos y el croquis acotado. Cada barra es una fila del Excel. */
+.barras{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.barra{border:1px solid var(--v-borde);border-radius:18px;background:rgba(255,255,255,.025);
+  padding:7px 12px 10px;transition:border-color .25s var(--suave),background .25s var(--suave)}
+html.light .barra{background:rgba(255,255,255,.55)}
+.barra.on{border-color:var(--linea-fuerte);background:rgba(255,255,255,.055)}
+html.light .barra.on{background:rgba(255,255,255,.80)}
+.barra-cab{display:flex;align-items:center;gap:11px;width:100%;padding:5px 2px;
+  background:none;border:0;cursor:pointer;color:var(--tinta);font-family:inherit;text-align:left}
+.barra-cab .mini{flex:none;width:52px;height:26px;color:var(--zinc-300)}
+.barra-cab .mini svg{display:block;width:100%;height:100%}
+.barra-fig{font-size:12px;font-weight:800;letter-spacing:-.01em}
+.barra-med{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--zinc-450);
+  font-variant-numeric:tabular-nums}
+.barra-alerta{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--amber);border:1px solid rgba(251,191,36,.30);border-radius:999px;padding:3px 8px}
+.barra-cab .chev{flex:none;color:var(--zinc-500);transition:transform .3s var(--ease)}
+.barra.on .chev{transform:rotate(180deg)}
+.barra-cuerpo{padding:6px 0 0}
+.barra .linea{margin:8px 0 0}
+/* La cabecera de columnas vive fuera de las barras: se le da el mismo desplazamiento
+   lateral que el padding + borde de una barra para que los rótulos caigan encima */
+.barras .lineas-cab{padding:2px 15px 0}
 .lineas-cab,.linea{display:grid;gap:8px;align-items:center;
   grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.1fr) 30px}
 .lineas-cab{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
@@ -502,7 +523,7 @@ html.light .lineas{background:rgba(255,255,255,.55)}
     grid-template-areas:"det det x" "cant dia dia" "res res res";
     row-gap:7px;
   }
-  .linea + .linea{border-top:1px solid var(--v-borde);padding-top:11px;margin-top:4px}
+  .barra-med{font-size:11px}
   .linea .li-det{grid-area:det}
   .linea .li-cant{grid-area:cant}
   .linea .li-dia{grid-area:dia}
@@ -948,22 +969,22 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
     <div class="section-head">
       <div>
         <h2 class="h2">Despiece</h2>
-        <p class="sub">Una tarjeta por longitud de corte: la figura y sus medidas arriba, y abajo las
-          posiciones que la comparten —arriba, abajo, estribos—, cada una con su cantidad y su
-          diámetro. El croquis se dibuja solo, a escala, con lo que escribas.</p>
+        <p class="sub">Una tarjeta por elemento —la viga V-101, la columna C-30— y adentro sus barras:
+          cada una con su figura, sus medidas, su posición, su cantidad y su diámetro. Toca el renglón
+          de una barra para abrirla. El croquis se dibuja solo, a escala, con lo que escribas.</p>
       </div>
       <button class="btn-primary" id="btnAgregarAce">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Agregar barra
+        Registrar elemento
       </button>
     </div>
 
     <div class="card pad">
       <div id="filasAce" style="display:flex;flex-direction:column;gap:12px"></div>
       <div id="vacioAce" class="empty" style="display:none">
-        Sin barras todavía. Toca <b style="color:var(--zinc-400)">Agregar barra</b> para empezar.
+        Sin elementos todavía. Toca <b style="color:var(--zinc-400)">Registrar elemento</b> para empezar.
       </div>
     </div>
   </section>
@@ -1024,7 +1045,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
         El cálculo <b>no</b> resuelve traslapos, ni longitudes de desarrollo, ni el alambre de amarre:
         si una pieza no sale de una varilla, la app te avisa pero el traslapo lo defines tú según la
         NSR-10 C.12. Las varillas se cuentan por corte real —cuántas piezas salen de cada varilla—
-        sin combinar barras de filas distintas, ni de tandas distintas.
+        sin combinar barras distintas, ni de tandas distintas.
       </div>
     </div>
   </section>
@@ -1033,7 +1054,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.9.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.10.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -2361,9 +2382,9 @@ const SVG_EST = {
 };
 const estDe = id => ESTRIBOS.find(x => x.id === id) || ESTRIBOS[0];
 
-/* Campos y nombre de la tarjeta, ya resueltos según la forma del estribo */
-const camposDe  = f => f.fig === 'estribo' ? estDe(f.est).campos : figDe(f.fig).campos;
-const nombreFig = f => f.fig === 'estribo' ? estDe(f.est).figNom : figDe(f.fig).nombre;
+/* Campos y nombre de UNA BARRA, ya resueltos según la forma del estribo */
+const camposDe  = b => b.fig === 'estribo' ? estDe(b.est).campos : figDe(b.fig).campos;
+const nombreFig = b => b.fig === 'estribo' ? estDe(b.est).figNom : figDe(b.fig).nombre;
 
 const CLAVE_ACE = 'stick-quantity-acero-v1';
 
@@ -2383,25 +2404,31 @@ const tandaAct = () => estadoAce.tandas[estadoAce.activa] || estadoAce.tandas[0]
 
 let animarTodoAce = true, animarIdAce = null;
 
-/* Una TARJETA es una longitud de corte: una figura con sus medidas y su croquis.
-   Adentro van las posiciones que comparten esa misma longitud —«arriba 4 de #5,
-   abajo 3 de #4»—, cada una con su cantidad y su diámetro. Así una viga entera
-   cabe en una tarjeta en vez de estirarse en cinco. */
+/* Una TARJETA es un ELEMENTO de la obra: la viga V-101, la columna C-30.
+   Adentro van sus BARRAS, y cada barra tiene lo suyo: su figura, sus medidas,
+   su croquis, su posición, su cantidad y su diámetro. Así el despiece completo
+   de una viga —una recta arriba, dos escuadras abajo y sus estribos— vive en
+   una sola tarjeta, que es como se lee un plano.
+   Cada barra es UNA FILA del Excel. */
 /* Nombre por defecto de la posición. En obra la primera barra de una viga es la
-   de arriba y la segunda la de abajo; en una tarjeta de estribo, es un estribo.
+   de arriba y la segunda la de abajo; una barra de estribo es un estribo.
    AUTO_DET son los nombres que puso la app: si el Señor Stick no los cambió, se
    pueden reemplazar al cambiar de figura; lo que él escriba no se toca. */
 const AUTO_DET = ['arriba', 'abajo', 'estribo', 'gancho', ''];
 const detAuto = (fig, i, est) => fig === 'estribo' ? (est === 'cuad' || !est ? 'estribo' : 'gancho')
                                : i === 0 ? 'arriba' : i === 1 ? 'abajo' : '';
 
-function nuevaLinea(det = '', dia = '4'){
-  return { id:uid(), det, cant:'1', dia };
+/* `abierta` es solo cómo se ve el renglón —desplegado para escribir sus
+   medidas—, no un dato de obra: no se guarda, se decide al cargar según la
+   barra esté completa o no. Una barra nueva nace abierta: hay que llenarla. */
+function nuevaBarra(det = '', dia = '4', base = null){
+  return { id:uid(), det, cant:'1', dia,
+           fig: base ? base.fig : 'recta', est: base ? base.est : 'cuad',
+           a:'', b:'', c:'', sb:'', sh:'', ge:'',
+           iguales: base ? base.iguales !== false : true, abierta:true };
 }
 function nuevaAce(){
-  return { id:uid(), elem:'', fig:'recta', est:'cuad',
-           a:'', b:'', c:'', sb:'', sh:'', ge:'',
-           iguales:true, lineas:[nuevaLinea(detAuto('recta', 0))] };
+  return { id:uid(), elem:'', barras:[nuevaBarra(detAuto('recta', 0))] };
 }
 
 /* La cantidad admite sumas: «11+7+11» son los estribos de los dos extremos y
@@ -2419,57 +2446,57 @@ const figDe   = id => FIGURAS.find(x => x.id === id) || FIGURAS[0];
 
 /* La escuadra derecha copia a la izquierda mientras el botón «iguales» esté
    puesto: en obra el bastón simétrico es la regla, no la excepción. */
-const cDe = f => (f.iguales ? f.b : f.c);
+const cDe = b => (b.iguales ? b.b : b.c);
 
-/* ── Cálculo por tarjeta ────────────────────────────────────
-   La tarjeta tiene UNA longitud de corte; las líneas de adentro solo cambian
-   cuántas piezas y de qué diámetro. Por eso la longitud se calcula una vez y
-   el peso se suma línea por línea, cada una con su masa por metro.          */
-function calcAce(f){
+/* ── Cálculo ────────────────────────────────────────────────
+   Se calcula BARRA por barra: cada una tiene su figura, su longitud de corte
+   y su cantidad. La tarjeta solo suma las suyas.                            */
+function calcBarra(b){
   const Lc = num(estadoAce.varilla) || 6;
   let lu = 0, det = '', aviso = '';
 
-  if (f.fig === 'estribo'){
-    const b = Math.max(0, num(f.sb)), h = Math.max(0, num(f.sh)), g = Math.max(0, num(f.ge));
+  if (b.fig === 'estribo'){
+    const sb = Math.max(0, num(b.sb)), sh = Math.max(0, num(b.sh)), g = Math.max(0, num(b.ge));
     /* El estribo cerrado recorre los cuatro lados; la C y la S son una sola
        pata con sus dos ganchos, y por eso miden lo mismo entre ellas. */
-    const tramos = f.est === 'c' || f.est === 's' ? [b, g, g] : [b, h, b, h, g, g];
+    const tramos = b.est === 'c' || b.est === 's' ? [sb, g, g] : [sb, sh, sb, sh, g, g];
     lu = tramos.reduce((t, v) => t + v, 0);
     // El desglose se escribe como él lo suma en la cartilla: 0,22+0,37+0,22+0,37+0,08+0,08
     det = tramos.map(v => nf(v, 2)).join(' + ');
   } else {
-    const vals = camposDe(f).map(c => Math.max(0, num(c.k === 'c' ? cDe(f) : f[c.k])));
+    const vals = camposDe(b).map(c => Math.max(0, num(c.k === 'c' ? cDe(b) : b[c.k])));
     lu = vals.reduce((s, x) => s + x, 0);
     // Con un solo tramo la suma sobra: «4,20 = 4,20 m» no dice nada
     det = vals.length > 1 ? vals.map(v => nf(v, 2)).join(' + ') : '';
   }
 
+  const ac = aceroDe(b.dia);
+  const cant = Math.round(sumaCant(b.cant));
   const porVar = lu > 0 ? Math.floor(Lc / lu + 1e-9) : 0;
-  const lineas = f.lineas.map(l => {
-    const ac = aceroDe(l.dia);
-    const cant = Math.round(sumaCant(l.cant));
-    return { l, ac, cant, lTot: lu * cant, peso: lu * cant * ac.kgm,
-             varillas: porVar > 0 ? Math.ceil(cant / porVar) : 0 };
-  });
-  const cant = lineas.reduce((s, x) => s + x.cant, 0);
-  const lTot = lineas.reduce((s, x) => s + x.lTot, 0);
-  const peso = lineas.reduce((s, x) => s + x.peso, 0);
-  const varillas = lineas.reduce((s, x) => s + x.varillas, 0);
+  const lTot = lu * cant;
   if (lu > Lc) aviso = `La pieza mide ${nf(lu,2)} m y la varilla ${nf(Lc,2)} m: hay que traslapar`;
 
-  return { lu, cant, lTot, peso, porVar, varillas, det, aviso, Lc, lineas };
+  return { b, ac, lu, det, cant, lTot, peso: lTot * ac.kgm, porVar, aviso, Lc,
+           varillas: porVar > 0 ? Math.ceil(cant / porVar) : 0 };
+}
+
+/* La tarjeta es el elemento: su resultado es la suma de sus barras. */
+function calcAce(f){
+  const barras = f.barras.map(calcBarra);
+  const sum = k => barras.reduce((s, x) => s + x[k], 0);
+  return { barras, cant:sum('cant'), lTot:sum('lTot'), peso:sum('peso'),
+           varillas:sum('varillas'), avisos:barras.filter(x => x.aviso).length };
 }
 
 function totalesAce(filas){
   const t = { lTot:0, peso:0, cant:0, varillas:0, porDia:new Map(), avisos:0 };
   (filas || tandaAct().filas).forEach(f => {
-    const c = calcAce(f);
-    t.lTot += c.lTot; t.peso += c.peso; t.cant += c.cant; t.varillas += c.varillas;
-    if (c.aviso) t.avisos++;
-    c.lineas.forEach(x => {
-      const g = t.porDia.get(x.l.dia) || { ml:0, kg:0, cant:0, varillas:0 };
+    calcAce(f).barras.forEach(x => {
+      t.lTot += x.lTot; t.peso += x.peso; t.cant += x.cant; t.varillas += x.varillas;
+      if (x.aviso) t.avisos++;
+      const g = t.porDia.get(x.b.dia) || { ml:0, kg:0, cant:0, varillas:0 };
       g.ml += x.lTot; g.kg += x.peso; g.cant += x.cant; g.varillas += x.varillas;
-      t.porDia.set(x.l.dia, g);
+      t.porDia.set(x.b.dia, g);
     });
   });
   t.k = 1 + num(estadoAce.desperdicio) / 100;
@@ -2481,28 +2508,58 @@ function totalesAce(filas){
 function nombreAce(f, i){ return f.elem || `E-${i + 1}`; }
 
 function pieAce(f, c){
-  const geo = (c.det ? `${c.det} = ` : '') + `<b>${nf(c.lu,2)} m</b>` +
-    (c.cant ? ` · ${ni(c.cant)} pieza${c.cant === 1 ? '' : 's'} en ` +
-              `${c.lineas.length} posici${c.lineas.length === 1 ? 'ón' : 'ones'} = ${nf(c.lTot,2)} m` : '') +
-    (c.aviso ? ` <span class="aviso">· ${escapeHtml(c.aviso)}</span>` : '');
+  const nb = c.barras.length;
+  const geo = `<b>${nb}</b> barra${nb === 1 ? '' : 's'} · ` +
+    `${ni(c.cant)} pieza${c.cant === 1 ? '' : 's'} = ${nf(c.lTot,2)} m` +
+    (c.avisos ? ` <span class="aviso">· ${c.avisos} más larga${c.avisos === 1 ? '' : 's'} ` +
+                `que la varilla: hay que traslapar</span>` : '');
   const res = `${nf(c.peso,2)} <span style="font-size:10px;font-weight:700;color:var(--zinc-500)">kg</span>`;
   return [geo, res];
 }
 
+/* El diagrama pequeñito del renglón cerrado: la silueta y nada más —sin cotas,
+   sin texto—. Es para reconocer la barra de un vistazo cuando la tarjeta lleva
+   seis y todas dicen números parecidos. La figura a medio llenar sale atenuada,
+   igual que en el croquis grande. */
+function miniAce(b){
+  const g = geomAce(b);
+  const W = 52, H = 26, M = 4;
+  const cs = !!(g.ganchos && g.ganchos.tipo === 'cs');
+  const trazos = [g.pts].concat(
+    cs ? g.ganchos.seg
+       : g.ganchos && g.ganchos.tipo === '135'
+         ? g.ganchos.esq.map(p => { const k = g.ganchos.L / Math.SQRT2;
+                                    return [[p[0], p[1]], [p[0] + k, p[1] + k]]; })
+         : []);
+  const pts = trazos.flat();
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs), y0 = Math.min(...ys);
+  const w0 = Math.max(...xs) - x0, h0 = Math.max(...ys) - y0;
+  // Una sola escala, como en el croquis grande: la forma no puede mentir
+  const sc = Math.min(w0 > 0 ? (W - 2*M) / w0 : Infinity, h0 > 0 ? (H - 2*M) / h0 : Infinity);
+  if (!Number.isFinite(sc) || sc <= 0) return '';
+  const dx = (W - w0*sc) / 2 - x0*sc, dy = (H - h0*sc) / 2 - y0*sc;
+  const R = n => Math.round(n * 10) / 10;
+  const d = trazos.map(pl => 'M ' + pl.map(p => `${R(p[0]*sc + dx)} ${R(p[1]*sc + dy)}`).join(' L ')).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"${g.real ? '' : ' opacity=".42"'}>` +
+    `<path d="${d}" fill="none" stroke="currentColor" stroke-width="2.2" ` +
+    `stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
 /* ── Croquis acotado de la barra ─────────────────────────────
-   El dibujo de la fila NO es el ícono del selector: se traza A ESCALA
+   El dibujo de la barra NO es el ícono del selector: se traza A ESCALA
    con las medidas escritas, con sus líneas de cota y sus ganchos. Es la
    figura que un despiece lleva al lado de cada marca, y es lo que el
    Excel de referencia no puede dar: allí la forma vive en la cabeza de
-   quien llenó la hoja. Mientras la fila esté vacía se dibuja el ejemplo
+   quien llenó la hoja. Mientras la barra esté vacía se dibuja el ejemplo
    (los placeholders de los campos) atenuado, para que la figura nunca
    aparezca degenerada.                                                   */
-const geomAce = f => {
-  const campos = camposDe(f);
+const geomAce = b => {
+  const campos = camposDe(b);
   let real = true;
   /* Valor del campo, o el del placeholder si aún no se ha escrito */
   const V = k => {
-    const x = num(f[k]);
+    const x = num(b[k]);
     if (x > 0) return x;
     real = false;
     const cp = campos.find(c => c.k === k);
@@ -2512,18 +2569,18 @@ const geomAce = f => {
   const u = 'm';
   let pts, cotas, nota = '', ganchos = [];
 
-  if (f.fig === 'estribo' && (f.est === 'c' || f.est === 's')){
+  if (b.fig === 'estribo' && (b.est === 'c' || b.est === 's')){
     /* Una pata recta con un gancho en cada punta. En la C las dos doblan al
        mismo lado; en la S, a lados opuestos. Miden igual, se ven distinto. */
     const D = V('sb'), gh = V('ge'), k = gh / Math.SQRT2;
     pts   = [[0,0],[D,0]];
     cotas = [{ i:0, l:'D', v:D }];
-    ganchos = { tipo:'cs', L:gh, seg: f.est === 'c'
+    ganchos = { tipo:'cs', L:gh, seg: b.est === 'c'
       ? [[[0,0],[k,k]],  [[D,0],[D-k,k]]]
       : [[[0,0],[k,k]],  [[D,0],[D-k,-k]]] };
-    nota = `${f.est === 'c' ? 'Las dos patas al mismo lado' : 'Patas a lados opuestos'} · ` +
+    nota = `${b.est === 'c' ? 'Las dos patas al mismo lado' : 'Patas a lados opuestos'} · ` +
            `L = ${nf(D,2)} + 2 × ${nf(gh,2)}`;
-  } else if (f.fig === 'estribo'){
+  } else if (b.fig === 'estribo'){
     const bx = V('sb'), hx = V('sh'), gh = V('ge');
     pts   = [[0,0],[bx,0],[bx,hx],[0,hx],[0,0]];
     cotas = [{ i:2, l:'B', v:bx }, { i:1, l:'H', v:hx }];
@@ -2531,27 +2588,27 @@ const geomAce = f => {
     nota = `Perímetro cerrado + 2 patas de ${nf(gh,2)} m · ` +
            `L = 2 × ${nf(bx,2)} + 2 × ${nf(hx,2)} + 2 × ${nf(gh,2)}`;
   } else {
-    if (f.fig === 'recta'){
+    if (b.fig === 'recta'){
       const A = V('a');
       pts = [[0,0],[A,0]];
       cotas = [{ i:0, l:'A', v:A }];
-    } else if (f.fig === 'esc1'){
+    } else if (b.fig === 'esc1'){
       const A = V('a'), B = V('b');
       pts = [[0,0],[A,0],[A,B]];
       cotas = [{ i:0, l:'A', v:A }, { i:1, l:'B', v:B }];
     } else {
       const A = V('a'), B = V('b');
-      const C = f.iguales ? B : V('c');
+      const C = b.iguales ? B : V('c');
       pts = [[0,B],[0,0],[A,0],[A,C]];
       cotas = [{ i:0, l:'B', v:B }, { i:1, l:'A', v:A }, { i:2, l:'C', v:C }];
-      if (f.iguales) nota = 'Escuadras iguales: C copia a B';
+      if (b.iguales) nota = 'Escuadras iguales: C copia a B';
     }
   }
   return { pts, cotas, u, nota, ganchos, real };
 };
 
-function croquisAce(f){
-  const g = geomAce(f);
+function croquisAce(b){
+  const g = geomAce(b);
   const W = 560, ML = 74, MR = 84, MT = 34, MB = 40;
   const uW = W - ML - MR;
 
@@ -2657,51 +2714,82 @@ function pintarFilasAce(){
 
   tanda.filas.forEach((f, i) => {
     const c = calcAce(f);
-    const fig = figDe(f.fig);
     const div = document.createElement('div');
     div.className = 'row';
     if (animarTodoAce){ div.classList.add('animate-item'); div.style.animationDelay = (i * 55) + 'ms'; }
     else if (f.id === animarIdAce){ div.classList.add('animate-item'); }
 
-    // `ui` reordena solo lo que se ve; el cálculo sigue usando `campos`
-    const cps = camposDe(f);
-    const enPantalla = fig.ui ? fig.ui.map(k => cps.find(c => c.k === k)) : cps;
-    const media = fig.ui ? ' mitad' : '';
-    const campos = enPantalla.map(cp => {
-      // En doble escuadra con «iguales» puesto, C no se escribe: la copia de B
-      const espejo = cp.k === 'c' && f.iguales;
+    /* ── Una BARRA: cerrada es un renglón con su diagrama pequeñito; abierta
+       despliega el selector de figura, los campos y el croquis acotado. ── */
+    const pintarBarra = (x, j) => {
+      const b = x.b;
+      const fig = figDe(b.fig);
+
+      // `ui` reordena solo lo que se ve; el cálculo sigue usando `campos`
+      const cps = camposDe(b);
+      const enPantalla = fig.ui && b.fig !== 'estribo' ? fig.ui.map(k => cps.find(p => p.k === k)) : cps;
+      const media = fig.ui && b.fig !== 'estribo' ? ' mitad' : '';
+      const campos = enPantalla.map(cp => {
+        // En doble escuadra con «iguales» puesto, C no se escribe: copia de B
+        const espejo = cp.k === 'c' && b.iguales;
+        return `
+          <div class="field${media}"><label>${cp.et}</label>
+            <input data-bk="${cp.k}" type="text" inputmode="decimal" placeholder="${cp.ph}"
+              value="${escapeHtml(espejo ? b.b : b[cp.k])}"${espejo ? ' disabled' : ''}></div>`;
+      }).join('');
+
+      const botonIguales = b.fig === 'esc2' ? `
+          <div class="field mitad"><label>Escuadras</label>
+            <button class="btn-espejo${b.iguales ? ' on' : ''}" data-iguales="1"
+              title="Las dos escuadras miden lo mismo">
+              ${b.iguales ? 'B = C' : 'B y C distintas'}
+            </button></div>` : '';
+
+      const cuerpo = !b.abierta ? '' : `
+        <div class="barra-cuerpo">
+          <div class="figuras">
+            ${FIGURAS.map(g => `<button class="fig${g.id === b.fig ? ' on' : ''}" data-fig="${g.id}" title="${g.titulo}">
+                ${SVG_FIG[g.id]}<b>${g.nombre}</b></button>`).join('')}
+          </div>
+          ${b.fig === 'estribo' ? `<div class="formas">
+            ${ESTRIBOS.map(e => `<button class="fig${e.id === b.est ? ' on' : ''}" data-est="${e.id}" title="${e.titulo}">
+                ${SVG_EST[e.id]}<b>${e.nombre}</b></button>`).join('')}
+          </div>` : ''}
+          <div class="row-grid">${campos}${botonIguales}</div>
+          <div class="croquis">${croquisAce(b)}</div>
+        </div>`;
+
       return `
-        <div class="field${media}"><label>${cp.et}</label>
-          <input data-k="${cp.k}" type="text" inputmode="decimal" placeholder="${cp.ph}"
-            value="${escapeHtml(espejo ? f.b : f[cp.k])}"${espejo ? ' disabled' : ''}></div>`;
-    }).join('');
-
-    const botonIguales = f.fig === 'esc2' ? `
-        <div class="field mitad"><label>Escuadras</label>
-          <button class="btn-espejo${f.iguales ? ' on' : ''}" data-iguales="1"
-            title="Las dos escuadras miden lo mismo">
-            ${f.iguales ? 'B = C' : 'B y C distintas'}
-          </button></div>` : '';
-
-    /* Las posiciones: cada una es una fila del Excel, todas con esta longitud */
-    const lineas = c.lineas.map((x, j) => `
-      <div class="linea" data-li="${j}">
-        <input class="li-det" data-lk="det" type="text"
-          placeholder="${escapeHtml(detAuto(f.fig, j, f.est) || 'posición')}"
-          value="${escapeHtml(x.l.det)}">
-        <input class="li-cant" data-lk="cant" type="text" inputmode="text" placeholder="11+7+11"
-          value="${escapeHtml(x.l.cant)}">
-        <select class="li-dia" data-lk="dia">
-          ${ACEROS.map(a => `<option value="${a.id}"${x.l.dia === a.id ? ' selected' : ''}>${a.nombre}</option>`).join('')}
-        </select>
-        <span class="li-res">${esSuma(x.l.cant) ? `<b>${ni(x.cant)}</b> und · ` : ''}${nf(x.peso, 2)} kg</span>
-        <button class="btn-icon danger li-x" data-lx="1" title="Quitar posición"
-          ${c.lineas.length === 1 ? 'disabled' : ''}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
+      <div class="barra${b.abierta ? ' on' : ''}" data-b="${j}">
+        <button class="barra-cab" data-toggle="1"
+          title="${b.abierta ? 'Cerrar' : 'Abrir para cambiar la figura y las medidas'}">
+          <span class="mini">${miniAce(b)}</span>
+          <b class="barra-fig">${nombreFig(b)}</b>
+          <span class="barra-med">${x.lu > 0 ? nf(x.lu, 2) + ' m' : 'sin medidas'}</span>
+          ${x.aviso ? '<span class="barra-alerta" title="' + escapeHtml(x.aviso) + '">traslapo</span>' : ''}
+          <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-      </div>`).join('');
+        ${cuerpo}
+        <div class="linea">
+          <input class="li-det" data-lk="det" type="text"
+            placeholder="${escapeHtml(detAuto(b.fig, j, b.est) || 'posición')}"
+            value="${escapeHtml(b.det)}">
+          <input class="li-cant" data-lk="cant" type="text" inputmode="text" placeholder="11+7+11"
+            value="${escapeHtml(b.cant)}">
+          <select class="li-dia" data-lk="dia">
+            ${ACEROS.map(a => `<option value="${a.id}"${b.dia === a.id ? ' selected' : ''}>${a.nombre}</option>`).join('')}
+          </select>
+          <span class="li-res">${esSuma(b.cant) ? `<b>${ni(x.cant)}</b> und · ` : ''}${nf(x.peso, 2)} kg</span>
+          <button class="btn-icon danger li-x" data-lx="1" title="Quitar barra"
+            ${c.barras.length === 1 ? 'disabled' : ''}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>`;
+    };
 
     const [pieGeo, pieRes] = pieAce(f, c);
 
@@ -2709,81 +2797,28 @@ function pintarFilasAce(){
       <div class="row-head">
         <div class="row-idx">${i + 1}</div>
         <input class="row-name" data-k="elem" placeholder="V-101 — nombre del elemento" value="${escapeHtml(f.elem)}">
-        <button class="btn-icon" data-dup="1" title="Duplicar tarjeta">
+        <button class="btn-icon" data-dup="1" title="Duplicar elemento">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
           </svg>
         </button>
-        <button class="btn-icon danger" data-del="1" title="Eliminar barra">
+        <button class="btn-icon danger" data-del="1" title="Eliminar elemento">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
-      <div class="figuras">
-        ${FIGURAS.map(g => `<button class="fig${g.id === f.fig ? ' on' : ''}" data-fig="${g.id}" title="${g.titulo}">
-            ${SVG_FIG[g.id]}<b>${g.nombre}</b></button>`).join('')}
-      </div>
-      ${f.fig === 'estribo' ? `<div class="formas">
-        ${ESTRIBOS.map(e => `<button class="fig${e.id === f.est ? ' on' : ''}" data-est="${e.id}" title="${e.titulo}">
-            ${SVG_EST[e.id]}<b>${e.nombre}</b></button>`).join('')}
-      </div>` : ''}
-      <div class="row-grid">
-        ${campos}
-        ${botonIguales}
-      </div>
-      <div class="croquis">${croquisAce(f)}</div>
-      <div class="lineas">
+      <div class="barras">
         <div class="lineas-cab"><span>POSICIÓN</span><span>CANTIDAD</span><span>DIÁMETRO</span><span></span></div>
-        ${lineas}
-        <button class="btn-linea" data-add="1">+ Agregar posición</button>
+        ${c.barras.map(pintarBarra).join('')}
+        <button class="btn-linea" data-add="1">+ Agregar barra</button>
       </div>
       <div class="row-foot">
         <p class="desglose">${pieGeo}</p>
         <p class="num" style="font-size:13px;font-weight:800;color:var(--tinta)">${pieRes}</p>
       </div>`;
 
-    // Cambio de figura: cambia los campos, así que se re-pinta la tarjeta entera
-    div.querySelectorAll('[data-fig]').forEach(b => {
-      b.addEventListener('click', () => {
-        if (f.fig === b.dataset.fig) return;
-        f.fig = b.dataset.fig;
-        f.lineas.forEach((l, j) => { if (AUTO_DET.includes(l.det)) l.det = detAuto(f.fig, j, f.est); });
-        guardarAce(); pintarFilasAce(); pintarTotalesAce();
-      });
-    });
-    // Forma del estribo: cuadrado, C o S. Cambian los campos, así que se repinta
-    div.querySelectorAll('[data-est]').forEach(b => {
-      b.addEventListener('click', () => {
-        if (f.est === b.dataset.est) return;
-        f.est = b.dataset.est;
-        f.lineas.forEach((l, j) => { if (AUTO_DET.includes(l.det)) l.det = detAuto(f.fig, j, f.est); });
-        guardarAce(); pintarFilasAce(); pintarTotalesAce();
-      });
-    });
-    // Duplicar: es el «copiar y pegar la fila» del Excel, y con 30 vigas
-    // parecidas es lo que hace que valga la pena dejar la hoja de cálculo
-    div.querySelector('[data-dup]').addEventListener('click', () => {
-      const copia = JSON.parse(JSON.stringify(f));
-      copia.id = uid();
-      copia.lineas = copia.lineas.map(l => Object.assign({}, l, { id:uid() }));
-      tanda.filas.splice(i + 1, 0, copia);
-      animarIdAce = copia.id;
-      guardarAce(); pintarTodoAce();
-      toast('Tarjeta duplicada');
-    });
-    div.querySelector('[data-del]').addEventListener('click', () => {
-      tanda.filas = tanda.filas.filter(x => x.id !== f.id);
-      guardarAce(); pintarTodoAce();
-    });
-    const bIg = div.querySelector('[data-iguales]');
-    if (bIg) bIg.addEventListener('click', () => {
-      f.iguales = !f.iguales;
-      if (!f.iguales && !f.c) f.c = f.b;      // al separarlas, arranca del valor que tenía
-      guardarAce(); pintarFilasAce(); pintarTotalesAce();
-    });
-
-    /* Refresco ligero: recalcula pie, croquis y resultados de cada posición sin
+    /* Refresco ligero: recalcula pie, croquis, diagramas y resultados sin
        re-pintar los campos, para no perder el foco mientras se escribe. */
     const refrescar = () => {
       const cc = calcAce(f);
@@ -2791,37 +2826,86 @@ function pintarFilasAce(){
       const foot = div.querySelector('.row-foot');
       foot.children[0].innerHTML = g;
       foot.children[1].innerHTML = r;
-      div.querySelector('.croquis').innerHTML = croquisAce(f);
-      div.querySelectorAll('.linea').forEach((el, j) => {
-        const x = cc.lineas[j];
+      div.querySelectorAll('.barra').forEach((el, j) => {
+        const x = cc.barras[j];
         if (!x) return;
+        el.querySelector('.mini').innerHTML = miniAce(x.b);
+        el.querySelector('.barra-med').textContent = x.lu > 0 ? nf(x.lu, 2) + ' m' : 'sin medidas';
+        const croq = el.querySelector('.croquis');
+        if (croq) croq.innerHTML = croquisAce(x.b);
         el.querySelector('.li-res').innerHTML =
-          (esSuma(x.l.cant) ? `<b>${ni(x.cant)}</b> und · ` : '') + `${nf(x.peso, 2)} kg`;
+          (esSuma(x.b.cant) ? `<b>${ni(x.cant)}</b> und · ` : '') + `${nf(x.peso, 2)} kg`;
       });
       guardarAce(); pintarTotalesAce();
     };
 
-    // Campos de la tarjeta (medidas, nombre, ganchos)
-    div.querySelectorAll('[data-k]').forEach(inp => {
-      const evt = inp.tagName === 'SELECT' ? 'change' : 'input';
-      inp.addEventListener(evt, () => {
-        // type=text + filtro: input[type=number] descarta la coma decimal (2,5)
-        if (inp.dataset.k !== 'elem' && inp.tagName !== 'SELECT'){
-          const limpio = inp.value.replace(/[^0-9.,]/g, '');
-          if (limpio !== inp.value) inp.value = limpio;
-        }
-        f[inp.dataset.k] = inp.value;
-        // Con las escuadras iguales, C sigue a B en pantalla y en el cálculo
-        if (inp.dataset.k === 'b' && f.iguales){
-          const cIn = div.querySelector('[data-k="c"]');
-          if (cIn) cIn.value = inp.value;
-        }
-        refrescar();
-      });
+    // Nombre del elemento
+    div.querySelector('[data-k="elem"]').addEventListener('input', e => {
+      f.elem = e.target.value; guardarAce(); pintarTotalesAce();
     });
 
-    // Posiciones: cantidad, diámetro y su nombre
-    div.querySelectorAll('.linea').forEach((el, j) => {
+    // Duplicar: es el «copiar y pegar la fila» del Excel, y con 30 vigas
+    // parecidas es lo que hace que valga la pena dejar la hoja de cálculo
+    div.querySelector('[data-dup]').addEventListener('click', () => {
+      const copia = JSON.parse(JSON.stringify(f));
+      copia.id = uid();
+      copia.barras = copia.barras.map(b => Object.assign({}, b, { id:uid() }));
+      tanda.filas.splice(i + 1, 0, copia);
+      animarIdAce = copia.id;
+      guardarAce(); pintarTodoAce();
+      toast('Elemento duplicado');
+    });
+    div.querySelector('[data-del]').addEventListener('click', () => {
+      tanda.filas = tanda.filas.filter(x => x.id !== f.id);
+      guardarAce(); pintarTodoAce();
+    });
+
+    // ── Lo de cada barra ──
+    div.querySelectorAll('.barra').forEach((el, j) => {
+      const b = f.barras[j];
+
+      el.querySelector('[data-toggle]').addEventListener('click', () => {
+        b.abierta = !b.abierta;
+        pintarFilasAce();
+      });
+
+      // Cambio de figura o de forma del estribo: cambian los campos, se repinta.
+      // Solo se renombra la posición si el nombre lo puso la app.
+      const cambiar = (k, v) => {
+        if (b[k] === v) return;
+        b[k] = v;
+        if (AUTO_DET.includes(b.det)) b.det = detAuto(b.fig, j, b.est);
+        guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      };
+      el.querySelectorAll('[data-fig]').forEach(btn =>
+        btn.addEventListener('click', () => cambiar('fig', btn.dataset.fig)));
+      el.querySelectorAll('[data-est]').forEach(btn =>
+        btn.addEventListener('click', () => cambiar('est', btn.dataset.est)));
+
+      const bIg = el.querySelector('[data-iguales]');
+      if (bIg) bIg.addEventListener('click', () => {
+        b.iguales = !b.iguales;
+        if (!b.iguales && !b.c) b.c = b.b;    // al separarlas, arranca del valor que tenía
+        guardarAce(); pintarFilasAce(); pintarTotalesAce();
+      });
+
+      // Medidas de la barra
+      el.querySelectorAll('[data-bk]').forEach(inp => {
+        inp.addEventListener('input', () => {
+          // type=text + filtro: input[type=number] descarta la coma decimal (2,5)
+          const limpio = inp.value.replace(/[^0-9.,]/g, '');
+          if (limpio !== inp.value) inp.value = limpio;
+          b[inp.dataset.bk] = inp.value;
+          // Con las escuadras iguales, C sigue a B en pantalla y en el cálculo
+          if (inp.dataset.bk === 'b' && b.iguales){
+            const cIn = el.querySelector('[data-bk="c"]');
+            if (cIn) cIn.value = inp.value;
+          }
+          refrescar();
+        });
+      });
+
+      // Posición, cantidad y diámetro
       el.querySelectorAll('[data-lk]').forEach(inp => {
         const evt = inp.tagName === 'SELECT' ? 'change' : 'input';
         inp.addEventListener(evt, () => {
@@ -2830,23 +2914,29 @@ function pintarFilasAce(){
             const limpio = inp.value.replace(/[^0-9+]/g, '');
             if (limpio !== inp.value) inp.value = limpio;
           }
-          f.lineas[j][inp.dataset.lk] = inp.value;
+          b[inp.dataset.lk] = inp.value;
           refrescar();
         });
       });
+
       el.querySelector('[data-lx]').addEventListener('click', () => {
-        if (f.lineas.length === 1) return;
-        f.lineas.splice(j, 1);
+        if (f.barras.length === 1) return;
+        f.barras.splice(j, 1);
         guardarAce(); pintarFilasAce(); pintarTotalesAce();
       });
     });
+
+    /* Una barra nueva hereda figura y diámetro de la última: en una viga las
+       barras se parecen entre sí, y así solo hay que corregir la medida. */
     div.querySelector('[data-add]').addEventListener('click', () => {
-      const ult = f.lineas[f.lineas.length - 1];
-      f.lineas.push(nuevaLinea(detAuto(f.fig, f.lineas.length, f.est), ult ? ult.dia : '4'));
+      const ult = f.barras[f.barras.length - 1];
+      f.barras.forEach(b => { b.abierta = false; });
+      f.barras.push(nuevaBarra(detAuto(ult ? ult.fig : 'recta', f.barras.length, ult ? ult.est : 'cuad'),
+                               ult ? ult.dia : '4', ult));
       guardarAce(); pintarFilasAce(); pintarTotalesAce();
       // `div` quedó desprendido al repintar: hay que buscar la tarjeta nueva
       const card = $('filasAce').children[i];
-      const nueva = card && [...card.querySelectorAll('.li-det')].pop();
+      const nueva = card && [...card.querySelectorAll('.barra-cuerpo input')][0];
       if (nueva) nueva.focus();
     });
 
@@ -2896,39 +2986,63 @@ function pintarTodoAce(){ pintarTandas(); pintarFilasAce(); pintarTotalesAce(); 
 function guardarAce(){
   try { localStorage.setItem(CLAVE_ACE, JSON.stringify(estadoAce)); } catch(e){}
 }
-/* Una tarjeta guardada con la forma anterior traía UNA posición suelta
-   (det/dia/cant en la raíz) y el estribo en centímetros de sección, con el
-   recubrimiento y la separación puestos por la app. Se convierte: la posición
-   pasa a `lineas`, y el estribo a las medidas reales en metros —sección menos
-   dos recubrimientos— para que la longitud siga dando lo mismo. */
+/* Deja una barra con todos sus campos, sin los que ya no existen y con una
+   figura que exista de verdad. `ganchos` era el 1/2 del gancho estándar, ya
+   retirado; `le` y `sep` eran el reparto automático del estribo. */
+function sanearBarra(b){
+  const n = Object.assign(nuevaBarra(), b, { id:b.id || uid() });
+  if (!FIGURAS.some(g => g.id === n.fig))  n.fig = 'recta';
+  if (!ESTRIBOS.some(e => e.id === n.est)) n.est = 'cuad';
+  if (!ACEROS.some(a => a.id === n.dia))   n.dia = '4';
+  // Se abre sola la que esté a medio llenar: es justo la que falta por terminar
+  n.abierta = !geomAce(n).real;
+  delete n.ganchos; delete n.le; delete n.sep; delete n.lineas;
+  return n;
+}
+
+/* Tres formas ha tenido una tarjeta guardada:
+   1ª — una posición suelta (det/dia/cant en la raíz) y el estribo en
+        centímetros de sección, con recubrimiento y separación puestos por la app;
+   2ª — la geometría en la raíz y varias posiciones en `lineas`, todas
+        compartiendo la misma longitud de corte;
+   3ª — la de hoy: la tarjeta es el ELEMENTO y cada barra lleva su propia figura.
+   Se convierten en cadena, sin perder nada de lo escrito: cada posición de la
+   tarjeta vieja se vuelve una barra que hereda su figura y sus medidas. */
 function migrarFilaAce(f){
-  const n = Object.assign(nuevaAce(), f);
+  if (Array.isArray(f.barras) && f.barras.length)
+    return { id:f.id || uid(), elem:f.elem || '', barras:f.barras.map(sanearBarra) };
+
+  const geo = { fig:f.fig || 'recta', est:f.est || 'cuad',
+                a:f.a ?? '', b:f.b ?? '', c:f.c ?? '',
+                sb:f.sb ?? '', sh:f.sh ?? '', ge:f.ge ?? '',
+                iguales: f.iguales === undefined ? (!f.c || f.c === f.b) : f.iguales };
+
+  let posiciones;
   if (!Array.isArray(f.lineas) || !f.lineas.length){
-    /* El estribo viejo no traía cantidad: la repartía la app con la separación.
-       Se rescata ese número para no perder la cuenta que ya estaba hecha. */
+    /* El estribo de la 1ª forma no traía cantidad: la repartía la app con la
+       separación. Se rescata ese número para no perder la cuenta ya hecha. */
     let cant = String(f.cant ?? '');
-    if (!cant && f.fig === 'estribo'){
+    if (!cant && geo.fig === 'estribo'){
       const sep = num(f.sep) / 100, le = num(f.le);
       cant = (sep > 0 && le > 0) ? String(Math.floor(le / sep + 1e-9) + 1) : '1';
     }
-    n.lineas = [{ id:uid(), det:f.det || '', cant:cant || '1', dia:f.dia || '4' }];
+    posiciones = [{ det:f.det || '', cant:cant || '1', dia:f.dia || '4' }];
   } else {
-    n.lineas = f.lineas.map(l => Object.assign(nuevaLinea(), l));
+    posiciones = f.lineas;
   }
-  if (f.fig === 'estribo' && f.sb !== undefined && num(f.sb) > 3){
-    // sb > 3 solo puede ser centímetros: en metros un estribo no mide 3 m
+
+  // sb > 3 solo puede ser centímetros: en metros un estribo no mide 3 m
+  if (geo.fig === 'estribo' && num(geo.sb) > 3){
     const r = num(estadoAce.recub) || 4;   // aún no se ha borrado del estado
-    const db = aceroDe(n.lineas[0].dia).mm / 1000;
-    n.sb = nf(Math.max(0, (num(f.sb) - 2 * r) / 100), 2);
-    n.sh = nf(Math.max(0, (num(f.sh) - 2 * r) / 100), 2);
-    n.ge = nf(Math.max(6 * db, 0.075), 2);
+    const db = aceroDe(posiciones[0].dia || '4').mm / 1000;
+    geo.sb = nf(Math.max(0, (num(geo.sb) - 2 * r) / 100), 2);
+    geo.sh = nf(Math.max(0, (num(geo.sh) - 2 * r) / 100), 2);
+    geo.ge = nf(Math.max(6 * db, 0.075), 2);
   }
-  if (f.iguales === undefined) n.iguales = !f.c || f.c === f.b;
-  if (!ESTRIBOS.some(e => e.id === n.est)) n.est = 'cuad';   // guardados sin forma
-  /* `ganchos` era el 1/2 del gancho estándar, retirado: hoy el gancho de una
-     barra longitudinal va escrito dentro del tramo que lo lleva. */
-  delete n.det; delete n.dia; delete n.cant; delete n.le; delete n.sep; delete n.ganchos;
-  return n;
+
+  return { id:f.id || uid(), elem:f.elem || '',
+           barras: posiciones.map(l => sanearBarra(Object.assign({}, geo,
+             { det:l.det || '', cant:l.cant || '1', dia:l.dia || '4' }))) };
 }
 
 function cargarAce(){
@@ -2968,7 +3082,7 @@ function pintarTandas(){
       (estadoAce.tandas.length > 1 && i === estadoAce.activa ? ' <span class="x" data-x="1">×</span>' : '');
     b.addEventListener('click', e => {
       if (e.target.dataset.x){
-        if (!confirm(`¿Eliminar la tanda «${nombreTanda(t, i)}» y sus ${t.filas.length} barras?`)) return;
+        if (!confirm(`¿Eliminar la tanda «${nombreTanda(t, i)}» y sus ${t.filas.length} elementos?`)) return;
         estadoAce.tandas.splice(i, 1);
         estadoAce.activa = Math.max(0, Math.min(estadoAce.activa, estadoAce.tandas.length - 1));
         guardarAce(); sincronizarTanda(); toast('Tanda eliminada');
@@ -3009,11 +3123,11 @@ function resumenTextoAce(){
   L.push('');
   tandaAct().filas.forEach((f, i) => {
     const c = calcAce(f);
-    L.push(`${i + 1}. ${nombreAce(f, i)} — ${nombreFig(f)}` +
-           `${c.det ? ' · ' + c.det : ''} = ${nf(c.lu,2)} m`);
-    c.lineas.forEach(x => L.push(
-      `   ${x.l.det || '—'}: ${x.l.cant}${esSuma(x.l.cant) ? ` = ${ni(x.cant)}` : ''} × ` +
-      `${x.ac.nombre} = ${nf(x.lTot,2)} m · ${nf(x.peso,2)} kg`));
+    L.push(`${i + 1}. ${nombreAce(f, i)} — ${nf(c.peso,2)} kg`);
+    c.barras.forEach(x => L.push(
+      `   ${x.b.det || '—'} · ${nombreFig(x.b)}${x.det ? ' · ' + x.det : ''} = ${nf(x.lu,2)} m` +
+      ` × ${x.b.cant}${esSuma(x.b.cant) ? ` = ${ni(x.cant)}` : ''} de ${x.ac.nombre}` +
+      ` = ${nf(x.lTot,2)} m · ${nf(x.peso,2)} kg`));
   });
   L.push('');
   L.push('ACERO POR DIÁMETRO (con desperdicio)');
@@ -3202,9 +3316,8 @@ function estilosXlsx(){
    puede ampliar sin pixelarse y el archivo no engorda.                     */
 /* A libre · B nº · C posición · D figura · E croquis · F Ø · G medidas ·
    H L. unit · I reparto · J cant · K L. total · L peso.
-   Figura, croquis, medidas y L. unit van COMBINADAS a lo alto de la tarjeta:
-   son de la tarjeta, no de cada posición, y así el bloque se lee como una sola
-   fila del Excel con sus posiciones adentro. */
+   Una fila = UNA BARRA, con todo lo suyo. El bloque agrupa las barras de un
+   mismo elemento y cierra con su subtotal. */
 /* MEDIDAS va ancha a propósito: el estribo escribe sus seis sumandos
    —«0,20 + 0,40 + 0,20 + 0,40 + 0,10 + 0,10 m»— y cortado no sirve de nada. */
 const ANCHOS_ACE = [4.5, 5, 15, 17, 24, 13, 38, 11, 12, 8, 12, 11];
@@ -3237,8 +3350,8 @@ function trazosAce(f){
   return T;
 }
 
-/* Un <xdr:sp> con geometría propia: la silueta de la barra, centrada en el
-   alto que ocupa su tarjeta (la celda de CROQUIS va combinada a lo alto). */
+/* Un <xdr:sp> con geometría propia: la silueta de la barra, centrada en su
+   fila de la hoja. */
 function figuraXlsx(f, id, fila, nLineas = 1){
   const T = trazosAce(f);
   if (!T) return '';
@@ -3280,8 +3393,8 @@ function figuraXlsx(f, id, fila, nLineas = 1){
 /* Las medidas tal como se escribieron, con su unidad. */
 /* El mismo desglose que se ve en la tarjeta, para que la hoja no diga una cosa
    y la app otra: los sumandos escritos siempre dan la L. UNIT de al lado. */
-function medidasAce(f){
-  const c = calcAce(f);
+function medidasAce(b){
+  const c = calcBarra(b);
   return (c.det || nf(c.lu, 2)) + ' m';
 }
 
@@ -3327,46 +3440,43 @@ function hojaAceroXml(tanda, indice){
   grupos.forEach(g => {
     const fh = emitir([null, T(g.nom, 3), T('', 11), ...LBL_ACE.map(l => T(l, 11))], 28);
     unir('B', 'C', fh);
-    let mlG = 0, kgG = 0, r1 = 0, r2 = 0;
-    g.filas.forEach((f, j) => {
+    let mlG = 0, kgG = 0, r1 = 0, r2 = 0, nb = 0;
+    g.filas.forEach(f => {
       const c = calcAce(f);
       mlG += c.lTot; kgG += c.peso;
-      const t0 = r + 1;                      // primera fila de la tarjeta
-      c.lineas.forEach((x, q) => {
+      /* Cada BARRA es una fila entera de la hoja: su figura, su croquis, sus
+         medidas y su longitud son suyas, no del elemento. Por eso ya no hay
+         celdas combinadas a lo alto —las tenía la forma anterior, cuando todas
+         las posiciones de una tarjeta compartían una sola longitud de corte. */
+      c.barras.forEach(x => {
         const n = r + 1;
-        /* Figura, croquis, medidas y L. unit solo se escriben en la primera
-           línea: abajo van combinadas, y las fórmulas apuntan a esa fila. */
+        nb++;
         const fd = emitir([
           null,
-          q === 0 ? N(j + 1, 9) : null,
-          T(x.l.det || '—'),
-          q === 0 ? T(nombreFig(f), 1) : null,
-          q === 0 ? T('', 1) : null,         // hueco del croquis: lo ocupa la figura
+          N(nb, 9),
+          T(x.b.det || '—'),
+          T(nombreFig(x.b), 1),
+          T('', 1),                          // hueco del croquis: lo ocupa la figura
           T(x.ac.nombre, 1),
-          q === 0 ? T(medidasAce(f)) : null,
-          q === 0 ? N(c.lu) : null,
-          T(esSuma(x.l.cant) ? x.l.cant.replace(/\+/g, ' + ') : '', 1),
+          T(medidasAce(x.b)),
+          N(x.lu),
+          T(esSuma(x.b.cant) ? x.b.cant.replace(/\+/g, ' + ') : '', 1),
           /* La hoja queda VIVA: la cantidad conserva la suma escrita —«11+7+11»—
              como fórmula, así que se ve el 29 y se puede corregir el reparto.
              Sin suma se escribe el número pelado: un «=2» no aporta nada. */
-          esSuma(x.l.cant)
-            ? Fx(String(x.l.cant).split('+').map(v => numFx(Math.max(0, num(v)))).join('+'), x.cant, 9)
+          esSuma(x.b.cant)
+            ? Fx(String(x.b.cant).split('+').map(v => numFx(Math.max(0, num(v)))).join('+'), x.cant, 9)
             : N(x.cant, 9),
-          Fx(`H${t0}*J${n}`, x.lTot),
+          Fx(`H${n}*J${n}`, x.lTot),
           Fx(`K${n}*${numFx(x.ac.kgm)}`, x.peso),
         ], CROQ_ALTO_FILA);
         if (!r1) r1 = fd;
         r2 = fd;
         if (!datIni) datIni = fd;
         datFin = fd;
+        const sp = figuraXlsx(x.b, idForma, fd);
+        if (sp){ dibujos.push(sp); idForma++; }
       });
-      // Las celdas de la tarjeta se combinan a lo alto de sus posiciones
-      if (c.lineas.length > 1){
-        ['B','D','E','G','H'].forEach(col =>
-          merges.push(`${col}${t0}:${col}${t0 + c.lineas.length - 1}`));
-      }
-      const sp = figuraXlsx(f, idForma, t0, c.lineas.length);
-      if (sp){ dibujos.push(sp); idForma++; }
     });
     emitir([null, null, null, null, null, null, null, null,
             T('Subtotal', 13), null,
@@ -3649,14 +3759,12 @@ $('aceDesp').addEventListener('input',  e => { estadoAce.desperdicio = e.target.
 $('btnAgregarAce').addEventListener('click', () => {
   const f = nuevaAce(), tanda = tandaAct();
   const ultima = tanda.filas[tanda.filas.length - 1];
-  // Hereda elemento, figura y el diámetro de la última posición: con veinte
-  // vigas parecidas es lo que evita volver a escoger lo mismo cada vez
-  if (ultima){
-    f.elem = ultima.elem; f.fig = ultima.fig; f.est = ultima.est;
-    const ul = ultima.lineas[ultima.lineas.length - 1];
-    if (ul) f.lineas[0].dia = ul.dia;
-  }
-  f.lineas[0].det = detAuto(f.fig, 0, f.est);
+  /* La primera barra del elemento nuevo copia la figura y el diámetro de la
+     última que se escribió: con veinte vigas parecidas es lo que evita volver
+     a escoger lo mismo cada vez. El nombre NO se hereda: dos elementos con el
+     mismo nombre se juntarían en un solo bloque del Excel. */
+  const ub = ultima && ultima.barras[ultima.barras.length - 1];
+  if (ub) f.barras[0] = nuevaBarra(detAuto(ub.fig, 0, ub.est), ub.dia, ub);
   tanda.filas.push(f);
   animarIdAce = f.id;
   guardarAce(); pintarTodoAce();
@@ -3665,7 +3773,7 @@ $('btnAgregarAce').addEventListener('click', () => {
 });
 
 $('btnLimpiarAce').addEventListener('click', () => {
-  if (!confirm(`¿Borrar las barras de «${nombreTanda(tandaAct(), estadoAce.activa)}»?`)) return;
+  if (!confirm(`¿Borrar los elementos de «${nombreTanda(tandaAct(), estadoAce.activa)}»?`)) return;
   tandaAct().filas = [nuevaAce()];
   guardarAce(); pintarTodoAce();
   toast('Tanda vacía');

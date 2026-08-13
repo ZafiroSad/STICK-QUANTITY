@@ -140,11 +140,15 @@ solo entregan volumen, porque el panel recto no las encofra.
 
 ## Acero — despiece
 
-Una **tarjeta por longitud de corte**. Arriba, la figura —que se escoge **tocando su dibujo**:
-recta, escuadra sencilla, doble escuadra o estribo— y sus medidas; las letras `A`, `B` y `C` del
-dibujo son las mismas de los campos. En medio, el **croquis acotado de esa barra, a escala**, con
-las medidas escritas y sus ganchos. Abajo, las **posiciones** que comparten esa longitud —arriba,
-abajo, estribos—, cada una con su cantidad y su diámetro. Así una viga entera cabe en una tarjeta.
+Una **tarjeta por elemento**: la viga V-101, la columna C-30. Adentro van sus **barras**, y cada
+barra tiene lo suyo —figura, medidas, posición, cantidad y diámetro—, así que una misma tarjeta
+lleva una recta arriba, dos escuadras abajo y sus estribos, como se lee un plano.
+
+Cerrada, una barra es un renglón con su **diagrama pequeñito**, el nombre de su figura y su
+longitud: con seis barras parecidas, el dibujo es lo que evita perderse. Al tocarlo se abre y
+aparecen los cuatro botones de figura —que se escogen **tocando su dibujo**: recta, escuadra
+sencilla, doble escuadra o estribo—, los campos de medida (las letras `A`, `B` y `C` del dibujo son
+las mismas de los campos) y el **croquis acotado de esa barra, a escala**.
 
 La **cantidad admite sumas**: `11+7+11` son once estribos en un extremo, siete al centro y once en
 el otro. Se guarda tal cual y el Excel se lleva las dos cosas, el reparto y su total.
@@ -178,7 +182,7 @@ De referencia para escribir la medida, la **NSR-10 C.7.1** pide 12 db en el ganc
 4 db ≥ 6,5 cm en el de 180° y 6 db ≥ 7,5 cm en el del estribo a 135°.
 
 Las varillas se cuentan por **corte real**: cuántas piezas enteras salen de una varilla comercial,
-sin combinar barras de filas ni de tandas distintas.
+sin combinar barras distintas ni tandas distintas.
 
 ### Exportación a Excel
 
@@ -187,10 +191,9 @@ librerías): **una hoja por tanda** y una hoja **CONSOLIDADO** cuando hay más d
 el croquis de cada barra como **figura vectorial**, la columna `A` libre para marcar con «x» lo ya
 cortado, y la marca de STICK QUANTITY en la esquina.
 
-Cada tarjeta es un bloque: las celdas de figura, croquis, medidas y longitud unitaria van
-**combinadas a lo alto** de sus posiciones, y cada posición es una fila. El reparto de estribos
-aparece dos veces a propósito — en `REPARTO` como texto (`11 + 7 + 11`) y en `CANT` como la
-fórmula `=11+7+11`, que muestra `29`.
+**Una barra, una fila**, con su figura, su croquis, sus medidas y su longitud; cada elemento es un
+bloque de filas que cierra con su subtotal. El reparto de estribos aparece dos veces a propósito —
+en `REPARTO` como texto (`11 + 7 + 11`) y en `CANT` como la fórmula `=11+7+11`, que muestra `29`.
 
 La hoja sale **viva**: los metrajes, los pesos, los subtotales, el resumen por diámetro y el
 consolidado son fórmulas. Corregir una cantidad dentro de Excel —o el propio reparto— recalcula

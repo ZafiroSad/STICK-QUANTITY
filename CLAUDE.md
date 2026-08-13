@@ -14,7 +14,50 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.9.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.10.0 (Mampostería + Concreto de columnas + Acero)
+
+### La tarjeta pasa a ser el ELEMENTO, con barras de figuras distintas adentro (2026-08-12)
+
+El Señor Stick lo pidió así: «que por tarjeta uno pueda agregar una de los 4 tipos —1 de la recta,
+2 de escuadra sencilla y 1 de estribo— en la misma tarjeta todo, con un diagrama pequeñito para no
+perderse». **Invierte la decisión que él mismo había tomado ese día** (tarjeta = una longitud de
+corte); se le señaló antes de tocar nada y la confirmó.
+
+**El modelo de datos cambia de raíz.** Antes la geometría vivía en la tarjeta y `lineas` eran
+posiciones que compartían su longitud. Ahora:
+
+```
+fila  = { id, elem, barras:[ barra ] }              ← la tarjeta es el elemento
+barra = { id, det, cant, dia,                       ← la posición
+          fig, est, a,b,c,sb,sh,ge, iguales,        ← su propia figura y medidas
+          abierta }                                 ← solo cómo se ve
+```
+
+- `calcBarra(b)` es el cálculo real; `calcAce(f)` solo suma las barras del elemento.
+  `camposDe`, `nombreFig`, `cDe`, `geomAce`, `croquisAce`, `trazosAce` y `medidasAce` reciben
+  ahora **una barra**, no una tarjeta.
+- **`miniAce(b)`** es nuevo: el diagrama pequeñito del renglón cerrado, 52 × 26, la silueta y nada
+  más —sin cotas ni texto—, atenuado mientras la barra esté a medio llenar. Sale de `geomAce`,
+  igual que el croquis grande y que el del Excel: **una sola fuente de geometría, tres dibujos**.
+- **El renglón se abre y se cierra** (`b.abierta`, la escogió él sobre las otras dos maquetas).
+  Cerrado: diagrama + figura + longitud. Abierto: los cuatro botones de figura, las formas de
+  estribo, los campos y el croquis acotado. `abierta` **no se guarda**: al cargar se abre sola la
+  barra que esté incompleta, que es justo la que falta por terminar.
+- **En el Excel una barra es UNA FILA entera** con su figura, croquis, medidas y L. unit. Se fueron
+  las celdas combinadas a lo alto (`['B','D','E','G','H']`), que existían solo porque todas las
+  posiciones de una tarjeta compartían una longitud. La hoja queda más parecida a la cartilla real.
+- **Migración en cadena de las tres formas del guardado** (`migrarFilaAce` + `sanearBarra` nuevo):
+  posición suelta → `lineas` con geometría en la raíz → barras propias. Cada posición vieja se
+  vuelve una barra que hereda la figura y las medidas de su tarjeta, así que nada de lo escrito
+  se pierde. Verificado sembrando un guardado de la forma anterior y recargando.
+
+**Verificado en vivo (2026-08-12)**, no supuesto: migración de un guardado viejo (2 posiciones +
+1 estribo → 3 barras, longitudes 4,20 / 4,20 / 1,24 y sin restos de `ganchos`/`le`/`sep`); un
+elemento con las cuatro figuras a la vez (4,20 · 3,40 · 2,70 · 1,34 m); abrir una barra no abre las
+otras; cambiar su figura no toca las demás y respeta el nombre que él escribió; escribir una medida
+no pierde el foco. Sin errores de consola ni desborde en 1280 y 390 px, en ambos temas. El `.xlsx`
+**abierto en Excel real por COM**: 3 hojas, 7 formas en la primera —una por barra más el logo—,
+fórmulas vivas, consolidado referenciando ambas hojas, sin reparación.
 
 ### Fuera el gancho estándar; los desplegables se ven en PC (2026-08-12)
 
@@ -252,10 +295,15 @@ Capítulo de acero (mismo archivo, sufijo `Ace`):
   que además alimenta el croquis de ejemplo. `SVG_FIG` — los íconos del selector.
   **Agregar referencias aquí, no en la UI.**
 - `calcAce()` / `totalesAce(filas)` — longitud de corte, piezas, peso y varillas por corte real.
-- `geomAce()` — **única fuente de la geometría**: puntos de la figura en unidades reales (m para
-  barras, cm para estribos) más los ganchos. La consumen el croquis de pantalla y el del Excel.
-- `croquisAce()` — SVG acotado, alto adaptativo según la forma. `trazosAce()` / `figuraXlsx()` —
-  la misma silueta como polilíneas y como `<xdr:sp>` con `custGeom` para la hoja.
+- `geomAce(barra)` — **única fuente de la geometría**: puntos de la figura en metros más los
+  ganchos. La consumen los **tres** dibujos: el diagrama del renglón, el croquis grande y el Excel.
+- `croquisAce(barra)` — SVG acotado, alto adaptativo según la forma. `miniAce(barra)` — el
+  diagrama pequeñito del renglón cerrado. `trazosAce()` / `figuraXlsx()` — la misma silueta como
+  polilíneas y como `<xdr:sp>` con `custGeom` para la hoja.
+- `calcBarra(barra)` — longitud de corte, piezas, peso y varillas de UNA barra.
+  `calcAce(fila)` suma las del elemento; `totalesAce(filas)` agrega la tanda.
+- `sanearBarra()` / `migrarFilaAce()` — normalizan una barra y convierten las tres formas
+  históricas del guardado a la de hoy.
 - `hojaAceroXml(tanda, i)` / `hojaConsolidadoXml()` / `envolverHoja()` — las hojas.
   `libroAceroXlsx()` arma el ZIP con una hoja, un dibujo y sus rels por tanda.
 - `zipStore()` / `crc32()` — escritor de ZIP sin compresión. Excel acepta el método «store».
@@ -288,6 +336,18 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **La tarjeta es el ELEMENTO y cada barra lleva su figura (2026-08-12, pedido por el Señor
+  Stick).** Sustituye a la decisión de esa misma mañana —tarjeta = una longitud de corte—, que él
+  había escogido con maqueta. La razón del cambio es la de un plano: una viga no se lee por
+  longitudes de corte sino por elemento, y su despiece son cuatro figuras distintas juntas.
+  **La decisión anterior queda anulada, no en discusión.**
+- **El renglón de una barra se abre y se cierra (2026-08-12).** Se le mostraron tres maquetas
+  —renglón plegable, todo abierto siempre, dos renglones densos— y escogió la primera. Con seis
+  barras, tenerlas todas abiertas hace una tarjeta que no cabe en pantalla; cerradas, el diagrama
+  pequeñito es lo que permite reconocer cada una sin leer.
+- **`abierta` no se guarda (2026-08-12).** Es estado de pantalla, no dato de obra. Al cargar se
+  abre sola la barra incompleta: al volver al despiece, lo que está a medio escribir salta a la
+  vista en vez de esconderse.
 - **Ningún gancho se calcula solo (2026-08-12).** El estribo ya se escribía entero a mano; el
   gancho estándar de las barras longitudinales era la excepción que quedaba, y el Señor Stick la
   retiró. Hoy el gancho va escrito dentro del tramo que lo lleva y la app suma lo que esté escrito.
@@ -304,10 +364,11 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
 - **El mensaje se escribe para WhatsApp, no para una hoja (2026-08-12).** Total arriba en negrita,
   desglose debajo, detalle al final; `*negrita*` y `_cursiva_` porque WhatsApp las interpreta. Sin
   emojis: el registro del Señor Stick con proveedores es formal.
-- **La tarjeta agrupa UNA longitud de corte, no un elemento (2026-08-12, elegido por el Señor
+- ~~**La tarjeta agrupa UNA longitud de corte, no un elemento (2026-08-12, elegido por el Señor
   Stick).** Se le ofrecieron las dos formas con maqueta: tarjeta por longitud (con las posiciones
-  adentro) o tarjeta por elemento (con varias figuras adentro). Escogió la primera. Una viga con
-  refuerzo arriba, abajo y al centro cabe en una tarjeta con tres líneas en vez de tres tarjetas.
+  adentro) o tarjeta por elemento (con varias figuras adentro). Escogió la primera.~~
+  **ANULADA ese mismo día:** pidió la segunda forma y hoy la tarjeta es el elemento. Se conserva
+  la nota para no volver a proponer el cambio como si fuera nuevo.
 - **El estribo no se calcula solo (2026-08-12).** Ni la cantidad por separación ni la medida por
   recubrimiento: «que el usuario ponga el total de estribos». La app suma lo que él escribe, y esa
   es toda la magia. Con eso el recubrimiento se quedó sin uso y se retiró del capítulo.
