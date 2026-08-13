@@ -27,6 +27,12 @@
    Rector: STICK_UI_SYSTEM.md. No hay color de fondo: hay un CAMPO.
    ============================================================ */
 :root{
+  /* El esquema del sistema. Sin esto, en Windows el navegador pinta el menú
+     desplegable NATIVO del <select> en claro y las opciones —que heredan la
+     tinta— salían blancas sobre blanco. En móvil no pasaba: la hoja del sistema
+     usa el esquema del teléfono. Declararlo hace que el popup salga oscuro. */
+  color-scheme:dark;
+
   /* Rampa grafito — mismos nombres que la escala zinc, valores del PORTAFOLIO */
   --bg:#15161b; --bg-2:#1d1f26; --bg-3:#101116;
   --zinc-950:#15161b; --zinc-900:#1d1f26; --zinc-850:#21242e; --zinc-800:#2a2e39;
@@ -50,6 +56,10 @@
            inset 1px 0 0 rgba(255,255,255,.05),inset -1px 0 0 rgba(255,255,255,.05);
   --v-sombra:0 22px 60px -26px rgba(0,0,0,.85);
   --linea:rgba(255,255,255,.10); --linea-fuerte:rgba(255,255,255,.26);
+
+  /* Flecha del <select>: una sola, para que todos los desplegables de la app
+     —los de arriba y los de dentro de una tarjeta— se vean iguales */
+  --flecha:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 
   /* Masas del campo */
   --masa-1:hsl(214 22% 62% / .30); --masa-2:hsl(32 30% 64% / .22);
@@ -219,14 +229,20 @@ html.light .card.hoverable:hover{box-shadow:var(--v-filo),0 26px 56px -26px rgba
   transition:border-color .2s ease,background .2s ease,box-shadow .2s ease;
 }
 .field input:focus,.field select:focus{
-  border-color:var(--linea-fuerte);background:rgba(255,255,255,.08);box-shadow:0 0 0 3px rgba(255,255,255,.07);
+  border-color:var(--linea-fuerte);background-color:rgba(255,255,255,.08);box-shadow:0 0 0 3px rgba(255,255,255,.07);
 }
-html.light .field input,html.light .field select{background:rgba(255,255,255,.80)}
-html.light .field input:focus,html.light .field select:focus{background:#fff;box-shadow:0 0 0 3px rgba(21,22,27,.06)}
+/* background-COLOR, no el atajo: el atajo borraba la flecha del <select> */
+html.light .field input,html.light .field select{background-color:rgba(255,255,255,.80)}
+html.light .field input:focus,html.light .field select:focus{background-color:#fff;box-shadow:0 0 0 3px rgba(21,22,27,.06)}
 .field select{cursor:pointer;appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image:var(--flecha);
   background-repeat:no-repeat;background-position:right 16px center;padding-right:38px}
-.field select option{background:var(--zinc-900);color:var(--tinta)}
+
+/* Las opciones del menú desplegable. En el escritorio ese menú lo pinta el
+   sistema, no la página: si no se le dan fondo y color propios, en Windows
+   quedaban blancas sobre blanco. Vale para TODOS los <select> de la app. */
+select option,select optgroup{background-color:var(--bg-2);color:var(--tinta)}
+html.light select option,html.light select optgroup{background-color:#fff;color:var(--tinta)}
 .field input::placeholder{color:var(--zinc-600);font-weight:500}
 input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-outer-spin-button,
@@ -454,6 +470,15 @@ html.light .lineas{background:rgba(255,255,255,.55)}
   width:100%;background:var(--v-fondo);border:1px solid var(--v-borde);border-radius:999px;
   padding:9px 13px;color:var(--tinta);font-family:inherit;font-size:12.5px;font-weight:600;
   outline:none;transition:border-color .2s var(--suave)}
+/* El desplegable de la línea llevaba el control nativo: en Windows salía con el
+   fondo del sistema y la tinta clara encima. Misma píldora y misma flecha que
+   los de arriba —es como se ve en el teléfono—, con el vidrio de fondo. */
+.linea select{cursor:pointer;appearance:none;-webkit-appearance:none;
+  background-image:var(--flecha),var(--v-fondo);
+  background-repeat:no-repeat,no-repeat;
+  background-position:right 10px center,0 0;
+  background-size:auto,cover;
+  padding-right:28px}
 .linea input:focus,.linea select:focus{border-color:var(--linea-fuerte)}
 .linea input::placeholder{color:var(--zinc-600)}
 .linea .li-cant{font-variant-numeric:tabular-nums;letter-spacing:.02em}
@@ -498,7 +523,7 @@ html.light .lineas{background:rgba(255,255,255,.55)}
 .desglose b{color:var(--zinc-300);font-weight:800}
 .g-ace{grid-template-columns:1fr}
 @media (min-width:560px){.g-ace{grid-template-columns:1fr 1fr}}
-@media (min-width:900px){.g-ace{grid-template-columns:repeat(5,1fr)}}
+@media (min-width:900px){.g-ace{grid-template-columns:2fr 1fr 1fr}}
 footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
   font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--zinc-700);text-align:center}
 </style>
@@ -907,21 +932,13 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
           <label for="aceDesp">Desperdicio (%)</label>
           <input id="aceDesp" type="text" inputmode="decimal" value="5">
         </div>
-        <div class="field">
-          <label for="aceGancho">Gancho estándar</label>
-          <select id="aceGancho">
-            <option value="no">Sin gancho extra</option>
-            <option value="90">90° — 12 db</option>
-            <option value="180">180° — 4 db (mín. 6,5 cm)</option>
-          </select>
-        </div>
       </div>
       <p class="muted" style="margin-top:14px;font-size:11px">
         La <b style="color:var(--zinc-400)">varilla comercial</b> es la que se compra: con ella se cuenta
         cuántas piezas enteras salen de cada una. El <b style="color:var(--zinc-400)">desperdicio</b> es el
-        colchón que se le suma al peso neto. El <b style="color:var(--zinc-400)">gancho estándar</b> se le
-        suma a las barras longitudinales que marques con 1 o 2 ganchos;
-        <b style="color:var(--zinc-400)">el estribo lleva su propia pata</b>, escrita en su tarjeta.
+        colchón que se le suma al peso neto. Los ganchos
+        <b style="color:var(--zinc-400)">se escriben en la tarjeta</b>, no se calculan aparte: el estribo
+        tiene su campo de pata y en una barra longitudinal el gancho va sumado al tramo que lo lleva.
       </p>
     </div>
   </section>
@@ -1000,8 +1017,10 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
       <div class="note">
         <b>Verificar contra los planos.</b> Las longitudes se suman <i>cara a cara</i>, sin descontar el
         desarrollo del doblez: es la práctica corriente de despiece y queda del lado de la seguridad.
-        Las masas por metro son las nominales de la <b>NTC 2289</b> y los ganchos siguen la
-        <b>NSR-10 C.7.1</b> (90° = 12 db; 180° = 4 db ≥ 6,5 cm; estribos a 135° = 6 db ≥ 7,5 cm).
+        Las masas por metro son las nominales de la <b>NTC 2289</b>. Los ganchos <b>los escribes tú</b>:
+        el estribo tiene su campo de pata y en una barra longitudinal el gancho va sumado al tramo que
+        lo lleva. De referencia, la <b>NSR-10 C.7.1</b> pide 12 db a 90°, 4 db ≥ 6,5 cm a 180° y
+        6 db ≥ 7,5 cm en los estribos a 135°.
         El cálculo <b>no</b> resuelve traslapos, ni longitudes de desarrollo, ni el alambre de amarre:
         si una pieza no sale de una varilla, la app te avisa pero el traslapo lo defines tú según la
         NSR-10 C.12. Las varillas se cuentan por corte real —cuántas piezas salen de cada varilla—
@@ -1014,7 +1033,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.8.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.9.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -2217,12 +2236,17 @@ $('btnCopiarCol').addEventListener('click', copiarCol);
    ------------------------------------------------------------
    Longitud de corte de una barra (práctica de despiece):
 
-     L = Σ tramos medidos cara a cara  +  ganchos
+     L = Σ tramos medidos cara a cara
 
    No se descuenta el desarrollo del doblez (el eje de la barra
    recorre algo menos que la suma de los tramos exteriores):
    el error queda del lado de la seguridad y es como se despieza
-   en obra. Los ganchos salen de la NSR-10 C.7.1:
+   en obra.
+
+   NINGÚN gancho se calcula solo: el estribo tiene su campo de
+   pata y en una barra longitudinal el gancho va escrito dentro
+   del tramo que lo lleva. La NSR-10 C.7.1 queda como referencia
+   de qué escribir, no como fórmula que aplique la app:
 
      90°  -> extensión recta de 12 db
      180° -> extensión recta de 4 db, mínimo 65 mm
@@ -2343,14 +2367,13 @@ const nombreFig = f => f.fig === 'estribo' ? estDe(f.est).figNom : figDe(f.fig).
 
 const CLAVE_ACE = 'stick-quantity-acero-v1';
 
-/* Los parámetros (varilla, desperdicio, gancho) son de la obra
-   y valen para todas las tandas; las barras y el nombre son de cada tanda.
+/* Los parámetros (varilla, desperdicio) son de la obra y valen para todas las
+   tandas; las barras y el nombre son de cada tanda.
    Una tanda es una fundida: el Excel del Señor Stick las lleva en hojas
    distintas —«PRIMERA TANDA», «SEGUNDA TANDA»— y al exportar vuelven a serlo. */
 let estadoAce = {
   varilla: '6',
   desperdicio: 5,
-  gancho: 'no',
   tandas: [],
   activa: 0,
 };
@@ -2378,7 +2401,7 @@ function nuevaLinea(det = '', dia = '4'){
 function nuevaAce(){
   return { id:uid(), elem:'', fig:'recta', est:'cuad',
            a:'', b:'', c:'', sb:'', sh:'', ge:'',
-           iguales:true, ganchos:'0', lineas:[nuevaLinea(detAuto('recta', 0))] };
+           iguales:true, lineas:[nuevaLinea(detAuto('recta', 0))] };
 }
 
 /* La cantidad admite sumas: «11+7+11» son los estribos de los dos extremos y
@@ -2417,17 +2440,8 @@ function calcAce(f){
   } else {
     const vals = camposDe(f).map(c => Math.max(0, num(c.k === 'c' ? cDe(f) : f[c.k])));
     lu = vals.reduce((s, x) => s + x, 0);
-    const partes = vals.map(v => nf(v, 2));
-    const ng = Math.max(0, Math.round(num(f.ganchos)));
-    if (ng > 0 && estadoAce.gancho !== 'no'){
-      // db del diámetro más grueso de la tarjeta: el gancho no puede quedarse corto
-      const db = Math.max(...f.lineas.map(l => aceroDe(l.dia).mm)) / 1000;
-      const ext = estadoAce.gancho === '90' ? 12 * db : Math.max(4 * db, 0.065);
-      lu += ng * ext;
-      partes.push(...Array(ng).fill(nf(ext, 2)));
-    }
     // Con un solo tramo la suma sobra: «4,20 = 4,20 m» no dice nada
-    det = partes.length > 1 ? partes.join(' + ') : '';
+    det = vals.length > 1 ? vals.map(v => nf(v, 2)).join(' + ') : '';
   }
 
   const porVar = lu > 0 ? Math.floor(Lc / lu + 1e-9) : 0;
@@ -2495,7 +2509,6 @@ const geomAce = f => {
     return Math.max(0.01, num(cp ? cp.ph : 1));
   };
 
-  const db = Math.max(...f.lineas.map(l => aceroDe(l.dia).mm)) / 1000;
   const u = 'm';
   let pts, cotas, nota = '', ganchos = [];
 
@@ -2532,13 +2545,6 @@ const geomAce = f => {
       pts = [[0,B],[0,0],[A,0],[A,C]];
       cotas = [{ i:0, l:'B', v:B }, { i:1, l:'A', v:A }, { i:2, l:'C', v:C }];
       if (f.iguales) nota = 'Escuadras iguales: C copia a B';
-    }
-    const ng = Math.max(0, Math.round(num(f.ganchos)));
-    if (ng > 0 && estadoAce.gancho !== 'no'){
-      const ext = estadoAce.gancho === '90' ? 12 * db : Math.max(4 * db, 0.065);
-      ganchos = { tipo:estadoAce.gancho, L:ext, extremos:ng >= 2 ? [0, pts.length - 1] : [0] };
-      nota = `${ng} gancho${ng === 1 ? '' : 's'} de ${estadoAce.gancho}° · ` +
-             `${nf(ext,2)} m cada uno, ya sumados a la longitud`;
     }
   }
   return { pts, cotas, u, nota, ganchos, real };
@@ -2606,29 +2612,6 @@ function croquisAce(f){
       const px = pt[0] * sc + dx, py = pt[1] * sc + dy;
       piezas += `<path d="M ${R(px)} ${R(py)} l ${R(k)} ${R(k)}" fill="none" stroke="currentColor" ` +
                 `stroke-width="5" stroke-linecap="round"/>`;
-    });
-  } else if (G && G.extremos){
-    G.extremos.forEach(e => {
-      const p   = P[e], adj = P[e === 0 ? 1 : e - 1];
-      const vx  = p[0] - adj[0], vy = p[1] - adj[1], m = Math.hypot(vx, vy) || 1;
-      const d   = [vx / m, vy / m];
-      let n = [-d[1], d[0]];
-      const dot = n[0] * (cx - p[0]) + n[1] * (cy - p[1]);
-      if (dot < -0.001) n = [-n[0], -n[1]];
-      else if (dot <= 0.001) n = Math.abs(d[0]) >= Math.abs(d[1]) ? [0, 1] : [1, 0];
-      const L = Math.max(8, G.L * sc);
-      if (G.tipo === '90'){
-        piezas += `<path d="M ${R(p[0])} ${R(p[1])} l ${R(n[0]*L)} ${R(n[1]*L)}" fill="none" ` +
-                  `stroke="currentColor" stroke-width="5" stroke-linecap="round"/>`;
-      } else {
-        // 180°: media vuelta y regreso paralelo a la barra
-        const rad = 6, c2 = [p[0] + n[0]*rad, p[1] + n[1]*rad];
-        const fin = [c2[0] + n[0]*rad, c2[1] + n[1]*rad];
-        const sw  = (d[0]*n[1] - d[1]*n[0]) > 0 ? 0 : 1;
-        piezas += `<path d="M ${R(p[0])} ${R(p[1])} A ${rad} ${rad} 0 0 ${sw} ${R(fin[0])} ${R(fin[1])} ` +
-                  `l ${R(-d[0]*L)} ${R(-d[1]*L)}" fill="none" stroke="currentColor" ` +
-                  `stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
-      }
     });
   }
 
@@ -2700,14 +2683,6 @@ function pintarFilasAce(){
             ${f.iguales ? 'B = C' : 'B y C distintas'}
           </button></div>` : '';
 
-    const campoGancho = (f.fig !== 'estribo' && estadoAce.gancho !== 'no') ? `
-        <div class="field"><label>Ganchos</label>
-          <select data-k="ganchos">
-            <option value="0"${f.ganchos === '0' ? ' selected' : ''}>Ninguno</option>
-            <option value="1"${f.ganchos === '1' ? ' selected' : ''}>1 gancho</option>
-            <option value="2"${f.ganchos === '2' ? ' selected' : ''}>2 ganchos</option>
-          </select></div>` : '';
-
     /* Las posiciones: cada una es una fila del Excel, todas con esta longitud */
     const lineas = c.lineas.map((x, j) => `
       <div class="linea" data-li="${j}">
@@ -2756,7 +2731,6 @@ function pintarFilasAce(){
       <div class="row-grid">
         ${campos}
         ${botonIguales}
-        ${campoGancho}
       </div>
       <div class="croquis">${croquisAce(f)}</div>
       <div class="lineas">
@@ -2951,7 +2925,9 @@ function migrarFilaAce(f){
   }
   if (f.iguales === undefined) n.iguales = !f.c || f.c === f.b;
   if (!ESTRIBOS.some(e => e.id === n.est)) n.est = 'cuad';   // guardados sin forma
-  delete n.det; delete n.dia; delete n.cant; delete n.le; delete n.sep;
+  /* `ganchos` era el 1/2 del gancho estándar, retirado: hoy el gancho de una
+     barra longitudinal va escrito dentro del tramo que lo lleva. */
+  delete n.det; delete n.dia; delete n.cant; delete n.le; delete n.sep; delete n.ganchos;
   return n;
 }
 
@@ -2974,7 +2950,7 @@ function cargarAce(){
     filas: (Array.isArray(t.filas) && t.filas.length ? t.filas : [nuevaAce()])
              .map(migrarFilaAce),
   }));
-  delete estadoAce.recub;
+  delete estadoAce.recub; delete estadoAce.gancho;
   estadoAce.activa = Math.min(Math.max(0, num(estadoAce.activa)), estadoAce.tandas.length - 1);
   guardarAce();   // deja el guardado ya migrado, sin esperar a la primera edición
 }
@@ -3244,40 +3220,19 @@ const CROQ_ALTO_FILA = 38;                // alto de la fila de datos, en puntos
    dos márgenes de 57.150. Si se cambia ANCHOS_ACE[4], hay que rehacer esto. */
 const CROQ_CX = 1533525, CROQ_OFFX = 57150;
 
-/* Polilíneas de la figura en unidades reales, ganchos incluidos. Es lo que se
-   dibuja dentro del .xlsx: allí no hay cotas ni texto —las medidas ya están en
-   su columna—, solo la silueta. El arco del gancho de 180° se aproxima con dos
-   tramos rectos: a 2 cm de alto en la hoja, la curva no se distingue. */
+/* Polilíneas de la figura en unidades reales, con las patas del estribo. Es lo
+   que se dibuja dentro del .xlsx: allí no hay cotas ni texto —las medidas ya
+   están en su columna—, solo la silueta. */
 function trazosAce(f){
   const g = geomAce(f);
   if (!g.real) return null;                // fila a medio llenar: no se inventa
   const T = [g.pts.map(p => p.slice())];
-  const xs = g.pts.map(p => p[0]), ys = g.pts.map(p => p[1]);
-  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
-  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
   const G = g.ganchos;
   if (G && G.tipo === 'cs'){
     G.seg.forEach(sg => T.push([sg[0].slice(), sg[1].slice()]));
   } else if (G && G.tipo === '135'){
     const k = G.L / Math.SQRT2;
     G.esq.forEach(pt => T.push([[pt[0], pt[1]], [pt[0] + k, pt[1] + k]]));
-  } else if (G && G.extremos){
-    G.extremos.forEach(e => {
-      const p = g.pts[e], adj = g.pts[e === 0 ? 1 : e - 1];
-      const vx = p[0] - adj[0], vy = p[1] - adj[1], m = Math.hypot(vx, vy) || 1;
-      const d = [vx / m, vy / m];
-      let n = [-d[1], d[0]];
-      const dot = n[0] * (cx - p[0]) + n[1] * (cy - p[1]);
-      if (dot < -1e-9) n = [-n[0], -n[1]];
-      else if (Math.abs(dot) <= 1e-9) n = Math.abs(d[0]) >= Math.abs(d[1]) ? [0, 1] : [1, 0];
-      const L = G.L;
-      if (G.tipo === '90'){
-        T.push([[p[0], p[1]], [p[0] + n[0]*L, p[1] + n[1]*L]]);
-      } else {
-        const q = [p[0] + n[0]*L*0.6, p[1] + n[1]*L*0.6];
-        T.push([[p[0], p[1]], q, [q[0] - d[0]*L, q[1] - d[1]*L]]);
-      }
-    });
   }
   return T;
 }
@@ -3354,8 +3309,8 @@ function hojaAceroXml(tanda, indice){
                           T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
   unir('B', 'L', filaTit);
 
-  const sub = `Varilla comercial ${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} % · ` +
-              `Gancho estándar ${estadoAce.gancho === 'no' ? 'no aplicado' : estadoAce.gancho + '°'}`;
+  const sub = `Varilla comercial ${nf(num(estadoAce.varilla),2)} m · ` +
+              `Desperdicio ${nf(num(estadoAce.desperdicio),1)} %`;
   const filaSub = emitir([null, T(sub, 12)]);
   unir('B', 'L', filaSub);
   vacia();
@@ -3690,7 +3645,6 @@ $('aceTitulo').addEventListener('input', e => {
 });
 $('aceVarilla').addEventListener('change', e => { estadoAce.varilla = e.target.value; guardarAce(); pintarTodoAce(); });
 $('aceDesp').addEventListener('input',  e => { estadoAce.desperdicio = e.target.value; guardarAce(); pintarTotalesAce(); });
-$('aceGancho').addEventListener('change', e => { estadoAce.gancho = e.target.value; guardarAce(); pintarTodoAce(); });
 
 $('btnAgregarAce').addEventListener('click', () => {
   const f = nuevaAce(), tanda = tandaAct();
@@ -3759,7 +3713,6 @@ pintarTodoCol();
 cargarAce();
 $('aceVarilla').value = estadoAce.varilla;
 $('aceDesp').value    = estadoAce.desperdicio;
-$('aceGancho').value  = estadoAce.gancho;
 sincronizarTanda();
 
 pintarCapitulo();

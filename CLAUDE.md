@@ -14,7 +14,42 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.8.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.9.0 (Mampostería + Concreto de columnas + Acero)
+
+### Fuera el gancho estándar; los desplegables se ven en PC (2026-08-12)
+
+**El parámetro «Gancho estándar» se retiró.** Era el último cálculo automático que quedaba en el
+capítulo: un desplegable de obra (90° = 12 db / 180° = 4 db ≥ 6,5 cm) que, junto con un selector
+`Ganchos: ninguno / 1 / 2` en cada tarjeta, le sumaba la extensión a las barras longitudinales.
+Con él se fue todo su aparato: el campo por tarjeta, el trazo del gancho en el croquis de pantalla
+y en el del Excel, y la mención en el subtítulo de la hoja. Los parámetros quedan en tres —nombre
+de la tanda, varilla comercial y desperdicio— y la rejilla `.g-ace` pasa de cinco columnas a tres.
+El guardado anterior se limpia solo (`delete n.ganchos`, `delete estadoAce.gancho`).
+
+**Los desplegables se veían blanco sobre blanco en el escritorio.** El menú de un `<select>` no lo
+pinta la página: lo pinta el sistema. Sin `color-scheme` declarado, Windows lo abría en claro
+mientras las opciones heredaban la tinta clara del tema oscuro. En el teléfono no pasaba porque la
+hoja nativa usa el esquema del propio equipo. Tres arreglos:
+
+- `color-scheme:dark` en `:root` (el `html.light` ya declaraba el suyo).
+- Regla global `select option,select optgroup` con fondo y color propios, en los dos temas. Antes
+  solo la tenía `.field select option`, así que **el desplegable de diámetro de cada tarjeta
+  —`.linea select`— quedaba sin ninguna**.
+- `.linea select` pasa a la misma píldora con flecha propia (`appearance:none` + `--flecha`) que
+  los de arriba: en PC se ve como en el celular.
+
+**Dos defectos vistos al medir, no supuestos:** en modo claro y al enfocar, la flecha del `<select>`
+desaparecía. `html.light .field select` y `.field select:focus` usaban el atajo `background`, que
+resetea `background-image`; ahora usan `background-color`.
+
+**Verificado (2026-08-12)** con la app servida por HTTP y Chrome headless por CDP: `color-scheme`
+resuelto a `dark`/`light` según el tema, las `option` de los tres desplegables con fondo
+`rgb(29,31,38)` y tinta `rgb(247,248,250)` en oscuro y `#fff` sobre `rgb(21,22,27)` en claro, la
+flecha presente en reposo y en foco, sin errores de consola ni desborde horizontal. Las longitudes
+se recontaron contra la cartilla —recta 4,20; estribo cerrado 1,24; doble escuadra 2,70; gancho S
+0,64— y el `.xlsx` se abrió **en Excel real por COM**: 3 hojas, 5 formas en la primera, `=11+7+11`
+dando 29 y total 70,93 kg, sin reparación. **Lo que no se pudo capturar es el menú desplegado**: lo
+dibuja el sistema operativo fuera de la página, así que ninguna captura del navegador lo contiene.
 
 ### Tres formas de estribo, tomadas de la cartilla de hierros (2026-08-12)
 
@@ -253,6 +288,15 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **Ningún gancho se calcula solo (2026-08-12).** El estribo ya se escribía entero a mano; el
+  gancho estándar de las barras longitudinales era la excepción que quedaba, y el Señor Stick la
+  retiró. Hoy el gancho va escrito dentro del tramo que lo lleva y la app suma lo que esté escrito.
+  La NSR-10 C.7.1 queda en la nota de la app como referencia de qué medida escribir, no como
+  fórmula que la app aplique.
+- **El `<select>` se pinta entero, no se deja al sistema (2026-08-12).** El control cerrado lleva
+  la píldora y la flecha de la familia; el menú abierto se gobierna con `color-scheme` y con fondo
+  y color propios en `option`. Regla a replicar: **un `<select>` nuevo hereda las dos cosas**, y el
+  atajo `background` nunca se usa sobre un select que lleve flecha —borra la imagen.
 - **El resumen de columnas se copia por partes, no entero (2026-08-12).** A la planta de concreto
   no le sirve el conteo de formaleta y al alquilador de formaleta no le sirve el m³. Dos
   interruptores, y el mensaje cambia hasta el título. No se dejan apagar los dos: un mensaje vacío

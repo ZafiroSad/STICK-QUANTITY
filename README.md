@@ -156,7 +156,10 @@ ganchos o grapas que amarran el refuerzo intermedio—. La C y la S miden lo mis
 cambia hacia dónde dobla cada pata, y por eso el croquis las distingue.
 
 El trabajo se organiza en **tandas** (una fundida cada una). Cada tanda tiene su nombre y su lista;
-la varilla comercial, el desperdicio y el gancho estándar valen para todas.
+la varilla comercial y el desperdicio valen para todas.
+
+**Ningún gancho se calcula solo.** El estribo tiene su campo de pata y, en una barra longitudinal,
+el gancho va escrito dentro del tramo que lo lleva. La app suma lo que esté escrito, nada más.
 
 ### Fórmulas
 
@@ -164,14 +167,15 @@ Longitud de corte, como se despieza en obra — **suma de tramos cara a cara**, 
 desarrollo del doblez (queda del lado de la seguridad):
 
 ```
-L = Σ tramos + ganchos
+L = Σ tramos escritos                     (el gancho va dentro del tramo que lo lleva)
 
-Gancho 90°   →  12 db                     (NSR-10 C.7.1)
-Gancho 180°  →  4 db, mínimo 6,5 cm
 Estribo      →  2·B + 2·H + 2·gancho      (los tres se escriben a mano, en m)
-Gancho C / S →  D + 2·gancho               (miden igual; cambia hacia dónde dobla la pata)
+Gancho C / S →  D + 2·gancho              (miden igual; cambia hacia dónde dobla la pata)
 Peso  =  L total × masa nominal           (NTC 2289)
 ```
+
+De referencia para escribir la medida, la **NSR-10 C.7.1** pide 12 db en el gancho de 90°,
+4 db ≥ 6,5 cm en el de 180° y 6 db ≥ 7,5 cm en el del estribo a 135°.
 
 Las varillas se cuentan por **corte real**: cuántas piezas enteras salen de una varilla comercial,
 sin combinar barras de filas ni de tandas distintas.
