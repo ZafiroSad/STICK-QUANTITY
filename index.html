@@ -1054,7 +1054,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.10.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.11.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -2291,6 +2291,8 @@ const ACEROS = [
   { id:'9',  nombre:'N.º 9 · 1 1/8"',corta:'#9',     mm:28.7, kgm:5.060 },
   { id:'10', nombre:'N.º 10 · 1 1/4"',corta:'#10',   mm:32.3, kgm:6.404 },
   { id:'11', nombre:'N.º 11 · 1 3/8"',corta:'#11',   mm:35.8, kgm:7.907 },
+  { id:'14', nombre:'N.º 14 · 1 3/4"',corta:'#14',   mm:43.0, kgm:11.380 },
+  { id:'18', nombre:'N.º 18 · 2 1/4"',corta:'#18',   mm:57.3, kgm:20.240 },
 ];
 
 /* Los dibujos son el selector: las letras del dibujo son las de los campos. */
@@ -3314,14 +3316,20 @@ function estilosXlsx(){
    una cabecera fija «A (m) / B (m) / C (m)» mentía en las filas de estribo.
    La columna E lleva el CROQUIS: figura vectorial, no imagen, así que se
    puede ampliar sin pixelarse y el archivo no engorda.                     */
-/* A libre · B nº · C posición · D figura · E croquis · F Ø · G medidas ·
-   H L. unit · I reparto · J cant · K L. total · L peso.
+/* A libre · B nº · C posición · D figura · E croquis · F Ø · G kg/m ·
+   H medidas · I L. unit · J reparto · K cant · L L. total · M peso.
    Una fila = UNA BARRA, con todo lo suyo. El bloque agrupa las barras de un
-   mismo elemento y cierra con su subtotal. */
+   mismo elemento y cierra con su subtotal.
+   La columna kg/m va donde la tiene la cartilla del Señor Stick —«P/UNIT»,
+   justo detrás del diámetro— y no es decorativa: el PESO se calcula CON ella
+   (`=L·G`), no con el número incrustado en la fórmula. Así la hoja enseña de
+   dónde sale el peso y se puede auditar a mano, que es para lo que él la usa. */
 /* MEDIDAS va ancha a propósito: el estribo escribe sus seis sumandos
    —«0,20 + 0,40 + 0,20 + 0,40 + 0,10 + 0,10 m»— y cortado no sirve de nada. */
-const ANCHOS_ACE = [4.5, 5, 15, 17, 24, 13, 38, 11, 12, 8, 12, 11];
-const LBL_ACE = ['FIGURA', 'CROQUIS', 'Ø', 'MEDIDAS', 'L. UNIT (m)',
+/* La C (POSICIÓN) va a 17 y no a 15: con B suman los 22 caracteres que necesita
+   el nombre del elemento, que se escribe combinado en B:C */
+const ANCHOS_ACE = [4.5, 5, 17, 17, 24, 13, 10, 38, 11, 12, 8, 12, 11];
+const LBL_ACE = ['FIGURA', 'CROQUIS', 'Ø', 'kg/m', 'MEDIDAS', 'L. UNIT (m)',
                  'REPARTO', 'CANT', 'L. TOTAL (m)', 'PESO (kg)'];
 
 /* Geometría del croquis en el .xlsx. Medidas del hueco donde cabe la figura,
@@ -3419,13 +3427,13 @@ function hojaAceroXml(tanda, indice){
   // Título en caja de borde medio, igual que el Excel de referencia
   const tit = nombreTanda(tanda, indice).toUpperCase();
   const filaTit = emitir([null, T(tit, 4), T('', 5), T('', 5), T('', 5), T('', 5), T('', 5),
-                          T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
-  unir('B', 'L', filaTit);
+                          T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
+  unir('B', 'M', filaTit);
 
   const sub = `Varilla comercial ${nf(num(estadoAce.varilla),2)} m · ` +
               `Desperdicio ${nf(num(estadoAce.desperdicio),1)} %`;
   const filaSub = emitir([null, T(sub, 12)]);
-  unir('B', 'L', filaSub);
+  unir('B', 'M', filaSub);
   vacia();
 
   // ── Bloques por elemento, en el orden en que se registraron ──
@@ -3438,7 +3446,10 @@ function hojaAceroXml(tanda, indice){
   });
 
   grupos.forEach(g => {
-    const fh = emitir([null, T(g.nom, 3), T('', 11), ...LBL_ACE.map(l => T(l, 11))], 28);
+    /* El nombre del elemento va a la IZQUIERDA (estilo 2), no centrado: centrado
+       lo recortaba por los dos lados y «C-30 — columna esquina» salía impreso
+       como «:-30 — columna esquin». Se vio en el PDF, no se supuso. */
+    const fh = emitir([null, T(g.nom, 2), T('', 11), ...LBL_ACE.map(l => T(l, 11))], 28);
     unir('B', 'C', fh);
     let mlG = 0, kgG = 0, r1 = 0, r2 = 0, nb = 0;
     g.filas.forEach(f => {
@@ -3458,6 +3469,7 @@ function hojaAceroXml(tanda, indice){
           T(nombreFig(x.b), 1),
           T('', 1),                          // hueco del croquis: lo ocupa la figura
           T(x.ac.nombre, 1),
+          N(x.ac.kgm, 14),                   // P/UNIT, como en su cartilla
           T(medidasAce(x.b)),
           N(x.lu),
           T(esSuma(x.b.cant) ? x.b.cant.replace(/\+/g, ' + ') : '', 1),
@@ -3467,8 +3479,8 @@ function hojaAceroXml(tanda, indice){
           esSuma(x.b.cant)
             ? Fx(String(x.b.cant).split('+').map(v => numFx(Math.max(0, num(v)))).join('+'), x.cant, 9)
             : N(x.cant, 9),
-          Fx(`H${n}*J${n}`, x.lTot),
-          Fx(`K${n}*${numFx(x.ac.kgm)}`, x.peso),
+          Fx(`I${n}*K${n}`, x.lTot),
+          Fx(`L${n}*G${n}`, x.peso),         // el peso sale de la celda kg/m, no de un literal
         ], CROQ_ALTO_FILA);
         if (!r1) r1 = fd;
         r2 = fd;
@@ -3478,19 +3490,19 @@ function hojaAceroXml(tanda, indice){
         if (sp){ dibujos.push(sp); idForma++; }
       });
     });
-    emitir([null, null, null, null, null, null, null, null,
+    emitir([null, null, null, null, null, null, null, null, null,
             T('Subtotal', 13), null,
-            Fx(`SUM(K${r1}:K${r2})`, mlG, 8), Fx(`SUM(L${r1}:L${r2})`, kgG, 8)]);
+            Fx(`SUM(L${r1}:L${r2})`, mlG, 8), Fx(`SUM(M${r1}:M${r2})`, kgG, 8)]);
     vacia();
   });
 
   // ── Resumen por diámetro ──
   /* Las tres últimas columnas del resumen caen justo debajo de CANT, L. TOTAL y
      PESO del detalle: así la hoja se lee de arriba abajo sin cambiar de carril. */
-  const fr = emitir([null, T('RESUMEN POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11),
+  const fr = emitir([null, T('RESUMEN POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11), T('', 11),
                      T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11),
                      T('PIEZAS', 11), T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
-  unir('B', 'E', fr);
+  unir('B', 'F', fr);
   const dias = [...t.porDia.entries()].filter(([, g]) => g.kg > 0)
     .sort((x, y) => aceroDe(x[0]).mm - aceroDe(y[0]).mm);
   /* SUMIF sobre la columna del diámetro: barre TODAS las filas de datos, que no
@@ -3503,22 +3515,22 @@ function hojaAceroXml(tanda, indice){
   const filaDias = [];
   dias.forEach(([id, g]) => {
     const n = r + 1;
-    const fd = emitir([null, T(aceroDe(id).nombre, 2), null, null, null,
+    const fd = emitir([null, T(aceroDe(id).nombre, 2), null, null, null, null,
                        N(aceroDe(id).kgm, 14), N(g.varillas, 9),
-                       Fx(suma('L', n), g.kg), null,
-                       Fx(suma('J', n), g.cant, 9),
-                       Fx(suma('K', n), g.ml),
-                       Fx(`H${n}*${kFx}`, g.kg * t.k)]);
-    unir('B', 'E', fd);
+                       Fx(suma('M', n), g.kg), null,
+                       Fx(suma('K', n), g.cant, 9),
+                       Fx(suma('L', n), g.ml),
+                       Fx(`I${n}*${kFx}`, g.kg * t.k)]);
+    unir('B', 'F', fd);
     filaDias.push(fd);
   });
   const rd = filaDias.length ? [filaDias[0], filaDias[filaDias.length - 1]] : null;
   const tot = (col, v, s) => rd ? Fx(`SUM(${col}${rd[0]}:${col}${rd[1]})`, v, s) : N(v, s);
-  const filaTot = emitir([null, T('TOTAL', 2), null, null, null, null,
-                          tot('G', t.varillas, 10), tot('H', t.peso, 8), null,
-                          tot('J', t.cant, 10), tot('K', t.lTot, 8),
-                          tot('L', t.pesoPedir, 8)]);
-  unir('B', 'E', filaTot);
+  const filaTot = emitir([null, T('TOTAL', 2), null, null, null, null, null,
+                          tot('H', t.varillas, 10), tot('I', t.peso, 8), null,
+                          tot('K', t.cant, 10), tot('L', t.lTot, 8),
+                          tot('M', t.pesoPedir, 8)]);
+  unir('B', 'F', filaTot);
   vacia();
 
   const hoy = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric' });
@@ -3537,6 +3549,11 @@ function envolverHoja(filas, merges){
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
     `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ` +
     `xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">` +
+    /* Sin ESTO, el `fitToWidth` del pageSetup de abajo lo ignora Excel: manda el
+       zoom al 100 % y la hoja se parte a lo ancho —las columnas de cantidad y
+       peso caían en otra hoja de papel—. Se vio midiendo VPageBreaks en Excel
+       real: 4 páginas. `fitToHeight="0"` deja correr lo alto que haga falta. */
+    `<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>` +
     `<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>` +
     `<sheetFormatPr defaultRowHeight="15"/>` +
     `<cols>${cols}</cols>` +
@@ -3544,7 +3561,7 @@ function envolverHoja(filas, merges){
     (merges.length ? `<mergeCells count="${merges.length}">` +
       merges.map(m => `<mergeCell ref="${m}"/>`).join('') + `</mergeCells>` : '') +
     `<pageMargins left="0.5" right="0.5" top="0.75" bottom="0.75" header="0" footer="0"/>` +
-    `<pageSetup orientation="landscape" fitToWidth="1"/>` +
+    `<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>` +
     `<drawing r:id="rId1"/>` +
     `</worksheet>`;
 }
@@ -3565,17 +3582,17 @@ function hojaConsolidadoXml(refs){
 
   emitir([], 20);
   const fT = emitir([null, T('CONSOLIDADO DE TODAS LAS TANDAS', 4), T('', 5), T('', 5), T('', 5),
-                     T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
-  unir('B', 'L', fT);
+                     T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 5), T('', 6)], 30);
+  unir('B', 'M', fT);
   const fS = emitir([null, T(`${estadoAce.tandas.length} tandas · Varilla comercial ` +
     `${nf(num(estadoAce.varilla),2)} m · Desperdicio ${nf(num(estadoAce.desperdicio),1)} %`, 12)]);
-  unir('B', 'L', fS);
+  unir('B', 'M', fS);
   r++;
 
-  const fh = emitir([null, T('POR TANDA', 3), T('', 11), T('', 11), T('', 11), T('', 11),
+  const fh = emitir([null, T('POR TANDA', 3), T('', 11), T('', 11), T('', 11), T('', 11), T('', 11),
                      T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11), T('PIEZAS', 11),
                      T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
-  unir('B', 'F', fh);
+  unir('B', 'G', fh);
 
   /* Todo apunta a las hojas de cada tanda: si allá se corrige una cantidad,
      el consolidado se corrige solo. Sumar dos hojas a mano era justo lo que
@@ -3591,26 +3608,26 @@ function hojaConsolidadoXml(refs){
       g.ml += v.ml; g.kg += v.kg; g.cant += v.cant; g.varillas += v.varillas;
       global.set(kk, g);
     });
-    const fd = emitir([null, T(nombreTanda(ta, i), 2), null, null, null, null,
-      Fx(`${H}!G${rf.filaTot}`, t.varillas, 9), Fx(`${H}!H${rf.filaTot}`, t.peso), null,
-      Fx(`${H}!J${rf.filaTot}`, t.cant, 9),     Fx(`${H}!K${rf.filaTot}`, t.lTot),
-      Fx(`${H}!L${rf.filaTot}`, t.pesoPedir)]);
-    unir('B', 'F', fd);
+    const fd = emitir([null, T(nombreTanda(ta, i), 2), null, null, null, null, null,
+      Fx(`${H}!H${rf.filaTot}`, t.varillas, 9), Fx(`${H}!I${rf.filaTot}`, t.peso), null,
+      Fx(`${H}!K${rf.filaTot}`, t.cant, 9),     Fx(`${H}!L${rf.filaTot}`, t.lTot),
+      Fx(`${H}!M${rf.filaTot}`, t.pesoPedir)]);
+    unir('B', 'G', fd);
     filasTanda.push(fd);
   });
   const k = 1 + num(estadoAce.desperdicio) / 100;
   const r1 = filasTanda[0], r2 = filasTanda[filasTanda.length - 1];
   const sumaCol = (col, v, s) => Fx(`SUM(${col}${r1}:${col}${r2})`, v, s);
-  const fTot = emitir([null, T('TOTAL', 2), null, null, null, null,
-    sumaCol('G', gVar, 10), sumaCol('H', gPeso, 8), null, sumaCol('J', gCant, 10),
-    sumaCol('K', gLt, 8), sumaCol('L', gPeso * k, 8)]);
-  unir('B', 'F', fTot);
+  const fTot = emitir([null, T('TOTAL', 2), null, null, null, null, null,
+    sumaCol('H', gVar, 10), sumaCol('I', gPeso, 8), null, sumaCol('K', gCant, 10),
+    sumaCol('L', gLt, 8), sumaCol('M', gPeso * k, 8)]);
+  unir('B', 'G', fTot);
   r++;
 
-  const fd2 = emitir([null, T('POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11),
+  const fd2 = emitir([null, T('POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11), T('', 11),
                       T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11),
                       T('PIEZAS', 11), T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
-  unir('B', 'E', fd2);
+  unir('B', 'F', fd2);
   /* Un SUMIF por hoja, sumados: no hay forma de barrer varias hojas de un golpe */
   const sumaDia = (col, fila) => refs.filter(rf => rf.datIni).map(rf => {
     const H = refHoja(rf.nombre);
@@ -3621,13 +3638,13 @@ function hojaConsolidadoXml(refs){
     .sort((x, y) => aceroDe(x[0]).mm - aceroDe(y[0]).mm)
     .forEach(([id, g]) => {
       const n = r + 1;
-      const f = emitir([null, T(aceroDe(id).nombre, 2), null, null, null,
+      const f = emitir([null, T(aceroDe(id).nombre, 2), null, null, null, null,
                         N(aceroDe(id).kgm, 14), N(g.varillas, 9),
-                        Fx(sumaDia('L', n), g.kg), null,
-                        Fx(sumaDia('J', n), g.cant, 9),
-                        Fx(sumaDia('K', n), g.ml),
-                        Fx(`H${n}*${numFx(k)}`, g.kg * k)]);
-      unir('B', 'E', f);
+                        Fx(sumaDia('M', n), g.kg), null,
+                        Fx(sumaDia('K', n), g.cant, 9),
+                        Fx(sumaDia('L', n), g.ml),
+                        Fx(`I${n}*${numFx(k)}`, g.kg * k)]);
+      unir('B', 'F', f);
     });
   r++;
 

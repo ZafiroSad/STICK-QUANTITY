@@ -14,7 +14,45 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.10.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.11.0 (Mampostería + Concreto de columnas + Acero)
+
+### Auditoría del .xlsx contra la cartilla real (2026-08-12)
+
+Se cotejó la hoja exportada contra `Downloads\CARTILLA HIERROS LOTE 23.xlsx` —la cartilla que el
+Señor Stick llena a mano, 9 hojas— abriéndola en Excel real. Sus columnas son
+`ELEMENTO · LONG · ESCUADRA · FIGURACION · DIM · P/UNIT · CANT · LONG TOTAL · P/TOTAL`.
+
+**Lo que ya cuadraba** (verificado fila por fila contra la suya, no supuesto):
+
+- Las longitudes de estribo y gancho: `DE 0.27x0.27` + doble gancho 0,08 → 1,24; `GANCHO C DE 0.37`
+  → 0,53; `DE 0.37x0.22` → 1,34. La app da exactamente esos números.
+- Las masas por metro, contra su hoja **DATOS BARRAS**.
+- **La forma de despiezar una viga confirma el modelo nuevo**: su hoja ENTREPISO lleva
+  `V.3-1 (.30x.50)` con doble escuadra y debajo su `ESTRIBO`, y la `V.G-1` con cuatro barras de
+  longitudes distintas. Un elemento, varias figuras: justo la tarjeta de hoy.
+
+**Cuatro defectos encontrados y corregidos:**
+
+1. **Faltaba la columna `kg/m`** — la `P/UNIT` de su cartilla, la única columna suya que la hoja no
+   tenía. Va donde ella la tiene, detrás del diámetro, y **no es decorativa**: el peso pasa de
+   `=K6*1.552` (número incrustado) a `=L6*G6`. La hoja ahora enseña de dónde sale el peso y se
+   puede auditar a mano. Corrió el mapa de columnas entero a 13 (A libre · B nº · C posición ·
+   D figura · E croquis · F Ø · **G kg/m** · H medidas · I L. unit · J reparto · K cant ·
+   L L. total · M peso) y con él todas las fórmulas, los SUMIF y las referencias del consolidado.
+2. **Faltaban los diámetros #14 y #18**, que sí están en su tabla DATOS BARRAS (11,380 y
+   20,240 kg/m). Sin ellos no se puede despiezar una zapata o un pilote.
+3. **La hoja se partía en 4 páginas al imprimir.** El `pageSetup` traía `fitToWidth="1"`, pero
+   **Excel lo ignora sin `<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>`**: mandaba el zoom al
+   100 % y las columnas de cantidad y peso caían en otra hoja de papel. Medido con `VPageBreaks`
+   y `Pages.Count` en Excel real: 4 páginas antes, 1 después. Se añadió también `fitToHeight="0"`
+   para que a lo alto corra lo que haga falta.
+4. **El nombre del elemento salía recortado por los dos lados** —«C-30 — columna esquina» se
+   imprimía «:-30 — columna esquin»—: la celda combinada B:C usaba el estilo centrado. Pasa al
+   estilo alineado a la izquierda y la columna C sube de 15 a 17 de ancho.
+
+**Verificado en Excel real y en PDF**: 3 hojas, 7 formas en la primera, `=L6*G6` dando 26,07 kg,
+una página por hoja, y la prueba de vida —subir una cantidad de 4 a 8 movió la fila (16,80 → 33,60),
+el subtotal (47,92 → 73,99), el total de la hoja (73,23 → 100,60) y el consolidado (94,52 → 121,90)—.
 
 ### La tarjeta pasa a ser el ELEMENTO, con barras de figuras distintas adentro (2026-08-12)
 
@@ -336,6 +374,14 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **El peso se calcula con la celda kg/m, no con el número incrustado (2026-08-12).** `=L·G` en vez
+  de `=L*1.552`. Su cartilla lleva esa columna (`P/UNIT`) porque revisa el peso a mano; una fórmula
+  con la masa escondida adentro no se puede auditar. Regla para columnas nuevas: **si un número
+  entra en una fórmula, que tenga su celda.**
+- **La cartilla del Señor Stick es el patrón de la hoja, no al revés (2026-08-12).** Cuando haya
+  duda sobre qué columna o qué formato debe llevar el `.xlsx`, se abre
+  `Downloads\CARTILLA HIERROS LOTE 23.xlsx` y se mira. Lo que la app añade sobre ella —el croquis
+  vectorial, las fórmulas vivas, el consolidado— es mejora deliberada; lo que le falta es defecto.
 - **La tarjeta es el ELEMENTO y cada barra lleva su figura (2026-08-12, pedido por el Señor
   Stick).** Sustituye a la decisión de esa misma mañana —tarjeta = una longitud de corte—, que él
   había escogido con maqueta. La razón del cambio es la de un plano: una viga no se lee por

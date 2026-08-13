@@ -192,8 +192,12 @@ el croquis de cada barra como **figura vectorial**, la columna `A` libre para ma
 cortado, y la marca de STICK QUANTITY en la esquina.
 
 **Una barra, una fila**, con su figura, su croquis, sus medidas y su longitud; cada elemento es un
-bloque de filas que cierra con su subtotal. El reparto de estribos aparece dos veces a propósito —
-en `REPARTO` como texto (`11 + 7 + 11`) y en `CANT` como la fórmula `=11+7+11`, que muestra `29`.
+bloque de filas que cierra con su subtotal. Las columnas siguen el orden de una cartilla de hierros
+de obra —posición, figura, croquis, Ø, kg/m, medidas, longitud unitaria, reparto, cantidad,
+longitud total y peso—, y cada hoja cabe en **una página horizontal** al imprimir.
+
+El reparto de estribos aparece dos veces a propósito — en `REPARTO` como texto (`11 + 7 + 11`) y en
+`CANT` como la fórmula `=11+7+11`, que muestra `29`.
 
 La hoja sale **viva**: los metrajes, los pesos, los subtotales, el resumen por diámetro y el
 consolidado son fórmulas. Corregir una cantidad dentro de Excel —o el propio reparto— recalcula
