@@ -557,6 +557,21 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
   `ceil` sobre el neto y no cuadraba con la suma visible de las filas.
 
 ## Pendientes y problemas conocidos
+
+- **MIGRACIÓN PENDIENTE A SUPABASE + VERCEL, CON LOGIN Y CAMBIO DE OBRA (decidido 2026-08-13).**
+  Es el pendiente de mayor calado del proyecto: la app pasa de un solo HTML sobre `localStorage` a
+  la misma arquitectura que el resto de la familia Stick. Hoy hay **un solo juego de datos por
+  navegador** —el despiece del LOTE 23 pisa al de la obra siguiente— y nada sobrevive a un cambio
+  de equipo. Lo que arrastra:
+  - **Cambio de obra** como concepto de primer nivel, por encima de las tandas: obra → tanda →
+    elemento → barra. Hoy la tanda es la raíz.
+  - **Login** y datos por usuario. Mirar antes cómo lo resolvieron STICK AROS (gestión de obras) y
+    STICK PROJECTS, en vez de inventar esquema.
+  - **Las tres claves de `localStorage`** (`stick-quantity-v1`, `-columnas-v1`, `-acero-v1`) pasan a
+    tablas; hay que decidir la migración de lo que el Señor Stick ya tenga guardado en el navegador.
+  - **Repensar si el repo sigue público.** La excepción se justificó porque no expone nada suyo:
+    todo vive en el navegador del visitante. Con backend y datos de obra reales, ese argumento cae.
+  - Decidir si sobrevive el `index.html` único o se pasa a React+Vite como las demás.
 - **El despiece no resuelve traslapos ni longitudes de desarrollo.** Cuando una pieza no sale de
   una varilla la app avisa, pero el traslapo lo define el Señor Stick según la NSR-10 C.12.
 - **No hay figura para barras dobladas en más de dos puntos** (zunchos en espiral, ganchos de
