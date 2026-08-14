@@ -216,6 +216,18 @@ Verificar siempre contra los planos estructurales.
 
 ---
 
+## Respaldo
+
+Todo lo que escribes vive en el navegador, y eso se pierde solo: al limpiar datos de navegación,
+al cambiar de equipo o al entrar desde otro navegador. En la barra de arriba hay dos botones:
+
+- **Disquete** — descarga un `.json` con **los tres capítulos**, no solo el que estés viendo.
+- **Flecha circular** — vuelve a cargar ese `.json`. Avisa qué entra y qué se reemplaza antes
+  de tocar nada.
+
+Un despiece de obra entero cabe en unos 40 KB. Conviene guardar un respaldo cada vez que metas
+trabajo nuevo.
+
 ## Uso
 
 Abrir `index.html` en cualquier navegador, o entrar al enlace de GitHub Pages. Los datos quedan

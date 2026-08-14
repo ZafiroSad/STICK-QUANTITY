@@ -14,7 +14,33 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.12.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.13.0 (Mampostería + Concreto de columnas + Acero)
+
+### Respaldo y restauración: lo escrito deja de vivir solo en el navegador (2026-08-13)
+
+Lo pidió el Señor Stick tras cargarle la cartilla del LOTE 23: «que no se borre jamás». Hasta hoy
+todo vivía únicamente en el `localStorage`, que se pierde al limpiar datos de navegación, al
+cambiar de equipo o al entrar desde otro navegador — y el propio botón «Vaciar tanda» lo borra.
+
+- **Dos botones en la topbar**: disquete (`#btnRespaldo`) descarga un `.json`; flecha circular
+  (`#btnRestaurar`) lo vuelve a cargar por un `<input type=file>` oculto.
+- **El respaldo se lleva los TRES capítulos** (`CLAVES_RESPALDO`), no el que esté a la vista:
+  respaldar solo el capítulo activo daría una falsa sensación de estar a salvo.
+- Formato: `{app, tipo, version, fecha, datos:{clave: contenido}}`. Al restaurar se comprueba
+  `app === 'STICK QUANTITY'` antes de tocar nada.
+- **Restaurar pisa lo que haya**, así que el `confirm` dice qué entra y qué se va, con
+  `resumirRespaldo()` — «8 tandas y 83 elementos de acero» dice más que «¿seguro?».
+- **Defecto visto en prueba, no supuesto:** la fecha salía de `toISOString()`, que es UTC — un
+  respaldo hecho a las 22:15 en Colombia se nombraba con la fecha del día siguiente. Ahora se
+  arma con `getFullYear/getMonth/getDate` locales.
+
+**Verificado el ciclo entero**, no por partes: sembrar los tres capítulos → pulsar respaldo →
+comprobar el archivo descargado (1.864 bytes, las tres claves) → `localStorage.clear()` →
+recargar (app vacía, 0 kg) → restaurar → **mismos 47,84 kg**. Y con el respaldo real de la
+cartilla del LOTE 23: **8 tandas, 240 barras y 16.762,46 kg**, idénticos.
+
+Copia del LOTE 23 fuera del navegador en `Downloads\cartilla-lote23-quantity\`
+(`despiece-lote23.json`, el `.xlsx` y un `LEEME.md`).
 
 ### El aviso de traslapo sale EN la hoja (2026-08-12)
 
@@ -393,6 +419,9 @@ conserva a propósito**: va en negativo sobre su tile oscuro en ambos temas.
 Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900), en ambos temas.
 
 ## Decisiones tomadas
+- **El respaldo se lleva los tres capítulos, nunca el capítulo activo (2026-08-13).** Un respaldo
+  parcial es peor que no tenerlo: se cree uno a salvo y no lo está. Mientras la app no tenga
+  cuenta y base de datos, ese `.json` es lo único que sobrevive a un cambio de equipo.
 - **Todo aviso que exista en pantalla tiene que existir en la hoja (2026-08-12).** La app la ve el
   Señor Stick; la hoja la ven el maestro y el ferretero. Un dato incompleto y mudo en el `.xlsx`
   —VARILLAS = 0 sin explicar por qué— es peor que no darlo. Regla para lo que venga: si la app

@@ -607,6 +607,20 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
       </button>
+      <!-- Respaldo: todo lo escrito vive en el navegador y ahí se puede perder.
+           Estos dos botones lo sacan a un archivo y lo devuelven. -->
+      <button class="btn-icon" id="btnRespaldo" title="Guardar respaldo de todo (.json)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+        </svg>
+      </button>
+      <button class="btn-icon" id="btnRestaurar" title="Restaurar desde un respaldo (.json)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/>
+        </svg>
+      </button>
+      <input type="file" id="inpRestaurar" accept=".json,application/json" style="display:none">
     </div>
   </div>
 </header>
@@ -1054,7 +1068,7 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
 
 </main>
 
-<footer class="foot">STICK QUANTITY · v1.12.0 · Familia Stick</footer>
+<footer class="foot">STICK QUANTITY · v1.13.0 · Familia Stick</footer>
 
 </div><!-- /.lienzo -->
 
@@ -3869,6 +3883,87 @@ $('btnTema').addEventListener('click', () => {
   const claro = document.documentElement.classList.toggle('light');
   try { localStorage.setItem('stick:tema', claro ? 'claro' : 'oscuro'); } catch (e) {}
   $('btnTema').title = claro ? 'Modo oscuro' : 'Modo claro';
+});
+
+/* ============================================================
+   RESPALDO Y RESTAURACIÓN
+   ------------------------------------------------------------
+   Todo lo que se escribe en esta app vive en el localStorage del
+   navegador, y eso se pierde solo: al limpiar datos de navegación,
+   al cambiar de equipo, al entrar desde otro navegador. Un despiece
+   de obra entero cabe en un archivo de 40 KB; poder sacarlo y
+   devolverlo es lo que lo hace duradero.
+
+   El respaldo se lleva los TRES capítulos, no el que esté a la
+   vista: mampostería, columnas y acero son claves distintas y
+   respaldar solo una daría una falsa sensación de estar a salvo.
+   ============================================================ */
+const CLAVES_RESPALDO = [CLAVE, CLAVE_COL, CLAVE_ACE];
+
+function respaldoJson(){
+  const datos = {};
+  CLAVES_RESPALDO.forEach(k => {
+    const raw = localStorage.getItem(k);
+    if (raw){ try { datos[k] = JSON.parse(raw); } catch(e){} }
+  });
+  /* Fecha LOCAL, no la de `toISOString()`: en Colombia (UTC−5) un respaldo
+     hecho a las 10 de la noche salía fechado al día siguiente. Se vio en prueba. */
+  const d = new Date();
+  const fecha = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-` +
+                `${String(d.getDate()).padStart(2, '0')}`;
+  return { app:'STICK QUANTITY', tipo:'respaldo', version:1, fecha, datos };
+}
+
+/* Cuenta lo que hay dentro, para poder decir en el aviso qué se guardó
+   o qué se va a reemplazar: «8 tandas · 83 elementos» dice más que «listo». */
+function resumirRespaldo(r){
+  const d = (r && r.datos) || {};
+  const p = [];
+  const m = d[CLAVE], c = d[CLAVE_COL], a = d[CLAVE_ACE];
+  if (m && Array.isArray(m.filas) && m.filas.length) p.push(`${m.filas.length} muro${m.filas.length === 1 ? '' : 's'}`);
+  if (c && Array.isArray(c.filas) && c.filas.length) p.push(`${c.filas.length} columna${c.filas.length === 1 ? '' : 's'}`);
+  if (a && Array.isArray(a.tandas)){
+    const el = a.tandas.reduce((s, t) => s + ((t.filas || []).length), 0);
+    if (el) p.push(`${a.tandas.length} tanda${a.tandas.length === 1 ? '' : 's'} y ${el} elemento${el === 1 ? '' : 's'} de acero`);
+  }
+  return p.join(' · ') || 'nada guardado todavía';
+}
+
+$('btnRespaldo').addEventListener('click', () => {
+  const r = respaldoJson();
+  const blob = new Blob([JSON.stringify(r, null, 1)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `stick-quantity-respaldo-${r.fecha}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`Respaldo guardado — ${resumirRespaldo(r)}`);
+});
+
+$('btnRestaurar').addEventListener('click', () => $('inpRestaurar').click());
+
+$('inpRestaurar').addEventListener('change', async e => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';                       // permite recargar el mismo archivo
+  if (!file) return;
+  let r;
+  try { r = JSON.parse(await file.text()); }
+  catch (err) { toast('Ese archivo no es un respaldo válido'); return; }
+  if (!r || r.app !== 'STICK QUANTITY' || !r.datos){
+    toast('Ese archivo no es un respaldo de STICK QUANTITY'); return;
+  }
+  /* Restaurar PISA lo que haya escrito. Se avisa con lo que hay y lo que
+     entra, porque perder un despiece a medio escribir no tiene vuelta. */
+  const actual = resumirRespaldo(respaldoJson());
+  if (!confirm(`Restaurar el respaldo del ${r.fecha || '—'}:\n\n` +
+               `  ENTRA:  ${resumirRespaldo(r)}\n` +
+               `  SE VA:  ${actual}\n\n` +
+               `Lo que tengas escrito ahora se reemplaza. ¿Seguir?`)) return;
+  CLAVES_RESPALDO.forEach(k => {
+    if (r.datos[k] !== undefined) localStorage.setItem(k, JSON.stringify(r.datos[k]));
+  });
+  location.reload();
 });
 </script>
 </body>
