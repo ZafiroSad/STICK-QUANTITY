@@ -3270,25 +3270,50 @@ const refHoja = n => `'${String(n).replace(/'/g, "''")}'`;
 /* Número con punto decimal: dentro de una fórmula la coma separa argumentos */
 const numFx = v => String(Math.round(v * 1e6) / 1e6);
 
-/* Índices de cellXfs escritos en styles.xml:
+/* Índices de cellXfs escritos en styles.xml.
+
+   Los estilos 15 en adelante son la REJA: la cartilla que el Señor Stick llena
+   a mano no es una lista de números sueltos, es una tabla con borde medio en
+   las cuatro caras de cada celda, cabecera gris D8D8D8 y las columnas que se
+   calculan solas en gris D9D9D9 —así, de un vistazo, se sabe qué se escribe y
+   qué sale solo—. Las unidades van en el FORMATO del número («0,00 m»,
+   «0,560 kg/m»), no en el título de la columna: la celda sigue siendo un
+   número con el que Excel opera, pero se lee con su unidad. Medido con
+   openpyxl sobre «CARTILLA HIERROS CUBIERTAS LOTE 23.xlsx», no supuesto.
+
    0 normal · 1 normal centrado · 2 negrita · 3 negrita centrada
-   4/5/6 título (izq/medio/der, borde medio) · 7 número 0.00 · 8 número 0.00 negrita
+   4/5/6 título (izq/medio/der, borde medio + gris) · 7 número 0.00 · 8 número 0.00 negrita
    9 entero · 10 entero negrita · 11 encabezado de columna · 12 pie gris · 13 negrita derecha
-   14 número 0.000 (masa por metro: 0,560 kg/m se pierde con dos decimales) */
+   14 número 0.000 (masa por metro: 0,560 kg/m se pierde con dos decimales)
+   —— en reja ——
+   15 texto izq · 16 texto centrado · 17 entero · 18 metros
+   19 kg/m (gris de calculada) · 20 metros calculados · 21 kg calculados
+   22 banda del elemento · 23 etiqueta de subtotal · 24 subtotal m · 25 subtotal kg
+   26 entero calculado · 27 texto negrita izq · 28 entero de subtotal */
 function estilosXlsx(){
   const fuente = () => `<name val="Century Gothic"/>`;
+  /* Borde medio en las cuatro caras: la reja de la cartilla */
+  const reja = 5;
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
   `<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">` +
-  `<numFmts count="1"><numFmt numFmtId="164" formatCode="0.000"/></numFmts>` +
+  `<numFmts count="4">` +
+    `<numFmt numFmtId="164" formatCode="0.000"/>` +
+    `<numFmt numFmtId="165" formatCode="0.00&quot; m&quot;"/>` +
+    `<numFmt numFmtId="166" formatCode="0.000&quot; kg/m&quot;"/>` +
+    `<numFmt numFmtId="167" formatCode="0.00&quot; kg&quot;"/>` +
+  `</numFmts>` +
   `<fonts count="4">` +
-    `<font><sz val="11"/><color rgb="FF15161B"/>${fuente()}</font>` +
-    `<font><b/><sz val="11"/><color rgb="FF15161B"/>${fuente()}</font>` +
-    `<font><b/><sz val="16"/><color rgb="FF15161B"/>${fuente()}</font>` +
+    `<font><sz val="10"/><color rgb="FF15161B"/>${fuente()}</font>` +
+    `<font><b/><sz val="10"/><color rgb="FF15161B"/>${fuente()}</font>` +
+    `<font><b/><sz val="14"/><color rgb="FF15161B"/>${fuente()}</font>` +
     `<font><sz val="9"/><color rgb="FF8C8C8C"/>${fuente()}</font>` +
   `</fonts>` +
-  `<fills count="2"><fill><patternFill patternType="none"/></fill>` +
-    `<fill><patternFill patternType="gray125"/></fill></fills>` +
-  `<borders count="5">` +
+  `<fills count="4"><fill><patternFill patternType="none"/></fill>` +
+    `<fill><patternFill patternType="gray125"/></fill>` +
+    `<fill><patternFill patternType="solid"><fgColor rgb="FFD8D8D8"/><bgColor indexed="64"/></patternFill></fill>` +
+    `<fill><patternFill patternType="solid"><fgColor rgb="FFD9D9D9"/><bgColor indexed="64"/></patternFill></fill>` +
+  `</fills>` +
+  `<borders count="6">` +
     `<border><left/><right/><top/><bottom/><diagonal/></border>` +
     `<border><left style="medium"><color rgb="FF000000"/></left><right/>` +
       `<top style="medium"><color rgb="FF000000"/></top><bottom style="medium"><color rgb="FF000000"/></bottom><diagonal/></border>` +
@@ -3297,31 +3322,54 @@ function estilosXlsx(){
     `<border><left/><right style="medium"><color rgb="FF000000"/></right>` +
       `<top style="medium"><color rgb="FF000000"/></top><bottom style="medium"><color rgb="FF000000"/></bottom><diagonal/></border>` +
     `<border><left/><right/><top/><bottom style="thin"><color rgb="FF9A9A9A"/></bottom><diagonal/></border>` +
+    `<border><left style="medium"><color rgb="FF000000"/></left><right style="medium"><color rgb="FF000000"/></right>` +
+      `<top style="medium"><color rgb="FF000000"/></top><bottom style="medium"><color rgb="FF000000"/></bottom><diagonal/></border>` +
   `</borders>` +
   `<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>` +
   /* Todo va centrado en vertical: la fila de datos mide 38 pt para que quepa el
      croquis, y con la alineación de fábrica —abajo— el texto quedaba medio
      renglón por debajo de su propia figura. Verificado abriendo la hoja. */
-  `<cellXfs count="15">` +
+  `<cellXfs count="29">` +
     `<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>` +
     `<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
     `<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>` +
     `<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
-    `<xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
-    `<xf numFmtId="0" fontId="2" fillId="0" borderId="2" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
-    `<xf numFmtId="0" fontId="2" fillId="0" borderId="3" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="2" fillId="2" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="2" fillId="2" borderId="3" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
     `<xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
     `<xf numFmtId="2" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
     `<xf numFmtId="1" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
     `<xf numFmtId="1" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
-    `<xf numFmtId="0" fontId="1" fillId="0" borderId="4" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>` +
+    `<xf numFmtId="0" fontId="1" fillId="2" borderId="${reja}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>` +
     `<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>` +
     `<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>` +
     `<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    /* 15-21 · la fila de datos, dentro de la reja */
+    `<xf numFmtId="0" fontId="0" fillId="0" borderId="${reja}" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>` +
+    `<xf numFmtId="0" fontId="0" fillId="0" borderId="${reja}" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>` +
+    `<xf numFmtId="1" fontId="0" fillId="0" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="165" fontId="0" fillId="0" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="166" fontId="0" fillId="3" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="165" fontId="0" fillId="3" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="167" fontId="0" fillId="3" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    /* 22-28 · banda del elemento, subtotales y resumen */
+    `<xf numFmtId="0" fontId="1" fillId="2" borderId="${reja}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="1" fillId="2" borderId="${reja}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>` +
+    `<xf numFmtId="165" fontId="1" fillId="3" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="167" fontId="1" fillId="3" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="1" fontId="0" fillId="3" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
+    `<xf numFmtId="0" fontId="1" fillId="0" borderId="${reja}" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>` +
+    `<xf numFmtId="1" fontId="1" fillId="3" borderId="${reja}" xfId="0" applyFont="1" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>` +
   `</cellXfs>` +
   `<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>` +
   `</styleSheet>`;
 }
+
+/* Nombres de los estilos de la reja, para no escribir números sueltos abajo */
+const S = { txt:15, cen:16, int:17, m:18, kgm:19, mCal:20, kgCal:21,
+            banda:22, subLbl:23, subM:24, subKg:25, intCal:26, txtNeg:27, subInt:28,
+            cab:11, pie:12 };
 
 /* Columnas de la hoja, en el mismo orden que el Excel de referencia:
    A queda libre para marcar con «x» lo que ya se cortó.
@@ -3342,9 +3390,15 @@ function estilosXlsx(){
    —«0,20 + 0,40 + 0,20 + 0,40 + 0,10 + 0,10 m»— y cortado no sirve de nada. */
 /* La C (POSICIÓN) va a 17 y no a 15: con B suman los 22 caracteres que necesita
    el nombre del elemento, que se escribe combinado en B:C */
-const ANCHOS_ACE = [4.5, 5, 17, 17, 24, 13, 10, 38, 11, 12, 8, 12, 11];
-const LBL_ACE = ['FIGURA', 'CROQUIS', 'Ø', 'kg/m', 'MEDIDAS', 'L. UNIT (m)',
-                 'REPARTO', 'CANT', 'L. TOTAL (m)', 'PESO (kg)'];
+/* kg/m pasa de 10 a 13: con la unidad dentro del número —«0,560 kg/m»— a 10 de
+   ancho Excel imprimía `#######`. Se vio en el PDF de la hoja COLUMNAS, no se
+   supuso. Los 3 de más se los cede MEDIDAS, que iba sobrada. */
+const ANCHOS_ACE = [4.5, 5, 17, 17, 24, 13, 13, 35, 11, 12, 8, 12, 12];
+/* Las unidades ya no van en el título: viajan en el formato del número
+   —«5,52 m», «0,560 kg/m», «26,07 kg»—, igual que en la cartilla del Señor
+   Stick. Así la celda sigue siendo un número con el que Excel opera. */
+const LBL_ACE = ['FIGURA', 'CROQUIS', 'Ø', 'kg/m', 'MEDIDAS', 'L. UNIT',
+                 'REPARTO', 'CANT', 'L. TOTAL', 'PESO'];
 
 /* Geometría del croquis en el .xlsx. Medidas del hueco donde cabe la figura,
    en EMU (1 pt = 12700 EMU): ancho de la columna E menos un margen, alto de
@@ -3451,6 +3505,15 @@ function hojaAceroXml(tanda, indice){
   unir('B', 'M', filaSub);
   vacia();
 
+  /* Cabecera de columnas UNA sola vez, arriba de todo. Antes se repetía en cada
+     elemento —con 83 elementos eran 83 renglones de títulos— y la hoja se leía
+     como una pila de tablitas sueltas en vez de una cartilla. Se queda fija al
+     desplazar (panel inmovilizado) y se reimprime en cada página, así que sigue
+     estando a la vista sin ocupar sitio. La fila se guarda porque el `pane` y
+     el `Print_Titles` la nombran. */
+  const filaCab = emitir([null, T('Nº', S.cab), T('POSICIÓN', S.cab),
+                          ...LBL_ACE.map(l => T(l, S.cab))], 28);
+
   // ── Bloques por elemento, en el orden en que se registraron ──
   const grupos = [];
   tanda.filas.forEach((f, i) => {
@@ -3461,11 +3524,12 @@ function hojaAceroXml(tanda, indice){
   });
 
   grupos.forEach(g => {
-    /* El nombre del elemento va a la IZQUIERDA (estilo 2), no centrado: centrado
-       lo recortaba por los dos lados y «C-30 — columna esquina» salía impreso
-       como «:-30 — columna esquin». Se vio en el PDF, no se supuso. */
-    const fh = emitir([null, T(g.nom, 2), T('', 11), ...LBL_ACE.map(l => T(l, 11))], 28);
-    unir('B', 'C', fh);
+    /* El elemento abre con una BANDA gris de lado a lado, como la fila del nivel
+       en la cartilla («CUBIERTA N+3.98» combinada de B a J). El nombre va a la
+       IZQUIERDA, no centrado: centrado lo recortaba por los dos lados y
+       «C-30 — columna esquina» salía impreso «:-30 — columna esquin». */
+    const fh = emitir([null, T(g.nom, S.banda), ...Array(11).fill(T('', S.banda))], 20);
+    unir('B', 'M', fh);
     let mlG = 0, kgG = 0, r1 = 0, r2 = 0, nb = 0;
     const traslapos = [];             // barras que no salen de una varilla entera
     g.filas.forEach(f => {
@@ -3480,23 +3544,23 @@ function hojaAceroXml(tanda, indice){
         nb++;
         const fd = emitir([
           null,
-          N(nb, 9),
-          T(x.b.det || '—'),
-          T(nombreFig(x.b), 1),
-          T('', 1),                          // hueco del croquis: lo ocupa la figura
-          T(x.ac.nombre, 1),
-          N(x.ac.kgm, 14),                   // P/UNIT, como en su cartilla
-          T(medidasAce(x.b)),
-          N(x.lu),
-          T(esSuma(x.b.cant) ? x.b.cant.replace(/\+/g, ' + ') : '', 1),
+          N(nb, S.int),
+          T(x.b.det || '—', S.txt),
+          T(nombreFig(x.b), S.cen),
+          T('', S.cen),                      // hueco del croquis: lo ocupa la figura
+          T(x.ac.nombre, S.cen),
+          N(x.ac.kgm, S.kgm),                // P/UNIT, como en su cartilla
+          T(medidasAce(x.b), S.txt),
+          N(x.lu, S.m),
+          T(esSuma(x.b.cant) ? x.b.cant.replace(/\+/g, ' + ') : '', S.cen),
           /* La hoja queda VIVA: la cantidad conserva la suma escrita —«11+7+11»—
              como fórmula, así que se ve el 29 y se puede corregir el reparto.
              Sin suma se escribe el número pelado: un «=2» no aporta nada. */
           esSuma(x.b.cant)
-            ? Fx(String(x.b.cant).split('+').map(v => numFx(Math.max(0, num(v)))).join('+'), x.cant, 9)
-            : N(x.cant, 9),
-          Fx(`I${n}*K${n}`, x.lTot),
-          Fx(`L${n}*G${n}`, x.peso),         // el peso sale de la celda kg/m, no de un literal
+            ? Fx(String(x.b.cant).split('+').map(v => numFx(Math.max(0, num(v)))).join('+'), x.cant, S.int)
+            : N(x.cant, S.int),
+          Fx(`I${n}*K${n}`, x.lTot, S.mCal),
+          Fx(`L${n}*G${n}`, x.peso, S.kgCal), // el peso sale de la celda kg/m, no de un literal
         ], CROQ_ALTO_FILA);
         if (!r1) r1 = fd;
         r2 = fd;
@@ -3507,9 +3571,11 @@ function hojaAceroXml(tanda, indice){
         if (sp){ dibujos.push(sp); idForma++; }
       });
     });
-    emitir([null, null, null, null, null, null, null, null, null,
-            T('Subtotal', 13), null,
-            Fx(`SUM(L${r1}:L${r2})`, mlG, 8), Fx(`SUM(M${r1}:M${r2})`, kgG, 8)]);
+    /* El subtotal cierra el bloque sin salirse de la reja: la etiqueta pisa las
+       columnas de texto y los dos números caen justo debajo de L. TOTAL y PESO. */
+    const fsub = emitir([null, T('SUBTOTAL', S.subLbl), ...Array(9).fill(T('', S.subLbl)),
+            Fx(`SUM(L${r1}:L${r2})`, mlG, S.subM), Fx(`SUM(M${r1}:M${r2})`, kgG, S.subKg)]);
+    unir('B', 'K', fsub);
     /* El aviso de traslapo tiene que salir EN LA HOJA. En pantalla la app avisa,
        pero la hoja es la que va a la obra y a la ferretería, y allí una pieza que
        no sale de una varilla aparecía como cualquier otra —y con 0 varillas en el
@@ -3527,10 +3593,15 @@ function hojaAceroXml(tanda, indice){
   // ── Resumen por diámetro ──
   /* Las tres últimas columnas del resumen caen justo debajo de CANT, L. TOTAL y
      PESO del detalle: así la hoja se lee de arriba abajo sin cambiar de carril. */
-  const fr = emitir([null, T('RESUMEN POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11), T('', 11),
-                     T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11),
-                     T('PIEZAS', 11), T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
+  const fr = emitir([null, T('RESUMEN POR DIÁMETRO', S.cab), T('', S.cab), T('', S.cab),
+                     T('', S.cab), T('', S.cab),
+                     T('kg/m', S.cab), T('VARILLAS', S.cab), T('PESO NETO', S.cab), T('', S.cab),
+                     T('PIEZAS', S.cab), T('L. TOTAL', S.cab), T('A PEDIR', S.cab)], 28);
   unir('B', 'F', fr);
+  /* La J es REPARTO en el detalle; aquí no pinta nada y dejaba un hueco en mitad
+     de la tabla. Se la come PESO NETO. Solo K, L y M tienen que seguir el mismo
+     carril que el detalle de arriba. */
+  unir('I', 'J', fr);
   const dias = [...t.porDia.entries()].filter(([, g]) => g.kg > 0)
     .sort((x, y) => aceroDe(x[0]).mm - aceroDe(y[0]).mm);
   /* SUMIF sobre la columna del diámetro: barre TODAS las filas de datos, que no
@@ -3543,22 +3614,26 @@ function hojaAceroXml(tanda, indice){
   const filaDias = [];
   dias.forEach(([id, g]) => {
     const n = r + 1;
-    const fd = emitir([null, T(aceroDe(id).nombre, 2), null, null, null, null,
-                       N(aceroDe(id).kgm, 14), N(g.varillas, 9),
-                       Fx(suma('M', n), g.kg), null,
-                       Fx(suma('K', n), g.cant, 9),
-                       Fx(suma('L', n), g.ml),
-                       Fx(`I${n}*${kFx}`, g.kg * t.k)]);
+    const fd = emitir([null, T(aceroDe(id).nombre, S.txtNeg), T('', S.txtNeg), T('', S.txtNeg),
+                       T('', S.txtNeg), T('', S.txtNeg),
+                       N(aceroDe(id).kgm, S.kgm), N(g.varillas, S.intCal),
+                       Fx(suma('M', n), g.kg, S.kgCal), T('', S.kgCal),
+                       Fx(suma('K', n), g.cant, S.intCal),
+                       Fx(suma('L', n), g.ml, S.mCal),
+                       Fx(`I${n}*${kFx}`, g.kg * t.k, S.kgCal)]);
     unir('B', 'F', fd);
+    unir('I', 'J', fd);
     filaDias.push(fd);
   });
   const rd = filaDias.length ? [filaDias[0], filaDias[filaDias.length - 1]] : null;
   const tot = (col, v, s) => rd ? Fx(`SUM(${col}${rd[0]}:${col}${rd[1]})`, v, s) : N(v, s);
-  const filaTot = emitir([null, T('TOTAL', 2), null, null, null, null, null,
-                          tot('H', t.varillas, 10), tot('I', t.peso, 8), null,
-                          tot('K', t.cant, 10), tot('L', t.lTot, 8),
-                          tot('M', t.pesoPedir, 8)]);
-  unir('B', 'F', filaTot);
+  const filaTot = emitir([null, T('TOTAL', S.subLbl), ...Array(5).fill(T('', S.subLbl)),
+                          tot('H', t.varillas, S.subInt), tot('I', t.peso, S.subKg),
+                          T('', S.subKg),
+                          tot('K', t.cant, S.subInt), tot('L', t.lTot, S.subM),
+                          tot('M', t.pesoPedir, S.subKg)]);
+  unir('B', 'G', filaTot);
+  unir('I', 'J', filaTot);
   vacia();
 
   /* Si algo hay que traslapar, se dice ANTES del resto de notas: el conteo de
@@ -3574,13 +3649,19 @@ function hojaAceroXml(tanda, indice){
   emitir([null, T('La columna A queda libre para marcar con «x» lo que ya se cortó o se armó.', 12)]);
 
   /* La hoja de consolidado apunta a estas filas con fórmulas entre hojas */
-  return { xml: envolverHoja(filas, merges), dibujos, datIni, datFin, filaTot };
+  return { xml: envolverHoja(filas, merges, filaCab), dibujos, datIni, datFin, filaTot, filaCab };
 }
 
-/* Envoltura común de una hoja: mismas columnas, sin rejilla y con su dibujo. */
-function envolverHoja(filas, merges){
+/* Envoltura común de una hoja: mismas columnas, sin rejilla y con su dibujo.
+   `congelar` es la fila de la cabecera: se inmoviliza justo debajo, para que al
+   bajar por ochenta elementos se siga sabiendo qué columna es cuál. */
+function envolverHoja(filas, merges, congelar){
   const cols = ANCHOS_ACE.map((w, i) =>
     `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('');
+  const panel = congelar
+    ? `<pane ySplit="${congelar}" topLeftCell="A${congelar + 1}" activePane="bottomLeft" state="frozen"/>` +
+      `<selection pane="bottomLeft" activeCell="A${congelar + 1}" sqref="A${congelar + 1}"/>`
+    : '';
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
     `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ` +
     `xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">` +
@@ -3589,7 +3670,7 @@ function envolverHoja(filas, merges){
        peso caían en otra hoja de papel—. Se vio midiendo VPageBreaks en Excel
        real: 4 páginas. `fitToHeight="0"` deja correr lo alto que haga falta. */
     `<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>` +
-    `<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>` +
+    `<sheetViews><sheetView showGridLines="0" workbookViewId="0">${panel}</sheetView></sheetViews>` +
     `<sheetFormatPr defaultRowHeight="15"/>` +
     `<cols>${cols}</cols>` +
     `<sheetData>${filas.join('')}</sheetData>` +
@@ -3624,10 +3705,11 @@ function hojaConsolidadoXml(refs){
   unir('B', 'M', fS);
   r++;
 
-  const fh = emitir([null, T('POR TANDA', 3), T('', 11), T('', 11), T('', 11), T('', 11), T('', 11),
-                     T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11), T('PIEZAS', 11),
-                     T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
+  const fh = emitir([null, T('POR TANDA', S.cab), ...Array(5).fill(T('', S.cab)),
+                     T('VARILLAS', S.cab), T('PESO NETO', S.cab), T('', S.cab), T('PIEZAS', S.cab),
+                     T('L. TOTAL', S.cab), T('A PEDIR', S.cab)], 28);
   unir('B', 'G', fh);
+  unir('I', 'J', fh);
 
   /* Todo apunta a las hojas de cada tanda: si allá se corrige una cantidad,
      el consolidado se corrige solo. Sumar dos hojas a mano era justo lo que
@@ -3643,26 +3725,31 @@ function hojaConsolidadoXml(refs){
       g.ml += v.ml; g.kg += v.kg; g.cant += v.cant; g.varillas += v.varillas;
       global.set(kk, g);
     });
-    const fd = emitir([null, T(nombreTanda(ta, i), 2), null, null, null, null, null,
-      Fx(`${H}!H${rf.filaTot}`, t.varillas, 9), Fx(`${H}!I${rf.filaTot}`, t.peso), null,
-      Fx(`${H}!K${rf.filaTot}`, t.cant, 9),     Fx(`${H}!L${rf.filaTot}`, t.lTot),
-      Fx(`${H}!M${rf.filaTot}`, t.pesoPedir)]);
+    const fd = emitir([null, T(nombreTanda(ta, i), S.txtNeg), ...Array(5).fill(T('', S.txtNeg)),
+      Fx(`${H}!H${rf.filaTot}`, t.varillas, S.intCal), Fx(`${H}!I${rf.filaTot}`, t.peso, S.kgCal),
+      T('', S.kgCal),
+      Fx(`${H}!K${rf.filaTot}`, t.cant, S.intCal),     Fx(`${H}!L${rf.filaTot}`, t.lTot, S.mCal),
+      Fx(`${H}!M${rf.filaTot}`, t.pesoPedir, S.kgCal)]);
     unir('B', 'G', fd);
+    unir('I', 'J', fd);
     filasTanda.push(fd);
   });
   const k = 1 + num(estadoAce.desperdicio) / 100;
   const r1 = filasTanda[0], r2 = filasTanda[filasTanda.length - 1];
   const sumaCol = (col, v, s) => Fx(`SUM(${col}${r1}:${col}${r2})`, v, s);
-  const fTot = emitir([null, T('TOTAL', 2), null, null, null, null, null,
-    sumaCol('H', gVar, 10), sumaCol('I', gPeso, 8), null, sumaCol('K', gCant, 10),
-    sumaCol('L', gLt, 8), sumaCol('M', gPeso * k, 8)]);
+  const fTot = emitir([null, T('TOTAL', S.subLbl), ...Array(5).fill(T('', S.subLbl)),
+    sumaCol('H', gVar, S.subInt), sumaCol('I', gPeso, S.subKg), T('', S.subKg),
+    sumaCol('K', gCant, S.subInt),
+    sumaCol('L', gLt, S.subM), sumaCol('M', gPeso * k, S.subKg)]);
   unir('B', 'G', fTot);
+  unir('I', 'J', fTot);
   r++;
 
-  const fd2 = emitir([null, T('POR DIÁMETRO', 3), T('', 11), T('', 11), T('', 11), T('', 11),
-                      T('kg/m', 11), T('VARILLAS', 11), T('PESO NETO (kg)', 11), T('', 11),
-                      T('PIEZAS', 11), T('L. TOTAL (m)', 11), T('A PEDIR (kg)', 11)], 28);
+  const fd2 = emitir([null, T('POR DIÁMETRO', S.cab), ...Array(4).fill(T('', S.cab)),
+                      T('kg/m', S.cab), T('VARILLAS', S.cab), T('PESO NETO', S.cab), T('', S.cab),
+                      T('PIEZAS', S.cab), T('L. TOTAL', S.cab), T('A PEDIR', S.cab)], 28);
   unir('B', 'F', fd2);
+  unir('I', 'J', fd2);
   /* Un SUMIF por hoja, sumados: no hay forma de barrer varias hojas de un golpe */
   const sumaDia = (col, fila) => refs.filter(rf => rf.datIni).map(rf => {
     const H = refHoja(rf.nombre);
@@ -3673,13 +3760,14 @@ function hojaConsolidadoXml(refs){
     .sort((x, y) => aceroDe(x[0]).mm - aceroDe(y[0]).mm)
     .forEach(([id, g]) => {
       const n = r + 1;
-      const f = emitir([null, T(aceroDe(id).nombre, 2), null, null, null, null,
-                        N(aceroDe(id).kgm, 14), N(g.varillas, 9),
-                        Fx(sumaDia('M', n), g.kg), null,
-                        Fx(sumaDia('K', n), g.cant, 9),
-                        Fx(sumaDia('L', n), g.ml),
-                        Fx(`I${n}*${numFx(k)}`, g.kg * k)]);
+      const f = emitir([null, T(aceroDe(id).nombre, S.txtNeg), ...Array(4).fill(T('', S.txtNeg)),
+                        N(aceroDe(id).kgm, S.kgm), N(g.varillas, S.intCal),
+                        Fx(sumaDia('M', n), g.kg, S.kgCal), T('', S.kgCal),
+                        Fx(sumaDia('K', n), g.cant, S.intCal),
+                        Fx(sumaDia('L', n), g.ml, S.mCal),
+                        Fx(`I${n}*${numFx(k)}`, g.kg * k, S.kgCal)]);
       unir('B', 'F', f);
+      unir('I', 'J', f);
     });
   r++;
 
@@ -3711,7 +3799,7 @@ function libroAceroXlsx(){
     const h = hojaAceroXml(ta, i);
     return { nombre: nombreHojaXlsx(nombreTanda(ta, i).toUpperCase(), usados),
              xml: h.xml, dibujos: h.dibujos,
-             datIni: h.datIni, datFin: h.datFin, filaTot: h.filaTot };
+             datIni: h.datIni, datFin: h.datFin, filaTot: h.filaTot, filaCab: h.filaCab };
   });
   if (estadoAce.tandas.length > 1){
     hojas.push({ nombre: nombreHojaXlsx('CONSOLIDADO', usados),
@@ -3748,10 +3836,16 @@ function libroAceroXlsx(){
       `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
       `<Relationship Id="rId1" Type="${rels}/officeDocument" Target="xl/workbook.xml"/>` +
       `</Relationships>`) },
+    /* `Print_Titles` reimprime la fila de cabecera en cada página. Sin esto, la
+       segunda hoja de papel de una tanda larga sale con las columnas mudas. */
     { nombre:'xl/workbook.xml', datos: bytesUtf8(cab +
       `<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${rels}"><sheets>` +
       hojas.map((h, i) => `<sheet name="${xmlEsc(h.nombre)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('') +
-      `</sheets></workbook>`) },
+      `</sheets><definedNames>` +
+      hojas.map((h, i) => h.filaCab
+        ? `<definedName name="_xlnm.Print_Titles" localSheetId="${i}">` +
+          `${xmlEsc(refHoja(h.nombre))}!$${h.filaCab}:$${h.filaCab}</definedName>` : '').join('') +
+      `</definedNames></workbook>`) },
     { nombre:'xl/_rels/workbook.xml.rels', datos: bytesUtf8(cab +
       `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
       hojas.map((h, i) => `<Relationship Id="rId${i + 1}" Type="${rels}/worksheet" ` +

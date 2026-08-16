@@ -14,7 +14,47 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.13.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.14.0 (Mampostería + Concreto de columnas + Acero)
+
+### La hoja exportada se viste como la cartilla real (2026-08-16)
+
+La auditoría del 12 de agosto arregló **qué** dice la hoja; esta pasada arregla **cómo se ve**. El
+patrón vuelve a ser el mismo: `CARTILLA HIERROS CUBIERTAS LOTE 23.xlsx` —la que el Señor Stick
+acaba de corregir en Drive—, medida con `openpyxl` celda a celda para no suponer nada. Lo que su
+cartilla tiene y la exportación no tenía: **reja de borde medio en las cuatro caras**, cabecera
+gris `D8D8D8`, las columnas que se calculan solas en gris `D9D9D9`, Century Gothic **10** (no 11)
+y las **unidades dentro del formato del número** (`0.00" m"`, `0.000" kg/m"`, `0.00" kg"`).
+
+- **Estilos 15 a 28 en `styles.xml`**, todos con la reja: texto, entero, metros, kg/m, calculadas,
+  banda de elemento, subtotales. Los 0-14 conservan su significado, así que nada de lo anterior se
+  renumeró. Se añadieron dos rellenos, un borde y tres formatos numéricos.
+- **El gris no es decoración: dice quién escribe qué.** Gris `D9D9D9` = la celda sale sola
+  (kg/m, L. TOTAL, PESO, todos los SUMIF); fondo blanco = se escribe a mano. Es la misma
+  convención de su cartilla.
+- **Cabecera de columnas UNA vez, arriba.** Antes se repetía en cada elemento: con los 83
+  elementos del LOTE 23 eran 83 renglones de títulos y la hoja se leía como una pila de tablitas.
+  Ahora la fila queda **inmovilizada** (`<pane ySplit>`) y se **reimprime en cada página**
+  (`_xlnm.Print_Titles`), así que sigue a la vista sin ocupar sitio.
+- **El elemento abre con una banda gris de lado a lado** (B:M combinadas), como la fila del nivel
+  en su cartilla, y cierra con un **SUBTOTAL** dentro de la reja, con la etiqueta combinada B:K y
+  los dos números bajo L. TOTAL y PESO.
+- **Las unidades salen de los títulos** —`L. TOTAL (m)` pasa a `L. TOTAL`— porque ya viajan en el
+  número. La celda sigue siendo un número con el que Excel opera.
+
+**Dos defectos vistos EN EL PDF, no supuestos:**
+
+1. **`#######` en la columna kg/m.** Con la unidad dentro del número, «0,560 kg/m» no cabía en 10
+   de ancho. Pasa a 13 (y PESO de 11 a 12); los 3 se los cede MEDIDAS, que iba sobrada.
+2. **Un hueco en mitad de los resúmenes.** La columna J es REPARTO en el detalle, pero en el
+   resumen por diámetro y en el consolidado no lleva nada y partía la tabla en dos. Se la come
+   PESO NETO (`I:J` combinadas). Solo K, L y M tienen que seguir el carril del detalle.
+
+**Verificado exportando la cartilla real del LOTE 23**, no un caso de juguete: 8 tandas, 240
+barras, 9 hojas, 60 formas en COLUMNAS. Abierto en **Excel real con los avisos ENCENDIDOS** (si
+hubiera reparación, el diálogo habría colgado el proceso — no colgó), `=L7*G7` dando 176,00 kg,
+total del consolidado **16.762,45 kg** netos / 17.600,57 a pedir —los mismos del respaldo—, una
+sola página de ancho, y las dos hojas exportadas a PDF y miradas. Copia en
+`Downloads\excel-cartilla-quantity\` con las dos vistas previas.
 
 ### Respaldo y restauración: lo escrito deja de vivir solo en el navegador (2026-08-13)
 
@@ -430,9 +470,17 @@ Verificado en vivo con Chrome headless sobre la app servida por HTTP (1280×900)
   de `=L*1.552`. Su cartilla lleva esa columna (`P/UNIT`) porque revisa el peso a mano; una fórmula
   con la masa escondida adentro no se puede auditar. Regla para columnas nuevas: **si un número
   entra en una fórmula, que tenga su celda.**
+- **El gris de una celda dice quién la escribe (2026-08-16).** Relleno `D9D9D9` = la calcula la
+  hoja; fondo blanco = se escribe a mano; `D8D8D8` = cabecera o total. Es la convención de su
+  cartilla y a partir de hoy la de cualquier columna nueva: **una celda calculada nunca sale en
+  blanco**, porque en obra se corrige encima y se rompe la fórmula sin darse cuenta.
+- **La cabecera de columnas va una sola vez, arriba, inmovilizada y reimpresa (2026-08-16).**
+  Repetirla por elemento parecía útil con tres elementos y era ilegible con ochenta. Lo que
+  sustituye la repetición es el panel inmovilizado en pantalla y `Print_Titles` en papel.
 - **La cartilla del Señor Stick es el patrón de la hoja, no al revés (2026-08-12).** Cuando haya
   duda sobre qué columna o qué formato debe llevar el `.xlsx`, se abre
-  `Downloads\CARTILLA HIERROS LOTE 23.xlsx` y se mira. Lo que la app añade sobre ella —el croquis
+  `CARTILLA HIERROS CUBIERTAS LOTE 23.xlsx` (Drive, `STICK AROS - Lote 23 … \Documentos\Otros\`;
+  la copia vieja está en `Downloads\cartilla-dli-lote23\datos\`) y se mira. Lo que la app añade sobre ella —el croquis
   vectorial, las fórmulas vivas, el consolidado— es mejora deliberada; lo que le falta es defecto.
 - **La tarjeta es el ELEMENTO y cada barra lleva su figura (2026-08-12, pedido por el Señor
   Stick).** Sustituye a la decisión de esa misma mañana —tarjeta = una longitud de corte—, que él
