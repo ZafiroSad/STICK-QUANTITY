@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#15161b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -47,6 +47,14 @@
   --ease:cubic-bezier(.16,1,.3,1);      /* = --salida */
   --suave:cubic-bezier(.4,0,.2,1);
   --resorte:cubic-bezier(.34,1.56,.64,1);
+  /* Presupuesto de duracion por gesto (STICK_UI_SYSTEM.md §2.9) — toda
+     animacion de UI vive bajo 300ms; esto le pone NUMEROS a cada gesto
+     para que un hover no dure lo mismo que un panel. */
+  --t-toque:140ms; --t-hover:180ms; --t-menu:220ms; --t-panel:300ms; --t-lienzo:420ms;
+  /* Resplandor de signo — el mismo lenguaje que .gain/.loss (§2.1). */
+  --glow-gain:0 0 6px rgba(52,211,153,.55);
+  --glow-loss:0 0 6px rgba(251,113,133,.5);
+  --glow-amber:0 0 6px rgba(251,191,36,.5);
 
   /* Vidrio liquido */
   --v-fondo:linear-gradient(148deg,rgba(255,255,255,.085) 0%,rgba(255,255,255,.028) 44%,rgba(255,255,255,.055) 100%);
@@ -85,6 +93,9 @@ html.light{
   --v-sombra:0 18px 46px -24px rgba(21,22,27,.30);
   --linea:rgba(21,22,27,.10); --linea-fuerte:rgba(21,22,27,.24);
 
+  --glow-gain:0 0 5px rgba(5,150,105,.3);
+  --glow-loss:0 0 5px rgba(225,29,72,.28);
+  --glow-amber:0 0 5px rgba(180,120,10,.32);
   --masa-1:hsl(214 42% 62% / .20); --masa-2:hsl(32 56% 64% / .17);
   --masa-3:hsl(28 34% 58% / .14);  --masa-4:hsl(196 40% 60% / .14);
   --masa-op:.70; --grano-op:.030;
@@ -128,12 +139,15 @@ html.light .campo{background:radial-gradient(130% 85% at 50% -12%,rgba(21,22,27,
   border:1px solid var(--v-borde);box-shadow:var(--v-filo),var(--v-sombra)}
 
 /* ── Toggle de modo claro (obligatorio, §10) ── */
-.btn-tema{width:32px;height:32px;border-radius:999px;background:var(--v-fondo);
+/* Boton-icono canonico de la familia (STICK_UI_SYSTEM.md §4.3): 40px de
+   diametro en tactil — el minimo comodo para un objetivo aislado — y 36px
+   en escritorio desde 640px. A 32px el dedo fallaba el blanco. */
+.btn-tema{width:40px;height:40px;border-radius:999px;background:var(--v-fondo);
   backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
   border:1px solid var(--v-borde);box-shadow:var(--v-filo);
   color:var(--zinc-500);display:flex;align-items:center;justify-content:center;cursor:pointer;
   transition:color .3s var(--suave),border-color .3s var(--suave),transform .35s var(--resorte)}
-.btn-tema:hover{color:var(--tinta);border-color:var(--linea-fuerte);transform:translateY(-2px)}
+
 .btn-tema:active{transform:scale(.95)}
 .btn-tema .luna{display:none}
 html.light .btn-tema .sol{display:none}
@@ -167,9 +181,8 @@ button,input,select,textarea{font-family:inherit}
   box-shadow:var(--v-filo),var(--v-sombra);
   transition:border-color .45s var(--ease),box-shadow .45s var(--ease),transform .45s var(--ease);
 }
-.card.hoverable:hover{border-color:var(--linea-fuerte);
-  box-shadow:var(--v-filo),0 30px 70px -28px rgba(0,0,0,.92);transform:translateY(-3px)}
-html.light .card.hoverable:hover{box-shadow:var(--v-filo),0 26px 56px -26px rgba(21,22,27,.34)}
+
+
 
 /* ── Texto ── */
 .h1{font-size:26px;font-weight:700;letter-spacing:-.02em;color:var(--tinta)}
@@ -189,7 +202,7 @@ html.light .card.hoverable:hover{box-shadow:var(--v-filo),0 26px 56px -26px rgba
   transition:transform .35s var(--resorte),background .2s var(--suave),box-shadow .35s var(--suave);
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
 }
-.btn-primary:hover{background:var(--zinc-100);transform:translateY(-3px);box-shadow:0 18px 40px -16px rgba(0,0,0,.85)}
+
 .btn-primary:active{transform:translateY(-1px) scale(.985);box-shadow:none}
 .btn-secondary{
   background:var(--v-fondo);backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
@@ -198,7 +211,7 @@ html.light .card.hoverable:hover{box-shadow:var(--v-filo),0 26px 56px -26px rgba
   transition:transform .35s var(--resorte),border-color .25s var(--suave),box-shadow .35s var(--suave);
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
 }
-.btn-secondary:hover{border-color:var(--linea-fuerte);transform:translateY(-2px);box-shadow:var(--v-filo),0 18px 40px -22px rgba(0,0,0,.85)}
+
 .btn-secondary:active{transform:translateY(0) scale(.985)}
 .btn-danger{
   background:rgba(251,113,133,.08);color:var(--rose);border:1px solid rgba(251,113,133,.20);
@@ -206,17 +219,17 @@ html.light .card.hoverable:hover{box-shadow:var(--v-filo),0 26px 56px -26px rgba
   transition:background .2s ease,transform .2s var(--ease);
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
 }
-.btn-danger:hover{background:rgba(251,113,133,.16);transform:translateY(-2px)}
+
 .btn-danger:active{transform:scale(.97)}
 .btn-icon{
-  width:32px;height:32px;border-radius:999px;background:var(--v-fondo);
+  width:40px;height:40px;border-radius:999px;background:var(--v-fondo);
   backdrop-filter:var(--v-blur);-webkit-backdrop-filter:var(--v-blur);
   border:1px solid var(--v-borde);box-shadow:var(--v-filo);color:var(--zinc-500);cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;
   transition:color .3s var(--suave),border-color .3s var(--suave),transform .35s var(--resorte);flex:none;
 }
-.btn-icon:hover{color:var(--tinta);border-color:var(--linea-fuerte);transform:translateY(-2px)}
-.btn-icon.danger:hover{color:var(--rose);border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.08)}
+
+
 .btn-icon:active{transform:scale(.93)}
 
 /* ── Formularios ── */
@@ -257,22 +270,26 @@ html.light .seg{background:rgba(255,255,255,.70)}
   font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
   padding:7px 13px;border-radius:999px;transition:all .2s var(--ease);white-space:nowrap;
 }
-.seg button:hover{color:var(--zinc-300)}
+
 .seg button.on{background:var(--tinta);color:var(--contratinta)}
 
 /* ── Shell ── */
+/* El header ya NO es una barra sticky con superficie y borde propios: flota
+   sobre el campo igual que el resto del contenido y se desplaza con la
+   pagina (STICK_UI_SYSTEM.md §4.3, patron de STICK BUDGETS). El
+   padding-top suma la safe area para no quedar bajo la isla dinamica. */
 header.topbar{
-  position:sticky;top:0;z-index:40;background:color-mix(in srgb, var(--bg) 55%, transparent);
-  backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
-  border-bottom:1px solid var(--linea);padding-top:env(safe-area-inset-top);
+  position:relative;z-index:2;background:none;border-bottom:none;
+  padding-top:calc(env(safe-area-inset-top) + 2rem);
 }
-.topbar-inner{height:64px;display:flex;align-items:center;justify-content:space-between;
-  gap:14px;padding:0 18px;max-width:1120px;margin:0 auto}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:0 20px 20px;max-width:1120px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:11px;min-width:0}
 .brand-mark{width:34px;height:34px;border-radius:14px;border:1px solid var(--v-borde);
   background:linear-gradient(145deg,#27272a,#131316);display:flex;align-items:center;
   justify-content:center;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.45)}
-main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-direction:column;gap:22px}
+main{max-width:1120px;margin:0 auto;padding:0 20px 120px;display:flex;flex-direction:column;gap:22px}
+@media (min-width:640px){ .btn-tema{width:36px;height:36px} .btn-icon{width:36px;height:36px} }
 
 /* ── Barra de capítulos ── */
 .chapters{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
@@ -291,8 +308,8 @@ main{max-width:1120px;margin:0 auto;padding:22px 18px 120px;display:flex;flex-di
 /* Los capítulos activos son <button>: heredan fuente y reaccionan al puntero */
 button.chip{font-family:inherit;cursor:pointer;
   transition:color .25s var(--suave),border-color .25s var(--suave),transform .35s var(--resorte)}
-button.chip:hover{color:var(--zinc-200);border-color:var(--linea-fuerte);transform:translateY(-2px)}
-button.chip.on:hover{color:var(--contratinta)}
+
+
 button.chip:active{transform:scale(.97)}
 
 /* ── Catálogo de formaletas: un grupo por altura de panel ── */
@@ -303,7 +320,7 @@ button.chip:active{transform:scale(.97)}
 .rejilla-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px}
 .rejilla-form .chip{justify-content:center;font-size:12px;padding:10px 8px}
 .chip .quitar{margin-left:3px;opacity:.5;font-weight:800;padding:0 2px}
-.chip .quitar:hover{opacity:1}
+
 .fila-add{margin-top:15px;padding-top:15px;border-top:1px solid var(--linea);
   display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .fila-add .sep{flex:1;min-width:0}
@@ -341,7 +358,7 @@ button.chip:active{transform:scale(.97)}
 /* Fila de muro */
 .row{background:rgba(255,255,255,.035);border:1px solid var(--v-borde);border-radius:22px;padding:14px}
 html.light .row{background:rgba(255,255,255,.62)}
-.row:hover{border-color:rgba(82,82,91,.5)}
+
 .row-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .row-idx{width:26px;height:26px;border-radius:9px;background:rgba(255,255,255,.06);
   color:var(--zinc-400);font-size:11px;font-weight:700;display:flex;align-items:center;
@@ -425,7 +442,7 @@ html.light .stat{background:rgba(255,255,255,.62)}
   transition:border-color .25s var(--suave),background .25s var(--suave),transform .35s var(--resorte);
 }
 html.light .fig{background:rgba(255,255,255,.62)}
-.fig:hover{border-color:var(--linea-fuerte);transform:translateY(-2px)}
+
 .fig:active{transform:scale(.98)}
 .fig svg{width:100%;height:auto;max-width:132px;color:var(--zinc-500);display:block}
 .fig b{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;
@@ -442,7 +459,7 @@ html.light .fig.on{background:#fff}
 .tandas .chip.nueva{border-style:dashed;color:var(--zinc-400)}
 .tandas .chip .x{margin-left:2px;opacity:.55;font-weight:800;font-size:13px;line-height:1;
   padding:0 1px;border-radius:999px}
-.tandas .chip .x:hover{opacity:1;color:var(--rojo, #f87171)}
+
 .tandas .chip .n{font-size:9px;font-weight:700;opacity:.55;letter-spacing:.06em}
 /* Croquis acotado: el dibujo a escala de ESTA barra, con sus medidas.
    No es el ícono del selector — se redibuja con lo que se escribe. */
@@ -512,7 +529,7 @@ html.light .barra.on{background:rgba(255,255,255,.80)}
   width:100%;margin-top:3px;background:transparent;border:1px dashed var(--linea);
   border-radius:999px;padding:8px;color:var(--zinc-500);font-family:inherit;
   font-size:11px;font-weight:700;cursor:pointer;transition:color .2s var(--suave),border-color .2s var(--suave)}
-.btn-linea:hover{color:var(--tinta);border-color:var(--linea-fuerte)}
+
 /* En móvil la línea se parte en tres renglones. Con áreas explícitas, no con
    `grid-column`: dejar que el navegador acomode lo que sobra metía la cantidad
    en la columna de 30 px de la X. Se vio en captura a 390 px. */
@@ -537,8 +554,8 @@ html.light .barra.on{background:rgba(255,255,255,.80)}
   padding:11px 13px;color:var(--zinc-400);font-family:inherit;font-size:12.5px;
   font-weight:700;cursor:pointer;transition:all .22s var(--suave)}
 .btn-espejo.on{background:var(--tinta);color:var(--contratinta);border-color:transparent}
-.btn-espejo:hover{border-color:var(--linea-fuerte)}
-.btn-espejo.on:hover{color:var(--contratinta)}
+
+
 /* Desglose de la longitud: 0,30 + 4,20 + 0,30 = 4,80 m */
 .desglose{font-size:11px;color:var(--zinc-500);line-height:1.5;font-variant-numeric:tabular-nums}
 .desglose b{color:var(--zinc-300);font-weight:800}
@@ -547,6 +564,32 @@ html.light .barra.on{background:rgba(255,255,255,.80)}
 @media (min-width:900px){.g-ace{grid-template-columns:2fr 1fr 1fr}}
 footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
   font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--zinc-700);text-align:center}
+
+/* ── Hover solo con puntero fino (STICK_UI_SYSTEM.md §7.0 bis) ──────
+   En tactil el navegador dispara un hover falso al tocar y el elemento
+   se queda levantado hasta que se toca otra cosa: se lee como un bug.
+   Estas reglas se agrupan al final para conservar su peso de cascada. */
+@media (hover: hover) and (pointer: fine) {
+  .btn-tema:hover{color:var(--tinta);border-color:var(--linea-fuerte);transform:translateY(-2px)}
+  .card.hoverable:hover{border-color:var(--linea-fuerte);
+    box-shadow:var(--v-filo),0 30px 70px -28px rgba(0,0,0,.92);transform:translateY(-3px)}
+  html.light .card.hoverable:hover{box-shadow:var(--v-filo),0 26px 56px -26px rgba(21,22,27,.34)}
+  .btn-primary:hover{background:var(--zinc-100);transform:translateY(-3px);box-shadow:0 18px 40px -16px rgba(0,0,0,.85)}
+  .btn-secondary:hover{border-color:var(--linea-fuerte);transform:translateY(-2px);box-shadow:var(--v-filo),0 18px 40px -22px rgba(0,0,0,.85)}
+  .btn-danger:hover{background:rgba(251,113,133,.16);transform:translateY(-2px)}
+  .btn-icon:hover{color:var(--tinta);border-color:var(--linea-fuerte);transform:translateY(-2px)}
+  .btn-icon.danger:hover{color:var(--rose);border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.08)}
+  .seg button:hover{color:var(--zinc-300)}
+  button.chip:hover{color:var(--zinc-200);border-color:var(--linea-fuerte);transform:translateY(-2px)}
+  button.chip.on:hover{color:var(--contratinta)}
+  .chip .quitar:hover{opacity:1}
+  .row:hover{border-color:rgba(82,82,91,.5)}
+  .fig:hover{border-color:var(--linea-fuerte);transform:translateY(-2px)}
+  .tandas .chip .x:hover{opacity:1;color:var(--rojo, #f87171)}
+  .btn-linea:hover{color:var(--tinta);border-color:var(--linea-fuerte)}
+  .btn-espejo:hover{border-color:var(--linea-fuerte)}
+  .btn-espejo.on:hover{color:var(--contratinta)}
+}
 </style>
 </head>
 <body>

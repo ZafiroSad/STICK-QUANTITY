@@ -1,5 +1,28 @@
 # STICK QUANTITY — Bitácora del proyecto
 
+## Sincronización con STICK UI SYSTEM (2026-08-24)
+
+Pasada de consistencia visual de toda la familia Stick, con **STICK BUDGETS como referencia**. Al
+ser una app de un solo HTML, el sistema se replica sobre variables CSS propias con los mismos
+valores. Qué cambió:
+
+- **Presupuesto de duración** (`--t-toque` 140ms … `--t-lienzo` 420ms) y **resplandor de signo**
+  (`--glow-gain/-loss/-amber`), en ambos temas.
+- **Header sin barra**: `header.topbar` deja `sticky`, la superficie con `backdrop-filter` y el
+  `border-bottom`; ahora flota sobre el campo con
+  `padding-top: calc(env(safe-area-inset-top) + 2rem)`.
+- **Las 18 reglas `:hover` movidas a `@media (hover: hover) and (pointer: fine)`** — en táctil el
+  navegador dispara un hover falso al tocar y el elemento se queda levantado.
+- Botones-ícono (`.btn-tema`, `.btn-icon`) de 32px a **40px táctil / 36px desde 640px**; contenido a
+  20px de padding horizontal; `interactive-widget=resizes-content` en el viewport.
+
+**Excepción documentada:** esta app **no lleva navegación inferior** — es de una sola pantalla con
+barra de capítulos, no una app de pestañas. Su topbar sí quedó alineada al header canónico.
+
+**Verificado en vivo** (servidor HTTP local): header `position: relative`, fondo transparente, sin
+`border-bottom`, `padding-top` de 32px, botón de tema de 36px, contenido a 20px, sin errores de
+consola.
+
 ## Descripción y objetivo
 Calculadora de **cantidades de obra** para el Señor Stick. Objetivo: reemplazar el cálculo manual
 en papel/Excel para pedidos de material, empezando por mampostería y creciendo capítulo por
