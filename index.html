@@ -590,6 +590,39 @@ footer.foot{max-width:1120px;margin:0 auto;padding:0 18px 40px;
   .btn-espejo:hover{border-color:var(--linea-fuerte)}
   .btn-espejo.on:hover{color:var(--contratinta)}
 }
+
+/* ── Anillo de carga canonico (STICK_UI_SYSTEM.md §16.1) ──────────────
+   El MISMO indicador de espera de las siete apps: un anillo de 32px cuyo
+   segmento superior lleva la tinta, girando en 1s lineal. En modo claro la
+   tinta se invierte sola y el segmento pasa a ser el oscuro, sin una linea
+   extra. `.cargando-anillo.chico` (16px) es para dentro de un boton que
+   esta trabajando. */
+.cargando-anillo{
+  /* `inline-block` y no el `inline` por defecto de un <span>: en inline el
+     navegador IGNORA width/height y el anillo salia de 4px. Asi funciona
+     igual suelto en una pantalla que dentro de un boton. */
+  display:inline-block;
+  width:32px;height:32px;border-radius:999px;
+  /* `currentColor` y no un token fijo: asi el mismo anillo sirve sobre el
+     campo (donde hereda la tinta) y dentro de un boton de tinta (donde
+     hereda la contratinta). Con un color fijo, el anillo desaparecia sobre
+     el CTA claro. */
+  border:2px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-top-color:currentColor;
+  animation:cargando-girar 1s linear infinite;
+}
+.cargando-anillo.chico{width:16px;height:16px}
+@keyframes cargando-girar{ to{ transform:rotate(360deg) } }
+@media (prefers-reduced-motion:reduce){
+  /* Sin giro, pero el anillo sigue: es la senal de que algo esta pasando. */
+  .cargando-anillo{ animation:none; opacity:.6 }
+}
+
+/* Pantalla de carga completa: el anillo centrado sobre el campo. */
+.pantalla-carga{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+}
 </style>
 </head>
 <body>

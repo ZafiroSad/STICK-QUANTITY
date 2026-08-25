@@ -1,5 +1,20 @@
 # STICK QUANTITY — Bitácora del proyecto
 
+## Pantalla de carga unificada (2026-08-24)
+
+Regla del Señor Stick: **todas las apps de la familia comparten la misma animación de carga**, la de
+STICK BUDGETS — un anillo de 32px girando sobre el campo. Es lo primero que se ve al abrir cualquiera
+de las siete, así que es donde más se nota si una se comporta distinta. Documentado en
+`STICK_UI_SYSTEM.md` §16.1 y §21 (regla 12-bis).
+
+Componente compartido `PantallaCarga.tsx`: anillo de 32px, aro `border-zinc-700`, segmento
+`border-t-white` (la tinta, que en modo claro se invierte sola), `animate-spin` de 1s lineal, con
+`role="status"` y `aria-busy`. Acepta `mensaje` y `detalle` opcionales para esperas que de verdad
+tardan.
+
+No tiene pantalla de carga (HTML autónomo), pero se añadió la clase `.cargando-anillo` al CSS para
+cuando haga falta, con el mismo `display:inline-block` que corrige el anillo de 4px.
+
 ## Sincronización con STICK UI SYSTEM (2026-08-24)
 
 Pasada de consistencia visual de toda la familia Stick, con **STICK BUDGETS como referencia**. Al
