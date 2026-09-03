@@ -45,7 +45,7 @@ capítulo (concreto, acero, pañete, pisos). Repositorio **público** — es la 
 familia Stick pensada para ser útil a cualquier persona en obra, no solo al Señor Stick.
 
 ## Ubicación
-`C:\Users\kevin\Documents\KEVIN\02. WORK\03. PROYECTOS PERSONALES\STICK QUANTITY\`
+`C:\Users\kevin\Documents\KEVIN\02. WORK\03. STICK INDUSTRIES\01. STICK SUITE\STICK QUANTITY\`
 
 - Repositorio: `ZafiroSad/STICK-QUANTITY` (público)
 - Despliegue: GitHub Pages — https://zafirosad.github.io/STICK-QUANTITY/

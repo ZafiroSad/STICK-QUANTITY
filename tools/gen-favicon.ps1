@@ -8,7 +8,7 @@
 # criterio que tools/gen-icons.ps1 de STICK FIT.
 Add-Type -AssemblyName System.Drawing
 
-$OUT = "C:\Users\kevin\Documents\KEVIN\02. WORK\03. PROYECTOS PERSONALES\STICK QUANTITY"
+$OUT = "C:\Users\kevin\Documents\KEVIN\02. WORK\03. STICK INDUSTRIES\01. STICK SUITE\STICK QUANTITY"
 $FG = [System.Drawing.Color]::FromArgb(255, 255, 255)  # blanco del logo
 $BG = [System.Drawing.Color]::FromArgb(30, 31, 31)     # #1E1F1F, fondo del maestro
 
