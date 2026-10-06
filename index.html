@@ -426,8 +426,8 @@ html.light .stat{background:rgba(255,255,255,.62)}
 /* ── Capítulo Acero: la figura de la barra se escoge tocando el dibujo ──
    Se prefirió el dibujo al texto porque en obra la figura se reconoce de
    un vistazo y las letras A/B/C del dibujo son las mismas de los campos. */
-.figuras{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-@media (max-width:640px){.figuras{grid-template-columns:repeat(2,1fr)}}
+.figuras{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+@media (max-width:640px){.figuras{grid-template-columns:repeat(3,1fr)}}
 /* Segunda tira, solo para el estribo: cuadrado, forma C o forma S. Va sangrada
    y más baja que la de figuras para que se lea como lo que es, un sub-selector. */
 .formas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:-4px 0 12px;
@@ -2403,6 +2403,14 @@ const SVG_FIG = {
       <text x="14" y="44" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">B</text>
       <text x="122" y="44" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">C</text>
     </svg>`,
+  /* La Z: una pata baja y la otra sube. Es la barra que salva un escalón —el
+     cambio de nivel de una losa—, y no es un estribo: es refuerzo corrido. */
+  z: `<svg viewBox="0 0 136 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M28 54 V32 H108 V10" stroke-width="5"/>
+      <text x="68" y="24" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">A</text>
+      <text x="14" y="48" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">B</text>
+      <text x="122" y="24" fill="currentColor" stroke="none" font-size="13" font-weight="700" text-anchor="middle">C</text>
+    </svg>`,
   /* El estribo se dibuja abierto en la esquina superior izquierda, con los dos
      ganchos de 135° saliendo hacia adentro: es como se ve armado en obra. */
   estribo: `<svg viewBox="0 0 136 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -2427,6 +2435,14 @@ const FIGURAS = [
     campos:[{ k:'b', et:'B — escuadra izq. (m)', ph:'0.30' },
             { k:'a', et:'A — tramo recto (m)',   ph:'4.20' },
             { k:'c', et:'C — escuadra der. (m)', ph:'0.30' }] },
+  /* Mismo recorrido que la doble escuadra —B, A, C—, pero la pata C sale al
+     lado contrario. Sus patas casi nunca miden lo mismo (una baja el escalón,
+     la otra sube al muro), así que aquí no hay botón «B = C». */
+  { id:'z',       nombre:'Z',                 titulo:'Barra en Z — patas a lados opuestos',
+    ui:['b','c','a'],
+    campos:[{ k:'b', et:'B — pata izq. (m)', ph:'1.10' },
+            { k:'a', et:'A — tramo recto (m)', ph:'1.70' },
+            { k:'c', et:'C — pata der. (m)', ph:'0.35' }] },
   /* El estribo se escribe tal como se mide en la hoja de obra: los lados y la
      pata del gancho, todo en metros y todo a mano. Nada de sección menos
      recubrimiento ni de repartir por separación: la cuenta la pone quien mira
@@ -2538,7 +2554,7 @@ const figDe   = id => FIGURAS.find(x => x.id === id) || FIGURAS[0];
 
 /* La escuadra derecha copia a la izquierda mientras el botón «iguales» esté
    puesto: en obra el bastón simétrico es la regla, no la excepción. */
-const cDe = b => (b.iguales ? b.b : b.c);
+const cDe = b => (b.fig === 'esc2' && b.iguales ? b.b : b.c);
 
 /* ── Cálculo ────────────────────────────────────────────────
    Se calcula BARRA por barra: cada una tiene su figura, su longitud de corte
@@ -2688,6 +2704,11 @@ const geomAce = b => {
       const A = V('a'), B = V('b');
       pts = [[0,0],[A,0],[A,B]];
       cotas = [{ i:0, l:'A', v:A }, { i:1, l:'B', v:B }];
+    } else if (b.fig === 'z'){
+      const A = V('a'), B = V('b'), C = V('c');
+      // B cuelga hacia abajo y C sube: el eje y del dibujo crece hacia abajo
+      pts = [[0,B],[0,0],[A,0],[A,-C]];
+      cotas = [{ i:0, l:'B', v:B }, { i:1, l:'A', v:A }, { i:2, l:'C', v:C }];
     } else {
       const A = V('a'), B = V('b');
       const C = b.iguales ? B : V('c');
@@ -2823,7 +2844,7 @@ function pintarFilasAce(){
       const media = fig.ui && b.fig !== 'estribo' ? ' mitad' : '';
       const campos = enPantalla.map(cp => {
         // En doble escuadra con «iguales» puesto, C no se escribe: copia de B
-        const espejo = cp.k === 'c' && b.iguales;
+        const espejo = cp.k === 'c' && b.fig === 'esc2' && b.iguales;
         return `
           <div class="field${media}"><label>${cp.et}</label>
             <input data-bk="${cp.k}" type="text" inputmode="decimal" placeholder="${cp.ph}"
@@ -2989,7 +3010,7 @@ function pintarFilasAce(){
           if (limpio !== inp.value) inp.value = limpio;
           b[inp.dataset.bk] = inp.value;
           // Con las escuadras iguales, C sigue a B en pantalla y en el cálculo
-          if (inp.dataset.bk === 'b' && b.iguales){
+          if (inp.dataset.bk === 'b' && b.fig === 'esc2' && b.iguales){
             const cIn = el.querySelector('[data-bk="c"]');
             if (cIn) cIn.value = inp.value;
           }

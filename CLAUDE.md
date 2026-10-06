@@ -52,7 +52,25 @@ familia Stick pensada para ser útil a cualquier persona en obra, no solo al Se�
 - Rama `main`, carpeta raíz `/`, build legacy (mismo patrón que STICK FIT).
 - **Publicado y verificado en vivo el 2026-08-06** (HTTP 200, 41.305 bytes, favicon 200).
 
-## Estado actual — v1.14.0 (Mampostería + Concreto de columnas + Acero)
+## Estado actual — v1.15.0 (Mampostería + Concreto de columnas + Acero)
+
+### Figura en Z (2026-10-06)
+
+Pedida por el Señor Stick para figurar el acero de la piscina del LOTE 23 «con figuras sencillas
+y traslapo»: la barra de 5 dobleces que salva el escalón de la losa se parte en una U (doble
+escuadra) y una Z que traslapan en la pata del escalón. La Z **no es un estribo**: es refuerzo
+corrido, quinto botón de la tira de figuras.
+
+- `FIGURAS` gana `z`: mismo recorrido que la doble escuadra (`B → A → C`) pero la pata C sale al
+  lado contrario. `geomAce` la dibuja `[[0,B],[0,0],[A,0],[A,−C]]`, y de ahí salen solos el
+  diagrama del renglón, el croquis acotado y la figura del `.xlsx`.
+- **Sin botón «B = C»**: las patas de una Z casi nunca miden igual. `cDe`, el espejo del campo y
+  el listener de B quedan limitados a `esc2`; antes leían `b.iguales` de cualquier figura y una
+  barra nueva —que nace con `iguales:true`— habría copiado B en C.
+- La tira pasa de 4 a 5 columnas (3 en el celular).
+
+**Verificado en vivo** con el archivo local: Z de 1,10 + 1,72 + 0,35 = 3,17 m, croquis y
+`figuraXlsx` correctos, la doble escuadra con B = C sigue dando 5,20 m, sin desborde a 375 px.
 
 ### La hoja exportada se viste como la cartilla real (2026-08-16)
 
